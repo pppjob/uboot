@@ -53,6 +53,7 @@ COBJS-$(CONFIG_S3C44B0_SERIAL) += serial_s3c44b0.o
 COBJS-$(CONFIG_XILINX_UARTLITE) += serial_xuartlite.o
 COBJS-$(CONFIG_SCIF_CONSOLE) += serial_sh.o
 COBJS-$(CONFIG_USB_TTY) += usbtty.o
+COBJS-$(CONFIG_ATXX_SERIAL) += serial_atxx.o
 
 COBJS	:= $(sort $(COBJS-y))
 SRCS	:= $(COBJS:.o=.c)

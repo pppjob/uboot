@@ -132,6 +132,9 @@ export obj src
 unexport CDPATH
 
 #########################################################################
+ARCH		:= arm
+CROSS_COMPILE	:= arm-eabi-
+
 
 ifeq ($(ARCH),powerpc)
 ARCH = ppc
@@ -3703,6 +3706,12 @@ grsim_config : unconfig
 grsim_leon2_config : unconfig
 	@$(MKCONFIG) $(@:_config=) sparc leon2 grsim_leon2 gaisler
 
+#########################################################################
+
+# AugustaTek ATXX
+at6600_d0_cayman20_config : unconfig
+	@$(MKCONFIG) $(@:_config=) arm atxx cayman20 augusta at6600
+	
 #########################################################################
 #########################################################################
 #########################################################################

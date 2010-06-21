@@ -274,7 +274,11 @@ void start_armboot (void)
 #endif
 
 	/* Pointer is writable since we allocated a register for it */
+#ifdef CONFIG_UNCONTINUOUS_MEM
+	gd = (gd_t*)(CONFIG_SYS_MALLOC_START - CONFIG_SYS_MALLOC_LEN - sizeof(gd_t));
+#else
 	gd = (gd_t*)(_armboot_start - CONFIG_SYS_MALLOC_LEN - sizeof(gd_t));
+#endif
 	/* compiler optimization barrier needed for GCC >= 3.4 */
 	__asm__ __volatile__("": : :"memory");
 
