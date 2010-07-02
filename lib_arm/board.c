@@ -297,9 +297,13 @@ void start_armboot (void)
 	}
 
 	/* armboot_start is defined in the board-specific linker script */
+#ifdef CONFIG_UNCONTINUOUS_MEM
+	mem_malloc_init (CONFIG_SYS_MALLOC_START - CONFIG_SYS_MALLOC_LEN,
+			CONFIG_SYS_MALLOC_LEN);
+#else
 	mem_malloc_init (_armboot_start - CONFIG_SYS_MALLOC_LEN,
 			CONFIG_SYS_MALLOC_LEN);
-
+#endif
 #ifndef CONFIG_SYS_NO_FLASH
 	/* configure available FLASH banks */
 	display_flash_config (flash_init ());

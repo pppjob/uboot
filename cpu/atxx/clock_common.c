@@ -32,7 +32,6 @@ static LIST_HEAD(clocks);
 void dump_clock(void)
 {
 	struct clk *p;
-	unsigned long rate;
 
 	list_for_each_entry(p, &clocks, list) {
 		printf("%s rate: %ld ",p->name,

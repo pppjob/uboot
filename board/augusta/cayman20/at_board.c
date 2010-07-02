@@ -20,16 +20,19 @@
 *
 ------------------------------------------------------------------------------*/
 
-#include <asm/arch-atxx/topctl.h>
 #include <linux/types.h>
+#include <asm/arch-atxx/topctl.h>
+#include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/clock.h>
+#include <asm/arch-atxx/mddr.h>
 #include "clock_table.c"
+#include "map_table.c"
 int board_init(void)
 {
 	uint32_t val;
-#if 0
-	set_icache(ON);
 
+	mmu_cache_on(memory_map);
+#if 0
 	at6600_i2c_init();
 	set_pmu_default();
 #endif	
@@ -45,8 +48,11 @@ int board_init(void)
 	topctl_write_reg(TOPCTL4, 0xf6ffdfef);
 	topctl_write_reg(TOPCTL5, 0x081c4c98);
 	topctl_write_reg(TOPCTL6, 0x00f29e94);
-
-	//uart_init();
+	/* 
+	* FIXME: add mddr power down code, not allow 
+	* reinit without power down, when self-refresh
+	*/
+	mddr_init();
 	return 0;
 }
 

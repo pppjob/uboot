@@ -19,10 +19,14 @@
 * without the prior written permission of the copyright owner.
 *
 ------------------------------------------------------------------------------*/
-
+#include <asm/io.h>
 #include <common.h>
+#include <asm/arch-atxx/regs_base.h>
+#include <asm/arch-atxx/pm.h>
+
 void reset_cpu (ulong addr)
 {
-
+	/* trigger software reset */
+	pm_write_reg(SWRSTR, SWRSTR_SOFT_RESET);
 }
 

@@ -29,7 +29,7 @@ int print_cpuinfo(void)
 	printf("\rAT6600: ARM %luMHz ",  clk_get_rate(clk_get("arm")) / MHZ);
 	printf("AXI %luMHz MDDR %luMHz \n",
 	       clk_get_rate(clk_get("axi")) / MHZ, clk_get_rate(clk_get("mddr")) / MHZ);
-	dump_clock();
+
 #ifdef DEBUG_BSP
 	dump_clock();
 	printf("udelay start\n");

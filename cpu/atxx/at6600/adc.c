@@ -20,10 +20,10 @@
 * 
 ------------------------------------------------------------------------------*/
 
-#include <asm/arch-atxx/regs_base.h>
 #include <asm/io.h>
-#include <linux/types.h>
 #include <common.h>
+#include <linux/types.h>
+#include <asm/arch-atxx/regs_base.h>
 
 /**************************************************************************
  * TSC Registers Define

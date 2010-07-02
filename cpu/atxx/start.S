@@ -357,8 +357,11 @@ phy_last_jump:
 	sub	sp, sp, #S_FRAME_SIZE
 	/* Save user registers (now in svc mode) r0-r12 */
 	stmia	sp, {r0 - r12}
-
+#ifdef CONFIG_UNCONTINUOUS_MEM
+	ldr	r2, =CONFIG_SYS_MALLOC_START
+#else
 	ldr	r2, _armboot_start
+#endif
 	sub	r2, r2, #(CONFIG_SYS_MALLOC_LEN)
 	/* set base 2 words into abort stack */
 	sub	r2, r2, #(CONFIG_SYS_GBL_DATA_SIZE+8)
@@ -377,7 +380,11 @@ phy_last_jump:
 
 	.macro get_bad_stack
 	/* setup our mode stack (enter in banked mode) */
+#ifdef CONFIG_UNCONTINUOUS_MEM
+	ldr	r13, =CONFIG_SYS_MALLOC_START
+#else
 	ldr	r13, _armboot_start
+#endif
 	/* move past malloc pool */
 	sub	r13, r13, #(CONFIG_SYS_MALLOC_LEN)
 	/* move to reserved a couple spots for abort stack */
@@ -468,4 +475,52 @@ fiq:
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_fiq
+
+.globl __mmu_cache_on
+
+__mmu_cache_on:
+	mov	r12, lr
+	mov r3, r0
+	mov	r0, #0
+	mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
+	mcr	p15, 0, r0, c8, c7, 0	@ flush I,D TLBs
+	mrc	p15, 0, r0, c1, c0, 0	@ read control reg
+	orr	r0, r0, #0x5000 	@ I-cache enable, RR cache replacement
+	orr	r0, r0, #0x0030
+	bl	__common_mmu_cache_on
+	mov	r0, #0
+	mcr	p15, 0, r0, c8, c7, 0	@ flush I,D TLBs
+	mov	pc, r12
+
+__common_mmu_cache_on:
+	orr	r0, r0, #0x000d 	@ Write buffer, mmu
+	mov	r1, #-1			@ 0xffffffff
+	mcr	p15, 0, r3, c2, c0, 0	@ load page table pointer
+	mcr	p15, 0, r1, c3, c0, 0	@ load domain access control
+	b	1f		
+	.align	5			@ cache line aligned
+1:
+	mcr	p15, 0, r0, c1, c0, 0	@ load control register
+	mrc	p15, 0, r0, c1, c0, 0	@ and read it back to
+	sub	pc, lr, r0, lsr #32	@ properly flush pipeline
+
+.globl __mmu_cache_off
+__mmu_cache_off:
+	mov r2, lr
+	bl __clean_cache
+	mrc	p15, 0, r0, c1, c0, 0
+	bic	r0, r0, #0x000d
+	mcr	p15, 0, r0, c1, c0, 0	@ turn MMU and cache off
+	mov	r0, #0
+	mcr	p15, 0, r0, c7, c7, 0	@ invalidate whole cache v4
+	mcr	p15, 0, r0, c8, c7, 0	@ invalidate whole TLB v4
+	mov	pc, r2
+
+.globl __clean_cache
+__clean_cache:
+	mcr	p15, 0, r0, c7, c10, 0	@ clean entire Data cache
+	mov	r0, #0
+	mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
+	mov	pc, lr
+
 #endif /* CONFIG_NAND_SPL */

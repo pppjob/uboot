@@ -31,7 +31,7 @@ LIB	= $(obj)lib$(SOC).a
 #SOBJS	= reset.o
 
 COBJS-$(CONFIG_AT6600)	+=  speed.o
-COBJS-$(CONFIG_AT6600)	+= timer.o reset.o adc.o clock.o
+COBJS-$(CONFIG_AT6600)	+= timer.o reset.o adc.o clock.o mddr.o mmu.o
 
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
 
