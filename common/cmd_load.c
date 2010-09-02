@@ -33,8 +33,11 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_CMD_LOADB)
+#if defined(CONFIG_CMD_LOAD)
+static ulong load_serial_modem (ulong offset, int mode);
+#if 0
 static ulong load_serial_ymodem (ulong offset);
+#endif
 #endif
 
 #if defined(CONFIG_CMD_LOADS)
@@ -404,7 +407,7 @@ write_record (char *buf)
 #endif
 
 
-#if defined(CONFIG_CMD_LOADB)
+#if defined(CONFIG_CMD_LOAD)
 /*
  * loadb command (load binary) included
  */
@@ -474,8 +477,20 @@ int do_load_serial_bin (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				break;
 		}
 	}
+#ifdef CONFIG_CMD_LOADX
+	if (strcmp(argv[0],"loadx")==0) {
+		printf ("## Ready for binary (xmodem) download "
+			"to 0x%08lX at %d bps...\n",
+			offset,
+			load_baudrate);
 
-	if (strcmp(argv[0],"loady")==0) {
+		addr = load_serial_modem (offset, xyzModem_xmodem);
+
+	}
+	else
+#endif
+#ifdef CONFIG_CMD_LOADY
+	 	if (strcmp(argv[0],"loady")==0) {
 		printf ("## Ready for binary (ymodem) download "
 			"to 0x%08lX at %d bps...\n",
 			offset,
@@ -483,7 +498,10 @@ int do_load_serial_bin (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 		addr = load_serial_ymodem (offset);
 
-	} else {
+	} else 
+#endif
+#ifdef CONFIG_CMD_LOADB
+	{
 
 		printf ("## Ready for binary (kermit) download "
 			"to 0x%08lX at %d bps...\n",
@@ -500,6 +518,7 @@ int do_load_serial_bin (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			load_addr = addr;
 		}
 	}
+#endif
 	if (load_baudrate != current_baudrate) {
 		printf ("## Switch baudrate to %d bps and press ESC ...\n",
 			current_baudrate);
@@ -963,7 +982,12 @@ static int getcxmodem(void) {
 		return (getc());
 	return -1;
 }
+#ifdef CONFIG_CMD_LOAD
+static ulong load_serial_modem (ulong offset, int mode)
+#endif
+#if 0
 static ulong load_serial_ymodem (ulong offset)
+#endif
 {
 	int size;
 	char buf[32];
@@ -975,7 +999,10 @@ static ulong load_serial_ymodem (ulong offset)
 	ulong addr = 0;
 
 	size = 0;
+#if 0
 	info.mode = xyzModem_ymodem;
+#endif
+	info.mode = mode;
 	res = xyzModem_stream_open (&info, &err);
 	if (!res) {
 
@@ -1077,7 +1104,8 @@ U_BOOT_CMD(
 	"    - load binary file over serial line"
 	" with offset 'off' and baudrate 'baud'"
 );
-
+#endif
+#ifdef CONFIG_CMD_LOADY
 U_BOOT_CMD(
 	loady, 3, 0,	do_load_serial_bin,
 	"load binary file over serial line (ymodem mode)",
@@ -1085,7 +1113,15 @@ U_BOOT_CMD(
 	"    - load binary file over serial line"
 	" with offset 'off' and baudrate 'baud'"
 );
-
+#endif
+#ifdef CONFIG_CMD_LOADX
+U_BOOT_CMD(
+	loadx, 3, 0,	do_load_serial_bin,
+	"load binary file over serial line (xmodem mode)",
+	"[ off ] [ baud ]\n"
+	"    - load binary file over serial line"
+	" with offset 'off' and baudrate 'baud'"
+);
 #endif
 
 /* -------------------------------------------------------------------- */

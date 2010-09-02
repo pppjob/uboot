@@ -40,9 +40,9 @@ int print_cpuinfo(void)
 	mdelay(100000);
 	printf("mdelay 100000 end\n");
 	
-	printf("get_timer(0)=%x\n",get_timer(0));
+	printf("get_timer(0)=%lx\n",get_timer(0));
 	mdelay(100);
-	printf("get_timer(0)=%x\n",get_timer(0));
+	printf("get_timer(0)=%lx\n",get_timer(0));
 #endif	
 	return 0;
 }

@@ -32,5 +32,10 @@ void  flush_cache (unsigned long dummy1, unsigned long dummy2)
 
 	arm1136_cache_flush();
 #endif
+#ifdef CONFIG_ATXX
+	void arm1176_cache_flush(void);
+
+	arm1176_cache_flush();
+#endif
 	return;
 }

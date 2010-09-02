@@ -27,12 +27,14 @@
 #define CONFIG_AT6600
 #define CONFIG_IDENT_STRING 		" AUGUSTATEK-ATXX "
 #define CONFIG_DISPLAY_CPUINFO
+/* useless macro, just for compile */
+#define CONFIG_SYS_HZ 			1000
 
 #define CONFIG_UNCONTINUOUS_MEM
-#define CONFIG_SYS_MALLOC_START		0x40220000
+#define CONFIG_SYS_MALLOC_START		0x88208000
 
-#define	CONFIG_SYS_UBOOT_BASE		0x40400400
-#define	CONFIG_SYS_PHY_UBOOT_BASE	0x40400400
+#define	CONFIG_SYS_UBOOT_BASE		0x88008000
+#define	CONFIG_SYS_PHY_UBOOT_BASE	0x88008000
 
 /*
  * High Level Configuration Options
@@ -47,16 +49,8 @@
 
 /* enable passing of ATAGs  */
 #define CONFIG_CMDLINE_TAG		1
-#define CONFIG_SETUP_MEMORY_TAGS	1
-#define CONFIG_INITRD_TAG 		1
 /* call misc_init_r during start up */
 #define CONFIG_MISC_INIT_R		1
-
-/*
- * Log Buf Support
- */
-#define CONFIG_LOG_BUF
-#define CONFIG_LOG_BUF_SHIFT 		12	/* (1 << 12) -> 4K */
 
 /* 
  * Exclude ZLIB Support, for downsize
@@ -65,7 +59,8 @@
 
 /* reserved for malloc */
 #define CONFIG_SYS_MALLOC_LEN		\
-	(CONFIG_ENV_SIZE + 24*1024)
+	(CONFIG_ENV_SIZE + 200*1024)
+
 /* reserved for initial data */
 #define CONFIG_SYS_GBL_DATA_SIZE	(128)
 /*
@@ -80,27 +75,25 @@
 #define CONFIG_STACKSIZE_FIQ		(4*1024)
 #endif
 /* regular stack */
-#define CONFIG_STACKSIZE		(24*1024)
+#define CONFIG_STACKSIZE		(512*1024)
 
 
 #define CONFIG_ATXX_SERIAL
 /*
- * DW APB UART Configuration
+ * ATXX UART Configuration
  */
-#define CFG_DWAPBUART_SERIAL
 /* FIXME : not correct */
 #define CFG_UART_CLOCK_FREQ 		(3686400*16)
 #define CONFIG_BAUDRATE			921600
 #define CONFIG_SYS_BAUDRATE_TABLE   	\
-	{ 9600, 19200, 38400, 57600, 115200, 921600 }
+		{ 9600, 19200, 38400, 57600, 115200, 921600 }
 #define CFG_UART_LOOPENABLE 		0
 #define CFG_UART_FIFO_ON
-
-#define CONFIG_UART_XMODEM
+#define CONFIG_SERIAL_MULTI
 
 #define CONFIG_BOOTDELAY		2
 #define CONFIG_BOOTARGS			\
-	"root=/dev/ram console=ttyS0,921600n8"
+		"root=/dev/ram console=ttyS0,921600n8"
 #define CONFIG_BOOTCOMMAND 		"help"
 
 /*
@@ -110,7 +103,7 @@
 #define CFG_LONGHELP
 #define CONFIG_SYS_PROMPT		"AT6600 # " 
 /* Console I/O Buffer Size*/
-#define CONFIG_SYS_CBSIZE 		256 
+#define CONFIG_SYS_CBSIZE 		512 
 
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
@@ -133,11 +126,27 @@
 
 #undef CONFIG_USE_IRQ
 
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_SYS_NAND_BASE		0x3fd70000
+#define CONFIG_SYS_NAND_MAX_CHIPS	4
+#define CONFIG_NAND_ATXX
+#define CONFIG_NAND_FULL_HW
+
+/* Environment */
+#define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_CMD_SAVEENV
+#define CONFIG_ENV_OFFSET		0x100000
+#define CONFIG_LOAD_ADDR		0x88800100
+
 /*
  * Command lists
  */
 #define CONFIG_CMD_TEST
 #define CONFIG_CMD_MEMORY
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_LOAD
+#define CONFIG_CMD_LOADX	/* loadx */
+
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_MEMTEST_START	0x88000000
 
@@ -147,8 +156,6 @@
 #define CONFIG_SYS_NO_FLASH
 
 #define CFG_MONITOR_LEN			0x00100000
-
-#define CONFIG_ENV_IS_NOWHERE
 
 #define CONFIG_ENV_SIZE			8192	/* 8KB */
 

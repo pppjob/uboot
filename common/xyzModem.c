@@ -105,7 +105,11 @@ CYGACC_COMM_IF_GETC_TIMEOUT (char chan, char *c)
 {
 #define DELAY 20
   unsigned long counter = 0;
+#ifdef CONFIG_ATXX
+  while (!tstc () && (counter < (150 * 1000 / DELAY)))
+#else
   while (!tstc () && (counter < xyzModem_CHAR_TIMEOUT * 1000 / DELAY))
+#endif
     {
       udelay (DELAY);
       counter++;

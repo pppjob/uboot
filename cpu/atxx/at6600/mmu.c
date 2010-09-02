@@ -73,6 +73,7 @@ static int setup_mmu_table(struct map_desc *memory_map)
 	return 0;
 }
 
+extern void __mmu_cache_on(uint32_t * mmu_table);
 void mmu_cache_on(struct map_desc *memory_map)
 {
 	int ret;
@@ -83,12 +84,14 @@ void mmu_cache_on(struct map_desc *memory_map)
 	return;
 }
 
+extern void __mmu_cache_off(void);
 void mmu_cache_off(void)
 {
 	__mmu_cache_off();
 }
 
-void clean_cache(void)
+extern void __flush_cache(void);
+void arm1176_cache_flush(void)
 {
-	__clean_cache();
+	__flush_cache();
 }

@@ -34,11 +34,17 @@
 
 struct mtd_info;
 /* Scan and identify a NAND device */
+#ifdef	CONFIG_ATXX
+extern int atxx_nd_scan (struct mtd_info *mtd, int max_chips);
+#else
 extern int nand_scan (struct mtd_info *mtd, int max_chips);
+#endif
 /* Separate phases of nand_scan(), allowing board driver to intervene
  * and override command or ECC setup according to flash type */
 extern int nand_scan_ident(struct mtd_info *mtd, int max_chips);
 extern int nand_scan_tail(struct mtd_info *mtd);
+extern void mtd_set_defaults(struct mtd_info *mtd);
+
 
 /* Free resources held by the NAND device */
 extern void nand_release (struct mtd_info *mtd);
@@ -397,7 +403,7 @@ struct nand_chip {
 	int		bbt_erase_shift;
 	int		chip_shift;
 	int		numchips;
-	unsigned long	chipsize;
+	uint64_t	chipsize;
 	int		pagemask;
 	int		pagebuf;
 	int		subpagesize;
@@ -481,6 +487,8 @@ extern int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
 			   int allowbbt);
 extern int nand_do_read(struct mtd_info *mtd, loff_t from, size_t len,
 			size_t * retlen, uint8_t * buf);
+
+extern void nand_set_defaults(struct nand_chip *chip, int busw);
 
 /*
 * Constants for oob configuration

@@ -14,7 +14,7 @@
  * -  Added strsep() which will replace strtok() soon (because strsep() is
  *    reentrant and should be faster). Use only strsep() in new code, please.
  */
-
+#include <config.h>
 #include <linux/types.h>
 #include <linux/string.h>
 #include <linux/ctype.h>

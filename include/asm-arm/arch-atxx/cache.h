@@ -24,7 +24,7 @@
 #define __ASM_ARCH_CACHE_H_
 #include "memory_map.h"
 
-void clean_cache(void);
+void arm1176_cache_flush(void);
 void mmu_cache_on(struct map_desc *memory_map);
 void mmu_cache_off(void);
 

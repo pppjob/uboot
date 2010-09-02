@@ -22,5 +22,6 @@
 
 int cleanup_before_linux (void)
 {
+	flush_cache(0, 0);
 	return 0;
 }

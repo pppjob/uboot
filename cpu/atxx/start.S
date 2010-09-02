@@ -22,9 +22,6 @@
 
 #include <config.h>
 #include <version.h>
-#ifdef CONFIG_ENABLE_MMU
-#include <asm/proc/domain.h>
-#endif
 
 
 #if !defined(CONFIG_ENABLE_MMU) && !defined(CONFIG_SYS_PHY_UBOOT_BASE)
@@ -41,7 +38,6 @@
 
 .globl _start
 _start: b	reset
-#ifndef CONFIG_NAND_SPL
 	ldr	pc, _undefined_instruction
 	ldr	pc, _software_interrupt
 	ldr	pc, _prefetch_abort
@@ -66,9 +62,6 @@ _fiq:
 	.word fiq
 _pad:
 	.word 0x12345678 /* now 16*4=64 */
-#else
-	. = _start + 64
-#endif
 
 .global _end_vect
 _end_vect:
@@ -144,7 +137,6 @@ cpu_init_crit:
 	 * When booting from NAND - it has definitely been a reset, so, no need
 	 * to flush caches and disable the MMU
 	 */
-#ifndef CONFIG_NAND_SPL
 	/*
 	 * flush v4 I/D caches
 	 */
@@ -160,8 +152,7 @@ cpu_init_crit:
 	bic	r0, r0, #0x00000087	@ clear bits 7, 2:0 (B--- -CAM)
 	orr	r0, r0, #0x00000002	@ set bit 2 (A) Align
 	orr	r0, r0, #0x00001000	@ set bit 12 (I) I-Cache
-	/* Prepare to disable the MMU */
-	adr	r1, mmu_disable_phys
+
 	/* We presume we're within the first 1024 bytes */
 	and	r1, r1, #0x3fc
 	ldr	r2, _TEXT_PHY_BASE
@@ -176,21 +167,7 @@ mmu_disable:
 	mcr	p15, 0, r0, c1, c0, 0
 	nop
 	nop
-	/* mov	pc, r2 */
-#endif
 
-mmu_disable_phys:
-	/* Peri port setup */
-	ldr	r0, =0x70000000
-	orr	r0, r0, #0x13
-	mcr	p15,0,r0,c15,c2,4       @ 256M (0x70000000 - 0x7fffffff)
-
-	/*
-	 * Go setup Memory and board specific bits prior to relocation.
-	 */
-	/*bl	lowlevel_init*/		/* go setup pll,mux,memory */
-
-//after_copy:
 #ifdef CONFIG_ENABLE_MMU
 enable_mmu:
 	/* enable domain access */
@@ -264,55 +241,16 @@ clbss_l:
 	cmp	r0, r1
 	ble	clbss_l
 
-#ifndef CONFIG_NAND_SPL
 	ldr	pc, _start_armboot
 
 _start_armboot:
 	.word start_armboot
-#else
-	b	nand_boot
-/*	.word nand_boot*/
-#endif
 
 #ifdef CONFIG_ENABLE_MMU
 _mmu_table_base:
 	.word mmu_table
 #endif
 
-#ifndef CONFIG_NAND_SPL
-/*
- * we assume that cache operation is done before. (eg. cleanup_before_linux())
- * actually, we don't need to do anything about cache if not use d-cache in
- * U-Boot. So, in this function we clean only MMU. by scsuh
- *
- * void	theLastJump(void *kernel, int arch_num, uint boot_params);
- */
-#ifdef CONFIG_ENABLE_MMU
-	.globl theLastJump
-theLastJump:
-	mov	r9, r0
-	ldr	r3, =0xfff00000
-	ldr	r4, _TEXT_PHY_BASE
-	adr	r5, phy_last_jump
-	bic	r5, r5, r3
-	orr	r5, r5, r4
-	mov	pc, r5
-phy_last_jump:
-	/*
-	 * disable MMU stuff
-	 */
-	mrc	p15, 0, r0, c1, c0, 0
-	bic	r0, r0, #0x00002300	/* clear bits 13, 9:8 (--V- --RS) */
-	bic	r0, r0, #0x00000087	/* clear bits 7, 2:0 (B--- -CAM) */
-	orr	r0, r0, #0x00000002	/* set bit 2 (A) Align */
-	orr	r0, r0, #0x00001000	/* set bit 12 (I) I-Cache */
-	mcr	p15, 0, r0, c1, c0, 0
-
-	mcr	p15, 0, r0, c8, c7, 0	/* flush v4 TLB */
-
-	mov	r0, #0
-	mov	pc, r9
-#endif
 /*
  *************************************************************************
  *
@@ -364,7 +302,7 @@ phy_last_jump:
 #endif
 	sub	r2, r2, #(CONFIG_SYS_MALLOC_LEN)
 	/* set base 2 words into abort stack */
-	sub	r2, r2, #(CONFIG_SYS_GBL_DATA_SIZE+8)
+	sub	r2, r2, #(CONFIG_SYS_GBL_DATA_SIZE + 8)
 	/* get values for "aborted" pc and cpsr (into parm regs) */
 	ldmia	r2, {r2 - r3}
 	/* grab pointer to old stack */
@@ -523,4 +461,10 @@ __clean_cache:
 	mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
 	mov	pc, lr
 
-#endif /* CONFIG_NAND_SPL */
+.globl __flush_cache
+__flush_cache:
+	mcr	p15, 0, r0, c7, c14, 0	@ clean and invalidate entire Data cache
+	mov	r0, #0
+	mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
+	mov	pc, lr
+

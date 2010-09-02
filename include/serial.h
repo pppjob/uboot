@@ -57,6 +57,9 @@ extern struct serial_device zoom2_serial_device2;
 extern struct serial_device zoom2_serial_device3;
 #endif
 
+#if defined(CONFIG_ATXX)
+extern struct serial_device atxx_ffuart_device;
+#endif
 extern struct serial_device serial_ffuart_device;
 extern struct serial_device serial_btuart_device;
 extern struct serial_device serial_stuart_device;

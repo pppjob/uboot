@@ -369,7 +369,11 @@ static int nand_block_bad(struct mtd_info *mtd, loff_t ofs, int getchip)
 {
 	int page, chipnr, res = 0;
 	struct nand_chip *chip = mtd->priv;
+#ifndef CONFIG_NAND_FULL_HW
 	u16 bad;
+#else
+	int i;
+#endif
 
 	page = (int)(ofs >> chip->page_shift) & chip->pagemask;
 
@@ -382,6 +386,7 @@ static int nand_block_bad(struct mtd_info *mtd, loff_t ofs, int getchip)
 		chip->select_chip(mtd, chipnr);
 	}
 
+#ifndef CONFIG_NAND_FULL_HW
 	if (chip->options & NAND_BUSWIDTH_16) {
 		chip->cmdfunc(mtd, NAND_CMD_READOOB, chip->badblockpos & 0xFE,
 			      page);
@@ -395,7 +400,16 @@ static int nand_block_bad(struct mtd_info *mtd, loff_t ofs, int getchip)
 		if (chip->read_byte(mtd) != 0xff)
 			res = 1;
 	}
-
+#else
+	/* read oob and compare with 0xff */
+	for (i = 0; i < 2; i++) {
+		chip->ecc.read_oob(mtd, chip, page + i, 0);
+		if ((chip->oob_poi[chip->badblockpos] & 0xff) != 0xff) {
+			res = 1;
+			break;
+		}
+	}
+#endif
 	if (getchip)
 		nand_release_device(mtd);
 
@@ -415,6 +429,9 @@ static int nand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	struct nand_chip *chip = mtd->priv;
 	uint8_t buf[2] = { 0, 0 };
 	int block, ret;
+#ifdef CONFIG_NAND_FULL_HW
+	int chipnr, page, i;
+#endif
 
 	/* Get block number */
 	block = (int)(ofs >> chip->bbt_erase_shift);
@@ -429,6 +446,7 @@ static int nand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 		 * access
 		 */
 		nand_get_device(chip, mtd, FL_WRITING);
+#ifndef CONFIG_NAND_FULL_HW
 		ofs += mtd->oobsize;
 		chip->ops.len = chip->ops.ooblen = 2;
 		chip->ops.datbuf = NULL;
@@ -436,6 +454,28 @@ static int nand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 		chip->ops.ooboffs = chip->badblockpos & ~0x01;
 
 		ret = nand_do_write_oob(mtd, ofs, &chip->ops);
+#else
+		/* mark 1st, if fail, mark 2nd page to identify bad block */
+		ret = 0;
+		chipnr = (int)(ofs >> chip->chip_shift);
+		chip->select_chip(mtd, chipnr);
+	
+		/* Shift to get page */
+		page = (int)(ofs >> chip->page_shift);
+	
+		for (i = 0; i < 2; i++) {
+			chip->oob_poi[chip->badblockpos] = 0;
+			chip->ecc.write_oob(mtd, chip, page + i);
+	
+			chip->ecc.read_oob(mtd, chip, page + i, 0);
+			/* FIXME */
+			buf[i] = chip->oob_poi[chip->badblockpos];
+			if (buf[i] != 0xff) {
+				ret = -EINVAL;
+				break;
+			}
+		}
+#endif
 		nand_release_device(mtd);
 	}
 	if (!ret)
@@ -1260,10 +1300,12 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 		if (realpage != chip->pagebuf || oob) {
 			bufpoi = aligned ? buf : chip->buffers->databuf;
 
+#ifndef CONFIG_NAND_FULL_HW
 			if (likely(sndcmd)) {
 				chip->cmdfunc(mtd, NAND_CMD_READ0, 0x00, page);
 				sndcmd = 0;
 			}
+#endif
 
 			/* Now read the page into the buffer */
 			if (unlikely(ops->mode == MTD_OOB_RAW))
@@ -1929,10 +1971,12 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 	chip->select_chip(mtd, chipnr);
 
 	/* Check, if it is write protected */
+#ifndef CONFIG_NAND_FULL_HW
 	if (nand_check_wp(mtd)) {
 		printk (KERN_NOTICE "nand_do_write_ops: Device is write protected\n");
 		return -EIO;
 	}
+#endif
 
 	realpage = (int)(to >> chip->page_shift);
 	page = realpage & chip->pagemask;
@@ -2087,11 +2131,13 @@ static int nand_do_write_oob(struct mtd_info *mtd, loff_t to,
 	 * if we don't do this. I have no clue why, but I seem to have 'fixed'
 	 * it in the doc2000 driver in August 1999.  dwmw2.
 	 */
+#ifndef CONFIG_NAND_FULL_HW
 	chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
 
 	/* Check, if it is write protected */
 	if (nand_check_wp(mtd))
 		return -EROFS;
+#endif
 
 	/* Invalidate the page cache, if we write to the cached page */
 	if (page == chip->pagebuf)
@@ -2255,12 +2301,14 @@ int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
 	chip->select_chip(mtd, chipnr);
 
 	/* Check, if it is write protected */
+#ifndef CONFIG_NAND_FULL_HW
 	if (nand_check_wp(mtd)) {
 		MTDDEBUG (MTD_DEBUG_LEVEL0,
 		          "nand_erase: Device is write protected!!!\n");
 		instr->state = MTD_ERASE_FAILED;
 		goto erase_exit;
 	}
+#endif
 
 	/*
 	 * If BBT requires refresh, set the BBT page mask to see if the BBT
@@ -2460,7 +2508,7 @@ static void nand_resume(struct mtd_info *mtd)
 /*
  * Set default functions
  */
-static void nand_set_defaults(struct nand_chip *chip, int busw)
+void nand_set_defaults(struct nand_chip *chip, int busw)
 {
 	/* check for proper chip_delay setup, set 20us if not */
 	if (!chip->chip_delay)
@@ -2503,6 +2551,27 @@ static void nand_set_defaults(struct nand_chip *chip, int busw)
 #endif
 	}
 
+}
+
+void mtd_set_defaults(struct mtd_info *mtd)
+{
+	/* Fill in remaining MTD driver data */
+	mtd->type = MTD_NANDFLASH;
+	mtd->flags = MTD_CAP_NANDFLASH;
+	mtd->erase = nand_erase;
+	mtd->point = NULL;
+	mtd->unpoint = NULL;
+	mtd->read = nand_read;
+	mtd->write = nand_write;
+	mtd->read_oob = nand_read_oob;
+	mtd->write_oob = nand_write_oob;
+	mtd->sync = nand_sync;
+	mtd->lock = NULL;
+	mtd->unlock = NULL;
+	mtd->suspend = nand_suspend;
+	mtd->resume = nand_resume;
+	mtd->block_isbad = nand_block_isbad;  
+	mtd->block_markbad = nand_block_markbad;
 }
 
 /*
@@ -2624,7 +2693,10 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 
 	chip->bbt_erase_shift = chip->phys_erase_shift =
 		ffs(mtd->erasesize) - 1;
-	chip->chip_shift = ffs(chip->chipsize) - 1;
+	if (chip->chipsize & 0xffffffff)
+		chip->chip_shift = ffs((unsigned)chip->chipsize) - 1;
+	else
+		chip->chip_shift = ffs((unsigned)(chip->chipsize >> 32)) + 32 - 1;
 
 	/* Set the bad block position */
 	chip->badblockpos = mtd->writesize > 512 ?

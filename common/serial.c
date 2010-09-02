@@ -22,6 +22,7 @@
  */
 
 #include <common.h>
+#include <config.h>
 #include <serial.h>
 #include <stdio_dev.h>
 
@@ -83,6 +84,8 @@ struct serial_device *__default_serial_console (void)
 #endif
 #elif defined(CONFIG_OMAP3_ZOOM2)
 		return ZOOM2_DEFAULT_SERIAL_DEVICE;
+#elif defined(CONFIG_ATXX)
+		return &atxx_ffuart_device;
 #else
 #error No default console
 #endif
@@ -159,6 +162,10 @@ void serial_initialize (void)
 	serial_register(&s5pc1xx_serial2_device);
 	serial_register(&s5pc1xx_serial3_device);
 #endif
+#if defined (CONFIG_ATXX)
+	serial_register(&atxx_ffuart_device);
+#endif
+
 	serial_assign (default_serial_console ()->name);
 }
 

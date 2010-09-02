@@ -50,8 +50,13 @@ static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 	mtd->priv = nand;
 
 	nand->IO_ADDR_R = nand->IO_ADDR_W = (void  __iomem *)base_addr;
+
 	if (board_nand_init(nand) == 0) {
+#ifdef CONFIG_ATXX 
+		if (atxx_nd_scan(mtd, maxchips) == 0) {		
+#else
 		if (nand_scan(mtd, maxchips) == 0) {
+#endif
 			if (!mtd->name)
 				mtd->name = (char *)default_nand_name;
 #ifndef CONFIG_RELOC_FIXUP_WORKS

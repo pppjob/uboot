@@ -25,6 +25,7 @@
 #include <asm/types.h>
 #include <asm/errno.h>
 #include <asm/arch-atxx/regs_base.h>
+#include <asm/arch-atxx/delay.h>
 
 /* Timer register offset */
 #define	ATXX_TIMER_LOAD_REG	0x00	/* load count */
@@ -54,19 +55,22 @@
 #define FREE_RUN_MODE	0
 #define COUNT_MODE	1
 
-static inline uint32_t timer_read_reg(uint32_t addr)
+static uint32_t timer_read_reg(uint32_t addr)
 {
 	return readl(addr);
 }
 
-static inline void timer_write_reg(uint32_t val, uint32_t addr)
+static  void timer_write_reg(uint32_t val, uint32_t addr)
 {
 	writel(val, addr);
 }
 
 static void timer_disable(int id)
 {
-	timer_write_reg(0, ATXX_TIMER_CNTL(id));
+	uint32_t reg;
+	reg = timer_read_reg(ATXX_TIMER_CNTL(id));
+	reg &= ~(1 << 0);
+	timer_write_reg(reg, ATXX_TIMER_CNTL(id));
 }
 
 
@@ -109,7 +113,7 @@ static int timer_reset(int id, uint32_t value, int mode)
 }
 
 #define ULONG_MAX (~0UL)
-static inline unsigned long timer_read_cycles(int index)
+static  unsigned long timer_read_cycles(int index)
 {
 	uint32_t t1,t2,t3;
 	
@@ -123,58 +127,14 @@ static inline unsigned long timer_read_cycles(int index)
 		return (unsigned long)(ULONG_MAX - t3);
 }
 
-static inline unsigned int timer_get_status(unsigned int id)
-{
-	unsigned int status;
-	
-	status = timer_read_reg(ATXX_TIMER_STAT(id));
-	if (status & 0x1)
-	{
-		/*read EOI to clear timerx interrupt.*/
-		status = timer_read_reg(ATXX_TIMER_NEOI(id));
-		return 1;
-	}
-	return 0;
-}
-#ifdef USE_COUNT_MODE
-void mdelay (unsigned long msec)
-{
-	unsigned long ticks;
-	unsigned int time_status;
-
-	ticks = msec * TIMER_FREQ_HZ / 1000;
-
-	timer_reset(ATXX_SYS_COUNTER_ID, ticks, COUNT_MODE);
-	
-	time_status = timer_get_status(ATXX_SYS_COUNTER_ID);
-	while (!time_status){
-		time_status = timer_get_status(ATXX_SYS_COUNTER_ID);
-	}
-
-}
-#else
-void mdelay (unsigned long msec)
-{
-	unsigned long start, end, ticks;
-
-	ticks = (msec * TIMER_FREQ_HZ) / 1000;
-	start = timer_read_cycles(ATXX_SYS_TIMER_ID);
-	do {
-		end = timer_read_cycles(ATXX_SYS_TIMER_ID);
-	}while(((ULONG_MAX + end - start) % ULONG_MAX) < ticks);
-
-	return;	
-}
-
-#endif
-static inline unsigned long tick_to_ms(unsigned long tick)
+static  unsigned long tick_to_ms(unsigned long tick)
 {
 	tick *= 1000;
 	tick /= TIMER_FREQ_HZ;
 	return tick;
 }
 
-static inline unsigned long us_to_tick(unsigned long us)
+static  unsigned long us_to_tick(unsigned long us)
 {
 	unsigned long tmp;
 
@@ -194,27 +154,17 @@ unsigned long get_timer (unsigned long base)
 	return tick_to_ms(tick) - base;
 }
 
-void udelay(unsigned long time)
-{
-	unsigned long tick;
-	unsigned long start, end;
-
-	if (time > 2000) {
-		mdelay(time/1000);
-	} else {
-			start = timer_read_cycles(ATXX_SYS_TIMER_ID);
-			tick = us_to_tick(time);
-			do {
-				end = timer_read_cycles(ATXX_SYS_TIMER_ID);
-			}while(((ULONG_MAX + end - start) % ULONG_MAX) < tick);
-	}
-}
-
 int timer_init (void)
 {
-	//calibrate_delay();
+	timer_disable(ATXX_REF_COUNTER_ID);
+	timer_disable(ATXX_SYS_TIMER_ID);
 
 	timer_enable(ATXX_REF_COUNTER_ID, FREE_RUN_MODE);
  	timer_enable(ATXX_SYS_TIMER_ID, FREE_RUN_MODE);
+	return 0;
 }
 
+void reset_timer(void)
+{
+	timer_reset(ATXX_SYS_TIMER_ID, 0, FREE_RUN_MODE);
+}

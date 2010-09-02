@@ -1092,7 +1092,11 @@ static struct nand_bbt_descr smallpage_memorybased = {
 };
 
 static struct nand_bbt_descr largepage_memorybased = {
+#if 0
 	.options = 0,
+#else
+	.options = NAND_BBT_SCAN2NDPAGE,
+#endif
 	.offs = 0,
 	.len = 2,
 	.pattern = scan_ff_pattern

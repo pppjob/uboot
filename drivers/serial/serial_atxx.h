@@ -129,34 +129,7 @@ typedef struct
 	unsigned long	baudrate;
 	unsigned long	fifo_cfg;
 	unsigned long	loop_enable;
-#ifdef CONFIG_UART_XMODEM
-	unsigned long	xm_running;
-#endif
 } uart_t;
-
-#ifdef CONFIG_UART_XMODEM
-#define xm_FF			0xFF
-#define xm_SOH_128		0x01
-#define xm_SOH_1024		0x02
-#define xm_EOT			0x04
-#define xm_ACK			0x06
-#define xm_NACK			0x15
-#define xm_CAN			0x18
-#define xm_POLL_C		0x43
-#define xm_PAD_Data		0x1A
-
-#define xyzModem_CHAR_TIMEOUT_C			2000
-#define xyzModem_CHAR_TIMEOUT			2000
-#define xyzModem_MAX_RETRIES			10
-
-#define XMODEM_STARTUP_RETRIES			800
-#define XMODEM_RETRIES				10
-
-#define XMODEM_TIMEOUT				-1
-#define XMODEM_EOF				-2
-#define XMODEM_CANCEL				-3
-#define XMODEM_CRC				-4
-#endif /* CONFIG_UART_XMODEM */
 
 #endif /* __SERIAL_DWAPBUART_H */
 

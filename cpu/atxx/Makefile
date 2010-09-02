@@ -29,7 +29,7 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)lib$(CPU).a
 
 START	= start.o
-COBJS	= clock_common.o cpu.o
+COBJS	= clock_common.o cpu.o calibrate_delay.o time.o
 
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)

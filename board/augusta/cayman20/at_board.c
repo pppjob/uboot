@@ -21,12 +21,16 @@
 ------------------------------------------------------------------------------*/
 
 #include <linux/types.h>
+#include <linux/bitops.h>
+#include <asm/mach-types.h>
 #include <asm/arch-atxx/topctl.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/clock.h>
-#include <asm/arch-atxx/mddr.h>
 #include "clock_table.c"
 #include "map_table.c"
+
+DECLARE_GLOBAL_DATA_PTR;
+
 int board_init(void)
 {
 	uint32_t val;
@@ -40,6 +44,8 @@ int board_init(void)
 	set_board_default_clock(pll_setting, div_setting,
 		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
 
+	calibrate_delay();
+
 	val = topctl_read_reg(TOPCTL1);
 	val |= (1 << 13);
 	topctl_write_reg(TOPCTL1, val);
@@ -48,11 +54,11 @@ int board_init(void)
 	topctl_write_reg(TOPCTL4, 0xf6ffdfef);
 	topctl_write_reg(TOPCTL5, 0x081c4c98);
 	topctl_write_reg(TOPCTL6, 0x00f29e94);
-	/* 
-	* FIXME: add mddr power down code, not allow 
-	* reinit without power down, when self-refresh
-	*/
-	mddr_init();
+
+	/* arch number of board */
+	gd->bd->bi_arch_number = MACH_TYPE_CAYMAN20;
+	/* adress of boot parameters */
+	gd->bd->bi_boot_params = CONFIG_LOAD_ADDR;
 	return 0;
 }
 
