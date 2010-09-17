@@ -30,6 +30,7 @@
 #define PCF50626_ID		0x31
 #define PCF50626_ADDR		0x70
 
+#define DEBUG
 #ifdef DEBUG
 #define DPRINTF(args...) printf(args)
 #else
@@ -230,7 +231,7 @@ u8 pcf50626_set_default_power_supply(void)
 {
 	power_supply_mode	mode;
 	u32	i;
-	u8	ret;
+	u8	ret = 0;
 
 	/* find power supply first */
 	for (i = 0; i < PS_SETTING_COUNT; i++) {
@@ -245,7 +246,7 @@ u8 pcf50626_set_default_power_supply(void)
 int pmu_power_control(power_supply_component module, power_supply_mode mode)
 {
 	u32	i;
-	u8	ret;
+	u8	ret = 0;
 
 	if (PPS_COMMON == module){
 		DPRINTF("%s, operation permitted\n", __FUNCTION__);
@@ -259,7 +260,7 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode)
 			udelay(1000);
 		}
 	}
-
+	
 	return ret;
 }
 
