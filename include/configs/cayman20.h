@@ -77,7 +77,7 @@
 /* regular stack */
 #define CONFIG_STACKSIZE		(512*1024)
 
-
+#define CONFIG_I2C_ATXX
 #define CONFIG_ATXX_SERIAL
 /*
  * ATXX UART Configuration

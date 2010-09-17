@@ -19,55 +19,43 @@
 * without the prior written permission of the copyright owner.
 *
 ------------------------------------------------------------------------------*/
-
-#include <linux/types.h>
-#include <linux/bitops.h>
-#include <asm/mach-types.h>
-#include <asm/arch-atxx/topctl.h>
-#include <asm/arch-atxx/cache.h>
+#include <common.h>
+#include <asm/io.h>
+#include <asm/errno.h>
 #include <asm/arch-atxx/clock.h>
-#include "clock_table.c"
-#include "map_table.c"
+#include <asm/arch-atxx/topctl.h>
+#include <asm/arch-atxx/regs_base.h>
 
-DECLARE_GLOBAL_DATA_PTR;
+/* ****************************************************************** */
+/* pmu power supply */
+typedef enum {
+	PPS_WIFI = 0,
+	PPS_AUDIO,
+	PPS_LCD,
+	PPS_TP,
+	PPS_VGA,
+	PPS_TUNER,
+	PPS_BT,
+	PPS_GPS,
+	PPS_USB,
+	PPS_VBUS,
+	PPS_SD,
+	PPS_CAMERA,
+	PPS_CMMB,
 
-int board_init(void)
-{
-	uint32_t val;
+	PPS_COMMON = 255,
+}power_supply_component;
 
-	mmu_cache_on(memory_map);
-	at6600_clock_init();
-	set_board_default_clock(pll_setting, div_setting,
-		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+/* pmu power supply mode */
+typedef enum {
+	PS_OFF = 0,
+	PS_ON,
+	PS_LOW,
+} power_supply_mode;
 
-	calibrate_delay();
-
-	val = topctl_read_reg(TOPCTL1);
-	val |= (1 << 13);
-	topctl_write_reg(TOPCTL1, val);
-	/* Initial code from ASIC team for power save */
-	topctl_write_reg(TOPCTL3, 0x03700003);
-	topctl_write_reg(TOPCTL4, 0xf6ffdfef);
-	topctl_write_reg(TOPCTL5, 0x081c4c98);
-	topctl_write_reg(TOPCTL6, 0x00f29e94);
-
-	at6600_i2c_init();
-	if (-1 == pcf50626_set_default_power_supply())
-		return -1;
-	
-	/* arch number of board */
-	gd->bd->bi_arch_number = MACH_TYPE_CAYMAN20;
-	/* adress of boot parameters */
-	gd->bd->bi_boot_params = CONFIG_LOAD_ADDR;
-	return 0;
-}
-
-int misc_init_r(void)
-{
-	return 1;
-}
-
-int dram_init (void)
-{
-	 return 0;
-}
+/* pmu_power_control -- control device power
+ * @power_supply: specify device module
+ * @mode: power mode, such as on, off ...
+ * @return: 0(successfull), or -1 error
+ */
+int pmu_power_control(power_supply_component module, power_supply_mode mode);
