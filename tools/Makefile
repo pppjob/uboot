@@ -80,6 +80,7 @@ BIN_FILES-$(CONFIG_CMD_NET) += gen_eth_addr$(SFX)
 BIN_FILES-$(CONFIG_CMD_LOADS) += img2srec$(SFX)
 BIN_FILES-$(CONFIG_INCA_IP) += inca-swap-bytes$(SFX)
 BIN_FILES-y += mkimage$(SFX)
+BIN_FILES-$(CONFIG_ATXX) += gen_aheader$(SFX)
 BIN_FILES-$(CONFIG_NETCONSOLE) += ncb$(SFX)
 BIN_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1$(SFX)
 
@@ -101,6 +102,7 @@ OBJ_FILES-$(CONFIG_CMD_LOADS) += img2srec.o
 OBJ_FILES-$(CONFIG_INCA_IP) += inca-swap-bytes.o
 OBJ_FILES-y += kwbimage.o
 OBJ_FILES-y += mkimage.o
+OBJ_FILES-$(CONFIg_ATXX) += gen_aheader.o
 OBJ_FILES-$(CONFIG_NETCONSOLE) += ncb.o
 OBJ_FILES-y += os_support.o
 OBJ_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1.o
@@ -199,6 +201,10 @@ $(obj)mkimage$(SFX):	$(obj)crc32.o \
 	$(CC) $(CFLAGS) $(HOST_LDFLAGS) -o $@ $^
 	$(STRIP) $@
 
+$(obj)gen_aheader$(SFX):	$(obj)gen_aheader.o
+	$(CC) $(CFLAGS) $(HOST_LDFLAGS) -o $@ $^
+	$(STRIP) $@
+
 $(obj)mpc86x_clk$(SFX):	$(obj)mpc86x_clk.o
 	$(CC) $(CFLAGS) $(HOST_LDFLAGS) -o $@ $^
 	$(STRIP) $@
@@ -224,6 +230,9 @@ $(obj)kwbimage.o: $(SRCTREE)/tools/kwbimage.c
 	$(CC) -g $(FIT_CFLAGS) -c -o $@ $<
 
 $(obj)mkimage.o: $(SRCTREE)/tools/mkimage.c
+	$(CC) -g $(FIT_CFLAGS) -c -o $@ $<
+
+$(obj)gen_aheader.o: $(SRCTREE)/tools/gen_aheader.c
 	$(CC) -g $(FIT_CFLAGS) -c -o $@ $<
 
 $(obj)os_support.o: $(SRCTREE)/tools/os_support.c

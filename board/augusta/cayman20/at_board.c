@@ -58,7 +58,7 @@ int board_init(void)
 	/* arch number of board */
 	gd->bd->bi_arch_number = MACH_TYPE_CAYMAN20;
 	/* adress of boot parameters */
-	gd->bd->bi_boot_params = CONFIG_LOAD_ADDR;
+	gd->bd->bi_boot_params = CONFIG_ATAG_ADDR;
 	return 0;
 }
 

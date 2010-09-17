@@ -275,7 +275,7 @@ void start_armboot (void)
 
 	/* Pointer is writable since we allocated a register for it */
 #ifdef CONFIG_UNCONTINUOUS_MEM
-	gd = (gd_t*)(CONFIG_SYS_MALLOC_START - CONFIG_SYS_MALLOC_LEN - sizeof(gd_t));
+	gd = (gd_t*)(CONFIG_SYS_MALLOC_END - CONFIG_SYS_MALLOC_LEN - sizeof(gd_t));
 #else
 	gd = (gd_t*)(_armboot_start - CONFIG_SYS_MALLOC_LEN - sizeof(gd_t));
 #endif
@@ -298,7 +298,7 @@ void start_armboot (void)
 
 	/* armboot_start is defined in the board-specific linker script */
 #ifdef CONFIG_UNCONTINUOUS_MEM
-	mem_malloc_init (CONFIG_SYS_MALLOC_START - CONFIG_SYS_MALLOC_LEN,
+	mem_malloc_init (CONFIG_SYS_MALLOC_END - CONFIG_SYS_MALLOC_LEN,
 			CONFIG_SYS_MALLOC_LEN);
 #else
 	mem_malloc_init (_armboot_start - CONFIG_SYS_MALLOC_LEN,

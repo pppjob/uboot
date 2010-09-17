@@ -209,7 +209,7 @@ skip_hw_init:
 	/* Set up the stack						    */
 stack_setup:
 #ifdef CONFIG_UNCONTINUOUS_MEM
-	ldr	r0, =CONFIG_SYS_MALLOC_START		/* upper 128 KB: relocated uboot   */
+	ldr	r0, =CONFIG_SYS_MALLOC_END		/* upper 128 KB: relocated uboot   */
 	sub	r0, r0, #CONFIG_SYS_MALLOC_LEN	/* malloc area */
 	sub	r0, r0, #CONFIG_SYS_GBL_DATA_SIZE /* bdinfo */
 #ifdef CONFIG_IRQ
@@ -296,7 +296,7 @@ _mmu_table_base:
 	/* Save user registers (now in svc mode) r0-r12 */
 	stmia	sp, {r0 - r12}
 #ifdef CONFIG_UNCONTINUOUS_MEM
-	ldr	r2, =CONFIG_SYS_MALLOC_START
+	ldr	r2, =CONFIG_SYS_MALLOC_END
 #else
 	ldr	r2, _armboot_start
 #endif
@@ -319,7 +319,7 @@ _mmu_table_base:
 	.macro get_bad_stack
 	/* setup our mode stack (enter in banked mode) */
 #ifdef CONFIG_UNCONTINUOUS_MEM
-	ldr	r13, =CONFIG_SYS_MALLOC_START
+	ldr	r13, =CONFIG_SYS_MALLOC_END
 #else
 	ldr	r13, _armboot_start
 #endif

@@ -27,25 +27,27 @@
 #define CONFIG_AT6600
 #define CONFIG_IDENT_STRING 		" AUGUSTATEK-ATXX "
 #define CONFIG_DISPLAY_CPUINFO
+
 /* useless macro, just for compile */
 #define CONFIG_SYS_HZ 			1000
 
+/* Physical Memory Map */
+
+/* we have 1 bank of DRAM */
+#define CONFIG_NR_DRAM_BANKS   		1
+#define MDDR_BASE_ADDR			0x88000000
+
 #define CONFIG_UNCONTINUOUS_MEM
-#define CONFIG_SYS_MALLOC_START		0x88208000
+#define CONFIG_SYS_MALLOC_END		(MDDR_BASE_ADDR + 0x00400000)
+#define CONFIG_SYS_MALLOC_LEN		0x00100000	/* 1MB */
 
-#define	CONFIG_SYS_UBOOT_BASE		0x88008000
-#define	CONFIG_SYS_PHY_UBOOT_BASE	0x88008000
+/* u-boot run address */
+#define	CONFIG_SYS_UBOOT_BASE		(MDDR_BASE_ADDR + 0x00008000)
 
-/*
- * High Level Configuration Options
- * (easy to change)
- */
-#define CFG_MEMTEST_START		0x8c000000
-#define CFG_MEMTEST_END			0x8c100000
-
-#define CFG_HZ				32768
-#define CFG_HZ_CLOCK			32768
-#define CFG_TIMERBASE			0x3FFFF400
+/* default load address for reading (i.e. kernel zImage with header) */
+#define CONFIG_SYS_LOAD_ADDR		(MDDR_BASE_ADDR + 0x00807e00)
+#define CONFIG_SYS_KERN_ADDR		(MDDR_BASE_ADDR + 0x00808000)
+#define CONFIG_ATAG_ADDR		(MDDR_BASE_ADDR + 0x00800100)
 
 /* enable passing of ATAGs  */
 #define CONFIG_CMDLINE_TAG		1
@@ -57,12 +59,12 @@
  */
 #define CONFIG_EXCLUDE_ZIP
 
-/* reserved for malloc */
-#define CONFIG_SYS_MALLOC_LEN		\
-	(CONFIG_ENV_SIZE + 200*1024)
-
 /* reserved for initial data */
 #define CONFIG_SYS_GBL_DATA_SIZE	(128)
+
+/* no irqs */
+#undef CONFIG_USE_IRQ
+
 /*
  * Stack sizes
  *
@@ -77,11 +79,24 @@
 /* regular stack */
 #define CONFIG_STACKSIZE		(512*1024)
 
-#define CONFIG_I2C_ATXX
-#define CONFIG_ATXX_SERIAL
+/*
+ * Miscellaneous configurable options
+ */
+#define CONFIG_SYS_PROMPT		"AT6600 # " 
+/* Console I/O Buffer Size*/
+#define CONFIG_SYS_CBSIZE 		512 
+
+/* Print Buffer Size */
+#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
+/* max number of command args */
+#define CONFIG_SYS_MAXARGS		16
+
 /*
  * ATXX UART Configuration
  */
+
+#define CONFIG_ATXX_SERIAL
+
 /* FIXME : not correct */
 #define CFG_UART_CLOCK_FREQ 		(3686400*16)
 #define CONFIG_BAUDRATE			921600
@@ -93,39 +108,11 @@
 
 #define CONFIG_BOOTDELAY		2
 #define CONFIG_BOOTARGS			\
-		"root=/dev/ram console=ttyS0,921600n8"
-#define CONFIG_BOOTCOMMAND 		"help"
+		"console=ttyS0,921600n8 androidboot.console=ttyS0 init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs mtdparts=atxx_nd:32M(boot),-(system)"
 
-/*
- * Miscellaneous configurable options
- */
-/* undef to save memory */
-#define CFG_LONGHELP
-#define CONFIG_SYS_PROMPT		"AT6600 # " 
-/* Console I/O Buffer Size*/
-#define CONFIG_SYS_CBSIZE 		512 
+#define CONFIG_BOOTCOMMAND 		"nand read 88807e00 200000 200000; hdcvt 88807e00; bootm 88807fc0"
 
-/* Print Buffer Size */
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
-/* max number of command args */
-#define CONFIG_SYS_MAXARGS		16
-/* Boot Argument Buffer Size*/
-#define CFG_BARGSIZE			CONFIG_SYS_CBSIZE
-
-/* everything, incl board info, in Hz */
-#undef	CFG_CLKS_IN_HZ
-
-/*
- * Physical Memory Map
- */
- /* we have 1 bank of DRAM */
-#define CONFIG_NR_DRAM_BANKS   		1
-#define MDDR_BASE_ADDR			0x88000000
-/* default load address, this is for flash and autoscript */
-#define CONFIG_SYS_LOAD_ADDR		MDDR_BASE_ADDR
-
-#undef CONFIG_USE_IRQ
-
+/* nand */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x3fd70000
 #define CONFIG_SYS_NAND_MAX_CHIPS	4
@@ -134,9 +121,16 @@
 
 /* Environment */
 #define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_CMD_SAVEENV
 #define CONFIG_ENV_OFFSET		0x100000
-#define CONFIG_LOAD_ADDR		0x88800100
+#define CONFIG_ENV_SIZE			8192	/* 8KB */
+
+/* SD/fat */
+#define CONFIG_ATXX_MMC
+#define CONFIG_MMC 
+#define CONFIG_DOS_PARTITION
+
+/* I2C */
+#define CONFIG_I2C_ATXX
 
 /*
  * Command lists
@@ -144,25 +138,20 @@
 #define CONFIG_CMD_TEST
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_NAND
+#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_LOAD
 #define CONFIG_CMD_LOADX	/* loadx */
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_MMC
-#define CONFIG_ATXX_MMC/*for mmc/makefile */
-#define CONFIG_MMC 
-#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_BDI
+#define CONFIG_CMD_HDCVT
 
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_MEMTEST_START	0x88000000
 
-#define CONFIG_SYS_MEMTEST_END		\
-		(CONFIG_SYS_MEMTEST_START + 4096)
+#define CONFIG_SYS_MEMTEST_START	(MDDR_BASE_ADDR + 0x01000000)
+#define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + 4096)
 
 #define CONFIG_SYS_NO_FLASH
-
-#define CFG_MONITOR_LEN			0x00100000
-
-#define CONFIG_ENV_SIZE			8192	/* 8KB */
 
 /*
  * The ARM boot monitor initializes the board.
