@@ -27,6 +27,7 @@
 #ifndef _FAT_H_
 #define _FAT_H_
 
+#include <part.h>
 #include <asm/byteorder.h>
 
 #define CONFIG_SUPPORT_VFAT

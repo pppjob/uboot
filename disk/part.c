@@ -76,6 +76,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 block_dev_desc_t *get_dev(char* ifname, int dev)
 {
+        PRINTF("part.c get_dev() right place:\n");
 	const struct block_drvr *drvr = block_drvr;
 	block_dev_desc_t* (*reloc_get_dev)(int dev);
 
@@ -93,6 +94,7 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 #else
 block_dev_desc_t *get_dev(char* ifname, int dev)
 {
+        PRINTF("part.c get_dev() wrong place:\n");
 	return NULL;
 }
 #endif
@@ -272,6 +274,7 @@ void init_part (block_dev_desc_t * dev_desc)
 int get_partition_info (block_dev_desc_t *dev_desc, int part
 					, disk_partition_t *info)
 {
+        PRINTF("## dev_desc->part_type=%d ##\n", dev_desc->part_type);
 	switch (dev_desc->part_type) {
 #ifdef CONFIG_MAC_PARTITION
 	case PART_TYPE_MAC:
@@ -288,6 +291,7 @@ int get_partition_info (block_dev_desc_t *dev_desc, int part
 			PRINTF ("## Valid DOS partition found ##\n");
 			return (0);
 		}
+
 		break;
 #endif
 

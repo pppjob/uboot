@@ -146,6 +146,11 @@
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_LOAD
 #define CONFIG_CMD_LOADX	/* loadx */
+#define CONFIG_CMD_FAT
+#define CONFIG_CMD_MMC
+#define CONFIG_ATXX_MMC/*for mmc/makefile */
+#define CONFIG_MMC 
+#define CONFIG_DOS_PARTITION
 
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_MEMTEST_START	0x88000000
