@@ -42,6 +42,7 @@ uint8_t buf[SD_BUF_SIZE];
 uint32_t address;
 uint32_t cd_detect = 0x0000ffff;
 uint32_t cd_wrprotect = 0x0000000;
+uint8_t is_sd_card = 0;/*is_sd_card: 1 -- SD standard card, 0 -- high capacity sd card*/
 
 static const char sd_state[16][12] =
 {
@@ -755,7 +756,7 @@ void sd_controller_init(void)
 /*reset the card*/
 void sd_init_card(uint32_t card)
 {
-	uint32_t resp[4],ret;
+	uint32_t resp[4], ret, arg;
 	sd_rca = 0;
 	uint32_t c_size=0;
 	uint8_t c_size_mult=0;
@@ -775,13 +776,24 @@ void sd_init_card(uint32_t card)
 	sd_base_command(card,CMD0,0,resp);
 	udelay(10);
 
+	ATXX_MMC_DEBUG("send command 8\n");
+        arg = 0x0;
+	arg |= (1 << 8); /*host support 2.7-3.6V*/
+	arg |= 0xaa; /*check pattern*/
+
+	ret = sd_base_command(card,CMD8,arg,resp);
+	if(ret)	{
+		printf("CMD8 init sd card failed!!!\n");
+		return;
+	}
+
 	/*send  ACMD41*/
 	while(timeout--) {
 		ATXX_MMC_DEBUG("send application command 41\n");
-		sd_ocr = sd_application_command(card,ACMD41,0x00ff8000);
+		sd_ocr = sd_application_command(card,ACMD41,0x40ff8000);/*standard 0x00ff8000*/
 		if(sd_ocr == 0)	{
 			printf("init sd card failed!!!\n");		
-			return;
+			return; 
 		} else if((sd_ocr & 0x00ff8000) == 0) {
 			printf("sd card voltage range error!!!\n");
 			return;
@@ -790,8 +802,16 @@ void sd_init_card(uint32_t card)
 		if(sd_ocr & 0x80000000)
 			break;
 
-		udelay(1);
+		udelay(10);
 	}
+
+	ATXX_MMC_DEBUG("sd_init_card: sd_ocr = 0x%x\n", sd_ocr);
+        /*check card capacity status (CCS)*/
+        if((sd_ocr >> 30) & 0x1) {
+                is_sd_card = 0;/*high capacity sd card*/
+        } else {
+                is_sd_card = 1;/*standard capacity sd card*/
+        }
 
 	sd_ocr &= 0x7fffffff;
 
@@ -837,19 +857,26 @@ void sd_init_card(uint32_t card)
 	sd_csd[2] = resp[2];
 	sd_csd[3] = resp[3];
 
-	c_size = ((resp[1] >> 30)& 0x3)+((resp[2]& 0x3ff) << 2);
-	c_size_mult = (resp[1] >> 15)& 0x7;
-	read_bl_len = (resp[2] >> 16)& 0xf;
-
-	read_bl_len_per_sector=(1<<read_bl_len)/STORAGE_BLOCK_SIZE; 
-
-	mmc_blk_dev.lba = (c_size+1)*(1<<(c_size_mult+2))*read_bl_len_per_sector;
-
-	ATXX_MMC_DEBUG("C_SIZE= 0x%x\n", c_size);
-	ATXX_MMC_DEBUG("C_SIZE_MULT= 0x%x\n", c_size_mult);
-	ATXX_MMC_DEBUG("READ_BL_LEN= 0x%x\n", read_bl_len);
-	ATXX_MMC_DEBUG("READ_BL_LEN_PER_SECTOR= 0x%x\n", read_bl_len_per_sector);
-	ATXX_MMC_DEBUG("mmc_blk_dev.lba= 0x%x\n", (uint32_t)mmc_blk_dev.lba);
+        if(1 == is_sd_card) {
+                /*SD stard card*/
+                c_size = ((resp[1] >> 30)& 0x3)+((resp[2]& 0x3ff) << 2);
+                c_size_mult = (resp[1] >> 15)& 0x7;
+                read_bl_len = (resp[2] >> 16)& 0xf;
+        
+                read_bl_len_per_sector=(1<<read_bl_len)/STORAGE_BLOCK_SIZE; 
+        
+                mmc_blk_dev.lba = (c_size+1)*(1<<(c_size_mult+2))*read_bl_len_per_sector;
+         	ATXX_MMC_DEBUG("C_SIZE= 0x%x\n", c_size);
+        	ATXX_MMC_DEBUG("C_SIZE_MULT= 0x%x\n", c_size_mult);
+        	ATXX_MMC_DEBUG("READ_BL_LEN= 0x%x\n", read_bl_len);
+        	ATXX_MMC_DEBUG("READ_BL_LEN_PER_SECTOR= 0x%x\n", read_bl_len_per_sector);
+        	ATXX_MMC_DEBUG("stard sd card mmc_blk_dev.lba= 0x%x\n", (uint32_t)mmc_blk_dev.lba);
+       } else {
+               /*SD High Capacity card*/
+                c_size = ((resp[1] >> 16)& 0xffff)+((resp[2]& 0x3f) << 16);
+                mmc_blk_dev.lba = (c_size+1)*1024;
+        	ATXX_MMC_DEBUG("high capacity sd card mmc_blk_dev.lba= 0x%x\n", (uint32_t)mmc_blk_dev.lba);
+        }
 
 	ATXX_MMC_DEBUG("rsd_csd[0] 0x%x\n", sd_csd[0]);
 	ATXX_MMC_DEBUG("rsd_csd[1] 0x%x\n", sd_csd[1]);
@@ -1877,8 +1904,16 @@ unsigned long mmc_block_read(int dev_num, unsigned long blknr, lbaint_t blkcnt,v
 	uint32_t addr=0;
 
 	ATXX_MMC_DEBUG("mmc_block_read():blknr=0x%x,blkcnt=0x%x\n", (uint32_t)blknr, (uint32_t)blkcnt);
-	addr = blknr*STORAGE_BLOCK_SIZE;
-	sd_multiblock_read(dev_num, addr, blkcnt, (uint8_t *)dst);	
+        if(1 == is_sd_card) {
+                addr = blknr*STORAGE_BLOCK_SIZE;
+                ATXX_MMC_DEBUG("byte offset addr = 0x%x\n", addr);
+                sd_multiblock_read(dev_num, addr, blkcnt, (uint8_t *)dst);	
+        } else {
+                ATXX_MMC_DEBUG("block offset blknr= 0x%x\n", blknr);
+                sd_multiblock_read(dev_num, blknr, blkcnt, (uint8_t *)dst);	
+        }
+
+
 	return blkcnt; 
 }
 
