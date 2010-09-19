@@ -42,7 +42,7 @@ uint8_t buf[SD_BUF_SIZE];
 uint32_t address;
 uint32_t cd_detect = 0x0000ffff;
 uint32_t cd_wrprotect = 0x0000000;
-uint8_t is_sd_card = 0;/*is_sd_card: 1 -- SD standard card, 0 -- high capacity sd card*/
+uint8_t is_standard_sd_card = 0;/*is_standard_sd_card: 1 -- SD standard card, 0 -- high capacity sd card*/
 
 static const char sd_state[16][12] =
 {
@@ -808,9 +808,9 @@ void sd_init_card(uint32_t card)
 	ATXX_MMC_DEBUG("sd_init_card: sd_ocr = 0x%x\n", sd_ocr);
         /*check card capacity status (CCS)*/
         if((sd_ocr >> 30) & 0x1) {
-                is_sd_card = 0;/*high capacity sd card*/
+                is_standard_sd_card = 0;/*high capacity sd card*/
         } else {
-                is_sd_card = 1;/*standard capacity sd card*/
+                is_standard_sd_card = 1;/*standard capacity sd card*/
         }
 
 	sd_ocr &= 0x7fffffff;
@@ -857,7 +857,7 @@ void sd_init_card(uint32_t card)
 	sd_csd[2] = resp[2];
 	sd_csd[3] = resp[3];
 
-        if(1 == is_sd_card) {
+        if(1 == is_standard_sd_card) {
                 /*SD stard card*/
                 c_size = ((resp[1] >> 30)& 0x3)+((resp[2]& 0x3ff) << 2);
                 c_size_mult = (resp[1] >> 15)& 0x7;
@@ -1904,7 +1904,7 @@ unsigned long mmc_block_read(int dev_num, unsigned long blknr, lbaint_t blkcnt,v
 	uint32_t addr=0;
 
 	ATXX_MMC_DEBUG("mmc_block_read():blknr=0x%x,blkcnt=0x%x\n", (uint32_t)blknr, (uint32_t)blkcnt);
-        if(1 == is_sd_card) {
+        if(1 == is_standard_sd_card) {
                 addr = blknr*STORAGE_BLOCK_SIZE;
                 ATXX_MMC_DEBUG("byte offset addr = 0x%x\n", addr);
                 sd_multiblock_read(dev_num, addr, blkcnt, (uint8_t *)dst);	
