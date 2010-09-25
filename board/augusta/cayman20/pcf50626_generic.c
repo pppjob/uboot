@@ -30,7 +30,7 @@
 #define PCF50626_ID		0x31
 #define PCF50626_ADDR		0x70
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
 #define DPRINTF(args...) printf(args)
 #else

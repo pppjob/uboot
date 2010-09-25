@@ -261,10 +261,10 @@ done:
 U_BOOT_CMD(
 	stest,   7,   1,	do_test,
 	"self test for: cache, clock dump(clkd), i2c",
-	"stest cache on/off, stest clkd"
+	"stest cache on/off, stest clkd\n"
 	"stest i2c read chip address [# of objects] - read from I2C device\n"
 	"stest i2c write chip address value [count] - write to I2C device (fill)\n"
 	"stest i2c reset - re-init the I2C Controller\n"
-	"stest i2c showreg - dump PMU register"
+	"stest i2c showreg - dump PMU register\n"
 );
 
