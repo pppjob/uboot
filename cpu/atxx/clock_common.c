@@ -33,14 +33,22 @@ void dump_clock(void)
 {
 	struct clk *p;
 
+	printf("%-16s%-16s%-16s%-16s%-16s\n",
+			"NAME", "PARENT", "RATE", "ENABLE", "REG");
+
 	list_for_each_entry(p, &clocks, list) {
-		printf("%s rate: %ld ",p->name,
-			clk_get_rate(p));
+		printf("%-16s", p->name);
 		if (p->parent) {
-			printf(" parent: %s ", p->parent->name);
+			printf("%-16s", p->parent->name);
+		} else {
+			printf("%-16s", "NULL");
 		}
+
+		printf("%-16ld", clk_get_rate(p));
+		printf("%-16d", p->is_enable(p));
+
 		if (p->get_reg){
-			printf("reg_val: %x", p->get_reg(p));
+			printf("0x%08x", p->get_reg(p));
 		}
 		printf("\n");
 	}

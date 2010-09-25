@@ -20,13 +20,13 @@
 *
 ------------------------------------------------------------------------------*/
 
+#include <common.h>
 #include <linux/types.h>
 #include <linux/bitops.h>
 #include <asm/mach-types.h>
 #include <asm/arch-atxx/topctl.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/clock.h>
-#include "clock_table.c"
 #include "map_table.c"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -37,8 +37,6 @@ int board_init(void)
 
 	mmu_cache_on(memory_map);
 	at6600_clock_init();
-	set_board_default_clock(pll_setting, div_setting,
-		PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
 
 	calibrate_delay();
 
