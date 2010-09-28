@@ -4,6 +4,17 @@
 #define NAMESIZE 16
 #define CTLRSIZE 8
 
+#if defined(CONFIG_ATXX)
+typedef struct
+{
+	unsigned long	clkfreq;
+	unsigned long	baudrate;
+	unsigned long	fifo_cfg;
+	unsigned long	loop_enable;
+	unsigned long	flow_control;
+} uart_t;
+#endif
+
 struct serial_device {
 	char name[NAMESIZE];
 	char ctlr[CTLRSIZE];
@@ -14,6 +25,10 @@ struct serial_device {
 	int (*tstc) (void);
 	void (*putc) (const char c);
 	void (*puts) (const char *s);
+#if defined(CONFIG_ATXX)
+	int (*get_bridge) (char *s);
+	int (*init_adv) (uart_t *puart);
+#endif
 
 	struct serial_device *next;
 };
@@ -58,7 +73,8 @@ extern struct serial_device zoom2_serial_device3;
 #endif
 
 #if defined(CONFIG_ATXX)
-extern struct serial_device atxx_ffuart_device;
+extern struct serial_device atxx_uart0_device;
+extern struct serial_device atxx_uart1_device;
 #endif
 extern struct serial_device serial_ffuart_device;
 extern struct serial_device serial_btuart_device;
@@ -68,5 +84,8 @@ extern void serial_initialize(void);
 extern void serial_stdio_init(void);
 extern int serial_assign(char * name);
 extern void serial_reinit_all(void);
-
+#if defined(CONFIG_ATXX)
+extern int	serial_init_adv (uart_t *puart);
+extern int	serial_get_bridge (uint8_t *s);
+#endif
 #endif

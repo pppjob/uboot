@@ -27,6 +27,7 @@
 #include <asm/arch-atxx/topctl.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/clock.h>
+#include <asm/arch-atxx/adc.h>
 #include "map_table.c"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -57,6 +58,9 @@ int board_init(void)
 	gd->bd->bi_arch_number = MACH_TYPE_CAYMAN20;
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_ATAG_ADDR;
+
+	adc_init();
+
 	return 0;
 }
 

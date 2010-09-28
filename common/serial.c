@@ -85,7 +85,7 @@ struct serial_device *__default_serial_console (void)
 #elif defined(CONFIG_OMAP3_ZOOM2)
 		return ZOOM2_DEFAULT_SERIAL_DEVICE;
 #elif defined(CONFIG_ATXX)
-		return &atxx_ffuart_device;
+		return &atxx_uart0_device;
 #else
 #error No default console
 #endif
@@ -163,7 +163,8 @@ void serial_initialize (void)
 	serial_register(&s5pc1xx_serial3_device);
 #endif
 #if defined (CONFIG_ATXX)
-	serial_register(&atxx_ffuart_device);
+	serial_register(&atxx_uart0_device);
+	serial_register(&atxx_uart1_device);
 #endif
 
 	serial_assign (default_serial_console ()->name);
@@ -283,3 +284,28 @@ void serial_puts (const char *s)
 
 	serial_current->puts (s);
 }
+
+#if defined(CONFIG_ATXX)
+int serial_init_adv (uart_t *puart)
+{
+	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
+		struct serial_device *dev = default_serial_console ();
+
+		return dev->init_adv (puart);
+	}
+
+	return serial_current->init_adv (puart);
+}
+
+
+int serial_get_bridge (uint8_t *s)
+{
+	if (!(gd->flags & GD_FLG_RELOC) || !serial_current) {
+		struct serial_device *dev = default_serial_console ();
+
+		return dev->get_bridge(s);
+	}
+
+	return serial_current->get_bridge(s);
+}
+#endif

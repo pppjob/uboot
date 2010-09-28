@@ -98,6 +98,7 @@ endif
 ifdef CONFIG_ATXX
 COBJS-$(CONFIG_CMD_TEST) += cmd_test.o
 COBJS-$(CONFIG_CMD_HDCVT) += cmd_hdcvt.o
+COBJS-$(CONFIG_CMD_FACTORY_TEST) += cmd_factorytest.o
 endif
 COBJS-$(CONFIG_CMD_I2C) += cmd_i2c.o
 COBJS-$(CONFIG_CMD_IDE) += cmd_ide.o

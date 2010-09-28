@@ -123,13 +123,5 @@
 #define bUART_USR_TFNF		bit_1
 #define bUART_USR_BUSY		bit_0
 
-typedef struct
-{
-	unsigned long	clkfreq;
-	unsigned long	baudrate;
-	unsigned long	fifo_cfg;
-	unsigned long	loop_enable;
-} uart_t;
-
 #endif /* __SERIAL_DWAPBUART_H */
 

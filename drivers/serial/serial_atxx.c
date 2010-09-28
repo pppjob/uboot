@@ -26,24 +26,19 @@
 #include <asm/io.h>
 #include "serial_atxx.h"
 #include <asm/arch-atxx/regs_base.h>
+#include <asm/arch-atxx/delay.h>
 
 
-uart_t uart;
+/*--------------------------- basic operation----------------------------------*/
 
-static int dwapbuart_init(uart_t *p_uart);
-static void dwapbuart_putc(char ch);
-static int dwapbuart_getc(void);
-static int dwapbuart_tstc(uart_t *p_uart);
-static void dwapbuart_setbrg(uart_t *p_uart);
-
-static void serial_write_reg(uint32_t reg, uint32_t val)
+static void serial_write_reg(uint32_t base_addr, uint32_t reg, uint32_t val)
 {
-	writel(val, ATXX_UART0_BASE + reg);
+	writel(val, base_addr + reg);
 }
 
-static uint32_t serial_read_reg(uint32_t reg)
+static uint32_t serial_read_reg(uint32_t base_addr, uint32_t reg)
 {
-	return readl(ATXX_UART0_BASE + reg);
+	return readl(base_addr + reg);
 }
 
 unsigned long uart_get_divisor(unsigned long clkfreq, unsigned long baudrate)
@@ -51,208 +46,311 @@ unsigned long uart_get_divisor(unsigned long clkfreq, unsigned long baudrate)
 	return ((clkfreq/baudrate) >> 4);
 }
 
-static void uart_clear_rx_fifo(void)
+static void uart_clear_rx_fifo(uint32_t base_addr)
 {
 	uint32_t val;
 
-	val = serial_read_reg(UART_FCR_OFS);
+	val = serial_read_reg(base_addr, UART_FCR_OFS);
 	val |= bUART_FCR_RFIFOR;
-	serial_write_reg(UART_FCR_OFS, val);
+	serial_write_reg(base_addr, UART_FCR_OFS, val);
 }
 
-static void uart_clear_tx_fifo(void)
+static void uart_clear_tx_fifo(uint32_t base_addr)
 {
 
 	uint32_t val;
 
-	val = serial_read_reg(UART_FCR_OFS);
+	val = serial_read_reg(base_addr, UART_FCR_OFS);
 	val |= bUART_FCR_XFIFOR;
-	serial_write_reg(UART_FCR_OFS, val);
+	serial_write_reg(base_addr, UART_FCR_OFS, val);
 }
 
-static int dwapbuart_init(uart_t *p_uart)
+static void uart_set_flowcontrol(uint32_t base_addr, uint32_t enable)
 {
-	unsigned long val;
+	uint32_t val;
 
-	/* FIFO control */
-	serial_write_reg(UART_FCR_OFS, p_uart->fifo_cfg);
+	if (enable) {
+		val = serial_read_reg(base_addr, UART_MCR_OFS);
+		serial_write_reg(base_addr, UART_MCR_OFS, 
+				val | bUART_MCR_AFCE | bUART_MCR_RTS);
+		serial_write_reg(base_addr, UART_FCR_OFS, 
+				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_ONE 
+				| bUART_FCR_FIFOE);
+	} else {
+		val = serial_read_reg(base_addr, UART_MCR_OFS);
+		serial_write_reg(base_addr, UART_MCR_OFS, val & ~bUART_MCR_AFCE);
+	}
+}
+
+
+static int dwapbuart_init(uint32_t base_addr, uart_t *p_uart)
+{
+	unsigned long val, val1;
+
 	/* enable DLL/DLH R/W */
-	serial_write_reg(UART_LCR_OFS, bUART_LCR_DLAB);
-	/* CFG LOW */
+	do {
+		val = serial_read_reg(base_addr, UART_USR_OFS);
+	} while (val & 0x1);
+	serial_write_reg(base_addr, UART_LCR_OFS, bUART_LCR_DLAB);
+
+	/* config DLL/DLH */
 	val = uart_get_divisor(p_uart->clkfreq, p_uart->baudrate);
-	serial_write_reg(UART_DLL_OFS, (val & 0xFF));
-	/* CFG HIGH */
-	serial_write_reg(UART_DLH_OFS, (val >> 8));
+	serial_write_reg(base_addr, UART_DLL_OFS, (val & 0xFF));
+	serial_write_reg(base_addr, UART_DLH_OFS, (val >> 8));
 
 	/* 8bits, No parity */
-	serial_write_reg(UART_LCR_OFS, bUART_LCR_DLS);
+	serial_write_reg(base_addr, UART_LCR_OFS, bUART_LCR_DLS);
 
 	/* enable loopback */
-	if(p_uart->loop_enable == 1)
-		serial_write_reg(UART_MCR_OFS, bUART_MCR_LB);
-	else	/* disable loopback */
-		serial_write_reg(UART_MCR_OFS, ~bUART_MCR_LB);
+	if(p_uart->loop_enable == 1) {
+		val = serial_read_reg(base_addr, UART_MCR_OFS);
+		serial_write_reg(base_addr, UART_MCR_OFS, val | bUART_MCR_LB);
+	} else {	/* disable loopback */
+		val = serial_read_reg(base_addr, UART_MCR_OFS);
+		serial_write_reg(base_addr, UART_MCR_OFS, val & ~bUART_MCR_LB);
+	}
 
-	uart_clear_rx_fifo();
-	uart_clear_tx_fifo();
+	/* FIFO control */
+	if (p_uart->fifo_cfg == 1) {
+		serial_write_reg(base_addr, UART_FCR_OFS, 
+				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF | bUART_FCR_FIFOE);
+	} else if (p_uart->fifo_cfg == 2) {
+		serial_write_reg(base_addr, UART_FCR_OFS, 
+				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_ONE | bUART_FCR_FIFOE);
+	} else {
+		serial_write_reg(base_addr, UART_FCR_OFS, 
+				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF);
+	}
+
+	uart_set_flowcontrol(base_addr, p_uart->flow_control);
+
+	uart_clear_rx_fifo(base_addr);
+	uart_clear_tx_fifo(base_addr);
 
 	return 0;
 }
 
-static void dwapbuart_putc(char ch)
+static void dwapbuart_putc(uint32_t base_addr, char ch)
 {
 	uint32_t val;
 	
 	/* wait TX empty */
 	do{
-		val = serial_read_reg(UART_LSR_OFS);
+		val = serial_read_reg(base_addr, UART_LSR_OFS);
 	} while( (val & bUART_LSR_THRE) == 0 );
 	/* send a character */
-	serial_write_reg(UART_THR_OFS, ch);
+	serial_write_reg(base_addr, UART_THR_OFS, ch);
 }
 
 
-static int dwapbuart_getc()
+static int dwapbuart_getc(uint32_t base_addr)
 {
 	uint32_t val;
 	
 	/*wait for data ready */
 
 	do{
-		val = serial_read_reg(UART_LSR_OFS);
+		val = serial_read_reg(base_addr, UART_LSR_OFS);
 	} while(!(val & bUART_LSR_DR));
 
-	return serial_read_reg(UART_RBR_OFS);
+	return serial_read_reg(base_addr, UART_RBR_OFS);
 }
 
-static int dwapbuart_tstc(uart_t *p_uart)
+static int dwapbuart_tstc(uint32_t base_addr)
 {
 	uint32_t val;
 
-	val = serial_read_reg(UART_LSR_OFS);
+	val = serial_read_reg(base_addr, UART_LSR_OFS);
 	return ((val & bUART_LSR_DR));
 }
 
-static void dwapbuart_setbrg(uart_t *p_uart)
+static void dwapbuart_setbrg(uint32_t base_addr)
 {
 	/* not implemented yet */
 }
 
 #ifdef CONFIG_SERIAL_MULTI
-
-static int atxx_ffuart_init(void)
+/*--------------------------- uart0 ----------------------------------------------------*/
+static int atxx_uart0_init(void)
 {
-	uart_t *p_uart = &uart;
+	uart_t uart;
 
-	p_uart->clkfreq = CFG_UART_CLOCK_FREQ;
-	p_uart->baudrate = CONFIG_BAUDRATE;
+	uart.clkfreq = CFG_UART_CLOCK_FREQ;
+	uart.baudrate = CONFIG_BAUDRATE;
 #ifdef CFG_UART_FIFO_ON
-	p_uart->fifo_cfg = bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF | bUART_FCR_FIFOE;
+	uart.fifo_cfg = 1;
 #else
-	p_uart->fifo_cfg = bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF;
+	uart.fifo_cfg = 0;
 #endif
-	p_uart->loop_enable = CFG_UART_LOOPENABLE;
+	uart.loop_enable = CFG_UART_LOOPENABLE;
+	uart.flow_control = CFG_UART_FLOWCONTROL_ENABLE;
 
-	dwapbuart_init(p_uart);
+	dwapbuart_init(ATXX_UART0_BASE, &uart);
 
 	return 0;
 }
 
-static void atxx_ffuart_putc(const char c)
+static int atxx_uart0_init_adv(uart_t *p_uart)
+{
+	dwapbuart_init(ATXX_UART0_BASE, p_uart);
+
+	return 0;
+}
+
+static void atxx_uart0_putc(const char c)
 {
 	if (c == '\n')
-		dwapbuart_putc('\r');
+		dwapbuart_putc(ATXX_UART0_BASE, '\r');
 
-	dwapbuart_putc(c);
+	dwapbuart_putc(ATXX_UART0_BASE, c);
 }
 
-static int atxx_ffuart_getc(void)
+static int atxx_uart0_getc(void)
 {
-	return dwapbuart_getc();
+	return dwapbuart_getc(ATXX_UART0_BASE);
 }
 
-static void atxx_ffuart_puts(const char *s)
+static void atxx_uart0_puts(const char *s)
 {
 	while (*s) {
 		serial_putc(*s++);
 	}
 }
 
-static void atxx_ffuart_setbrg(void)
+static void atxx_uart0_setbrg(void)
 {
-	uart_t *p_uart = &uart;
- 	dwapbuart_setbrg(p_uart);
+ 	dwapbuart_setbrg(ATXX_UART0_BASE);
 }
 
-static int atxx_ffuart_tstc(void)
+static int atxx_uart0_tstc(void)
 {
-	uart_t *p_uart = &uart;
-
-	return dwapbuart_tstc(p_uart);
+	return dwapbuart_tstc(ATXX_UART0_BASE);
 }
 
-struct serial_device atxx_ffuart_device =
+static int atxx_uart0_get_bridge(char *pch)
 {
-	"atxx_ffuart",
-	"ATK",
-	atxx_ffuart_init,
-	atxx_ffuart_setbrg,
-	atxx_ffuart_getc,
-	atxx_ffuart_tstc,
-	atxx_ffuart_putc,
-	atxx_ffuart_puts,
-};
-#else
-int serial_init(void)
-{
-	uart_t *p_uart = &uart;
+	uint32_t val;
 
-	p_uart->clkfreq = CFG_UART_CLOCK_FREQ;
-	p_uart->baudrate = CONFIG_BAUDRATE;
+	do{
+		val = serial_read_reg(ATXX_UART0_BASE, UART_LSR_OFS);
+		if ((val & bUART_LSR_DR) != 0) {
+			*pch = serial_read_reg(ATXX_UART0_BASE, UART_RBR_OFS);
+			return 1;
+		}
+
+		val = serial_read_reg(ATXX_UART1_BASE, UART_LSR_OFS);
+		if ((val & bUART_LSR_DR) != 0) {
+			*pch = serial_read_reg(ATXX_UART1_BASE, UART_RBR_OFS);
+			return 2;
+		}
+
+	} while(1);
+}
+
+/*--------------------------- uart1 ----------------------------------------------------*/
+static int atxx_uart1_init(void)
+{
+	uart_t uart;
+
+	uart.clkfreq = CFG_UART_CLOCK_FREQ;
+	uart.baudrate = CONFIG_BAUDRATE;
 #ifdef CFG_UART_FIFO_ON
-	p_uart->fifo_cfg = bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF | bUART_FCR_FIFOE;
+	uart.fifo_cfg = 1;
 #else
-	p_uart->fifo_cfg = bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF;
+	uart.fifo_cfg = 1;
 #endif
-	p_uart->loop_enable = CFG_UART_LOOPENABLE;
+	uart.loop_enable = CFG_UART_LOOPENABLE;
+	uart.flow_control = CFG_UART_FLOWCONTROL_ENABLE;
 
-	return dwapbuart_init(p_uart);
+	dwapbuart_init(ATXX_UART1_BASE, &uart);
+
+	return 0;
 }
 
-void serial_putc(const char ch)
+static int atxx_uart1_init_adv(uart_t *p_uart)
 {
-	uart_t *p_uart = &uart;
+	dwapbuart_init(ATXX_UART1_BASE, p_uart);
 
-	if (ch == '\n')
-		dwapbuart_putc('\r');
-
-	dwapbuart_putc(ch);
+	return 0;
 }
 
-void serial_puts(const char *s)
+static void atxx_uart1_putc(const char c)
+{
+	if (c == '\n')
+		dwapbuart_putc(ATXX_UART1_BASE, '\r');
+
+	dwapbuart_putc(ATXX_UART1_BASE, c);
+}
+
+static int atxx_uart1_getc(void)
+{
+	return dwapbuart_getc(ATXX_UART1_BASE);
+}
+
+static void atxx_uart1_puts(const char *s)
 {
 	while (*s) {
 		serial_putc(*s++);
 	}
 }
 
-int serial_getc(void)
+static void atxx_uart1_setbrg(void)
 {
-	uart_t *p_uart = &uart;
-
-	return dwapbuart_getc();
+ 	dwapbuart_setbrg(ATXX_UART1_BASE);
 }
 
-int serial_tstc(void)
+static int atxx_uart1_tstc(void)
 {
-	uart_t *p_uart = &uart;
-
-	return dwapbuart_tstc(p_uart);
+	return dwapbuart_tstc(ATXX_UART1_BASE);
 }
 
-void serial_setbrg(void)
+static int atxx_uart1_get_bridge(char *pch)
 {
-	uart_t *p_uart = &uart;
- 	dwapbuart_setbrg(p_uart);
+	uint32_t val;
+
+	do{
+		val = serial_read_reg(ATXX_UART0_BASE, UART_LSR_OFS);
+		if ((val & bUART_LSR_DR) != 0) {
+			*pch = serial_read_reg(ATXX_UART0_BASE, UART_RBR_OFS);
+			return 1;
+		}
+
+		val = serial_read_reg(ATXX_UART1_BASE, UART_LSR_OFS);
+		if ((val & bUART_LSR_DR) != 0) {
+			*pch = serial_read_reg(ATXX_UART1_BASE, UART_RBR_OFS);
+			return 2;
+		}
+
+	} while(1);
 }
+
+struct serial_device atxx_uart0_device =
+{
+	"serial0",
+	"uart0",
+	atxx_uart0_init,
+	atxx_uart0_setbrg,
+	atxx_uart0_getc,
+	atxx_uart0_tstc,
+	atxx_uart0_putc,
+	atxx_uart0_puts,
+	atxx_uart0_get_bridge,
+	atxx_uart0_init_adv,
+};
+
+struct serial_device atxx_uart1_device =
+{
+	"serial1",
+	"uart1",
+	atxx_uart1_init,
+	atxx_uart1_setbrg,
+	atxx_uart1_getc,
+	atxx_uart1_tstc,
+	atxx_uart1_putc,
+	atxx_uart1_puts,
+	atxx_uart1_get_bridge,
+	atxx_uart1_init_adv,
+};
+
+#else
 #endif /* CONFIG_SERIAL_MULTI */

@@ -31,14 +31,13 @@
 #include "atxx-nand.h"
 
 #define CONFIG_ATXX_NAND_DMA
+
 #ifdef CONFIG_ATXX_NAND_DEBUG
 static int bad_scan = 1;
 #endif
 
-static int ecc_number = 4;
-
-static int oob_size = 128;
-#define OOB_SIZE_128			128
+static int ecc_number = CONFIG_NAND_ECC;
+static int oob_size = CONFIG_NAND_OOBSIZE;
 static int bus_width = 0;
 
 /**********************************/
@@ -1669,11 +1668,13 @@ static struct nand_flash_dev *atxx_nd_get_flash_type(struct mtd_info *mtd,
 			struct nand_chip *chip, int *maf_id)
 {
 	struct nand_flash_dev *type = NULL;
-	int i, dev_id, maf_idx, ext_id;
+	int i, dev_id, maf_idx, ext_id, ext_id_bak;
+
 
 	/* Select the device */
 	atxx_nd_select_chip(mtd, 0);
 	atxx_nd_read_ids(maf_id, &dev_id, &ext_id);
+	ext_id_bak = ext_id;
 
 	/* Lookup the flash id */
 	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
@@ -1718,6 +1719,14 @@ static struct nand_flash_dev *atxx_nd_get_flash_type(struct mtd_info *mtd,
 	for (maf_idx = 0; nand_manuf_ids[maf_idx].id != 0x0; maf_idx++) {
 		if (nand_manuf_ids[maf_idx].id == *maf_id)
 			break;
+	}
+
+	/* fix the nand ID identify for Hynix H27UAG8T2A */
+	if ((*maf_id == 0xad) && (dev_id == 0xd5) && (ext_id_bak == 0x25)) {
+		mtd->erasesize = 512 * 1024;
+		mtd->writesize = PAGE_SIZE_4K;
+		ecc_number = 11;
+		oob_size = 224;
 	}
 
 	if (mtd->writesize == PAGE_SIZE_4K)
