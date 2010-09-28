@@ -204,8 +204,15 @@ static __inline__ int abortboot(int bootdelay)
 
 	return abort;
 }
+/* !defined(CONFIG_AUTOBOOT_KEYED) */
+#elif	defined(CONFIG_AUTOBOOT_KEYHW)
 
-# else	/* !defined(CONFIG_AUTOBOOT_KEYED) */
+static __inline__ int abortboot(int bootdelay)
+{
+	return do_abortboot();
+}
+
+#else
 
 #ifdef CONFIG_MENUKEY
 static int menukey = 0;
@@ -403,6 +410,7 @@ void main_loop (void)
 # endif
 
 # ifndef CONFIG_SYS_HUSH_PARSER
+		s = getenv ("bootcmd");
 		run_command (s, 0);
 # else
 		parse_string_outer(s, FLAG_PARSE_SEMICOLON |

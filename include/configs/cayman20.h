@@ -39,7 +39,7 @@
 #define MDDR_BASE_ADDR			0x88000000
 
 #define CONFIG_UNCONTINUOUS_MEM
-#define CONFIG_SYS_MALLOC_END		(MDDR_BASE_ADDR + 0x00400000)
+#define CONFIG_SYS_MALLOC_END		(MDDR_BASE_ADDR + 0x00600000)
 #define CONFIG_SYS_MALLOC_LEN		0x00100000	/* 1MB */
 
 /* u-boot run address */
@@ -65,6 +65,9 @@
 
 /* no irqs */
 #undef CONFIG_USE_IRQ
+
+/* Use key detect */
+#define CONFIG_AUTOBOOT_KEYHW
 
 /*
  * Stack sizes
@@ -108,11 +111,17 @@
 #define CFG_UART_FIFO_ON
 #define CONFIG_SERIAL_MULTI
 
-#define CONFIG_BOOTDELAY		2
-#define CONFIG_BOOTARGS			\
+#define CONFIG_BOOTDELAY		0
+#define CONFIG_BOOTARGS_NAND		\
 		"console=ttyS0,921600n8 androidboot.console=ttyS0 init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs mtdparts=atxx_nd:32M(boot),-(system)"
+#define CONFIG_BOOTARGS			CONFIG_BOOTARGS_NAND
 
-#define CONFIG_BOOTCOMMAND 		"nand read 88807e00 200000 200000; hdcvt 88807e00; bootm 88807fc0"
+#define CONFIG_BOOTARGS_SD		\
+		"console=ttyS0,921600n8 androidboot.console=ttyS0 quiet mtdparts=atxx_nd:32M(boot),-(system)"
+
+#define CONFIG_BOOTCOMMAND_NAND 	"nand read 88807e00 200000 200000; hdcvt 88807e00; bootm 88807fc0"
+#define CONFIG_BOOTCOMMAND 		CONFIG_BOOTCOMMAND_NAND
+#define CONFIG_BOOTCOMMAND_SD		"mmc init;fatload mmc 1 0x88807e00 isd_zimage 0; hdcvt 88807e00; bootm 88807fc0"
 
 /* nand */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
@@ -126,7 +135,8 @@
 /* Environment */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x100000
-#define CONFIG_ENV_SIZE			8192	/* 8KB */
+#define CONFIG_ENV_SIZE			4096	/* 4KB */
+#define CONFIG_ENV_RANGE                0x100000
 
 /* SD/fat */
 #define CONFIG_ATXX_MMC
