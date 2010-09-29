@@ -28,6 +28,7 @@ static int do_factory(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	int index;
 	int ret;
+	factory_data_t *data;
 
 	/* at least one arguments please */
 	if (argc < 2)
@@ -50,7 +51,6 @@ static int do_factory(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	index = simple_strtol(argv[2], NULL, 10);
 
 	if (strcmp(argv[1], "read") == 0) {
-		factory_data_t *data;
 		if (argc != 3)
 			goto PRINT_USAGE;
 
@@ -74,7 +74,6 @@ static int do_factory(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		}
 	}
 	else if (strcmp(argv[1], "write") == 0) {
-		factory_data_t *data;
 		if (argc != 4)
 			goto PRINT_USAGE;
 		data = factory_data_get(index);
