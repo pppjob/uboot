@@ -165,6 +165,8 @@ COBJS-$(CONFIG_MODEM_SUPPORT) += modem.o
 COBJS-$(CONFIG_UPDATE_TFTP) += update.o
 COBJS-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
 
+# factory data test
+COBJS-$(CONFIG_CMD_FACTORYDATA) += cmd_factory.o
 
 COBJS	:= $(sort $(COBJS-y))
 SRCS	:= $(AOBJS:.o=.S) $(COBJS:.o=.c)
