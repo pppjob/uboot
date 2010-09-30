@@ -68,6 +68,7 @@
 
 /* Use key detect */
 #define CONFIG_AUTOBOOT_KEYHW
+#define CONFIG_BOOTDELAY		0
 
 /*
  * Stack sizes
@@ -111,17 +112,13 @@
 #define CFG_UART_FIFO_ON
 #define CONFIG_SERIAL_MULTI
 
-#define CONFIG_BOOTDELAY		0
-#define CONFIG_BOOTARGS_NAND		\
-		"console=ttyS0,921600n8 androidboot.console=ttyS0 init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs mtdparts=atxx_nd:32M(boot),-(system)"
-#define CONFIG_BOOTARGS			CONFIG_BOOTARGS_NAND
+#define CONFIG_BOOTARGS			\
+		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs"
+#define CONFIG_BOOTCOMMAND	 	"nand read 88807e00 200000 200000; hdcvt 88807e00; bootm 88807fc0"
 
 #define CONFIG_BOOTARGS_SD		\
-		"console=ttyS0,921600n8 androidboot.console=ttyS0 quiet mtdparts=atxx_nd:32M(boot),-(system)"
-
-#define CONFIG_BOOTCOMMAND_NAND 	"nand read 88807e00 200000 200000; hdcvt 88807e00; bootm 88807fc0"
-#define CONFIG_BOOTCOMMAND 		CONFIG_BOOTCOMMAND_NAND
-#define CONFIG_BOOTCOMMAND_SD		"mmc init;fatload mmc 1 0x88807e00 isd_zimage 0; hdcvt 88807e00; bootm 88807fc0"
+		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) quiet"
+#define CONFIG_BOOTCOMMAND_SD		"fatload mmc 1 0x88807e00 kboot.img; hdcvt 88807e00; bootm 88807fc0"
 
 /* nand */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
@@ -134,9 +131,20 @@
 
 /* Environment */
 #define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_OFFSET		0x100000
-#define CONFIG_ENV_SIZE			4096	/* 4KB */
+#define CONFIG_ENV_OFFSET		0x100000	/* 1M ~ 2M */
+#define CONFIG_ENV_SIZE			4096		/* 4KB */
 #define CONFIG_ENV_RANGE                0x100000
+
+#define	CONFIG_UBOOT_LADDR		0x88007e00
+
+#define	CONFIG_XLOADER_OFFSET		0x00000000	/* 0   + 64K */
+#define	CONFIG_XLOADER_MSIZE		0x00020000
+
+#define	CONFIG_UBOOT_OFFSET		0x00020000	/* 64K + 512K */
+#define	CONFIG_UBOOT_MSIZE		0x00080000
+
+#define	CONFIG_KERNEL_OFFSET		0x00200000	/* 2M  + 2M */
+#define	CONFIG_KERNEL_MSIZE		0x00200000
 
 /* SD/fat */
 #define CONFIG_ATXX_MMC
@@ -149,8 +157,7 @@
 /*
  * Command lists
  */
-#define CONFIG_CMD_TEST
-#define CONFIG_CMD_FACTORY_TEST
+#define CONFIG_CMD_RUN
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_SAVEENV
@@ -159,8 +166,13 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_BDI
+
+#define CONFIG_CMD_STEST
 #define CONFIG_CMD_HDCVT
 #define CONFIG_CMD_FACTORYDATA
+#define CONFIG_CMD_ATEST
+#define CONFIG_CMD_ABOOT
+#define CONFIG_CMD_ADOWNLOAD
 
 #define CONFIG_SYS_LONGHELP
 

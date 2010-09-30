@@ -29,8 +29,8 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)lib$(CPU).a
 
 START	= start.o
-COBJS	= clock_common.o cpu.o calibrate_delay.o time.o hdcvt.o gpio.o factorydata.o
-
+COBJS	= clock_common.o cpu.o calibrate_delay.o time.o hdcvt.o gpio.o \
+	  factorydata.o aboot.o
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))

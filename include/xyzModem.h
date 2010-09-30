@@ -114,4 +114,11 @@ void  xyzModem_stream_terminate(bool method, int (*getc)(void));
 int   xyzModem_stream_read(char *buf, int size, int *err);
 char *xyzModem_error(int err);
 
+#if defined(CONFIG_CMD_LOAD)
+ulong load_serial_modem (ulong offset, int mode);
+#if 0
+static ulong load_serial_ymodem (ulong offset);
+#endif
+#endif
+
 #endif /* _XYZMODEM_H_ */

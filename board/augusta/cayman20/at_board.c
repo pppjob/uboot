@@ -31,9 +31,10 @@
 #include <asm/arch-atxx/adc.h>
 #include <asm/arch-atxx/delay.h>
 #include <asm/arch-atxx/pm.h>
-#include "map_table.c"
+#include <asm/arch-atxx/map_table.h>
+#include <asm/arch-atxx/aboot.h>
+
 #include "keypad.h"
-#include "bootparam.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -56,9 +57,8 @@ int board_init(void)
 	topctl_write_reg(TOPCTL6, 0x00f29e94);
 
 	at6600_i2c_init();
-	if (-1 == pcf50626_set_default_power_supply())
-		return -1;
-	
+	pcf50626_set_default_power_supply();
+
 	/* arch number of board */
 	gd->bd->bi_arch_number = MACH_TYPE_CAYMAN20;
 	/* adress of boot parameters */
@@ -80,107 +80,24 @@ int dram_init (void)
 	 return 0;
 }
 
-
-
-/* Modify bootargs and bootcmd*/
-int boot_from_sd(char * str)
-{
-	int ret = -ENODATA;
-	char buffer[CONFIG_SYS_CBSIZE];
-
-	sprintf(buffer, "%s %s%s", 
-		CONFIG_BOOTARGS_SD, "liveboot=", str);
-	ret = setenv("bootargs", buffer);
-	printf("done %s\n", buffer);
-	if (ret) {
-		printf("set bootargs fail\n");
-		return ret;
-	}
-	memset(buffer, 0, CONFIG_SYS_CBSIZE);
-	sprintf(buffer, "%s", 
-		CONFIG_BOOTCOMMAND_SD);
-	ret = setenv("bootcmd", buffer);
-	printf("done %s\n", buffer);
-	if (ret) {
-		printf("set bootcmd fail\n");
-		return ret;
-	}
-	return 0;
-}
-
-/* Modify bootargs and bootcmd*/
-int boot_from_nand(void)
-{
-	int ret = -ENODATA;
-	char buffer[CONFIG_SYS_CBSIZE];
-
-	sprintf(buffer, "%s", 
-		CONFIG_BOOTARGS_NAND);
-	ret = setenv("bootargs", buffer);
-	if (ret) {
-		printf("set bootargs fail\n");
-		return ret;
-	}
-	sprintf(buffer, "%s", 
-		CONFIG_BOOTCOMMAND_NAND);
-	ret = setenv("bootcmd", buffer);
-	if (ret) {
-		printf("set bootcmd fail\n");
-		return ret;
-	}
-	return 0;
-}
-
-
-int build_boot_cmd(enum boot_mode mode)
-{
-	int ret;
-
-	switch(mode){
-		case SD_PHONETEST:
-			ret = boot_from_sd("phonetest");
-			break;
-		case SD_RECOVERY:
-			ret = boot_from_sd("recovery");
-			break;
-		case SD_INSTALL:
-			ret = boot_from_sd("install");
-			break;
-		case NAND_BOOT:
-			ret = boot_from_nand();
-			break;
-		default:
-			ret = -EINVAL;
-			break;
-		}
-	return ret;
-}
-
 int do_abortboot(void)
 {
 	unsigned int hwcfg;
 	enum boot_mode mode;
 	int ret;
 
+	run_command("mmc init", 0);
+
 	hwcfg = pm_read_reg(HWCFGR);
 	if (hwcfg == 2) {
-		mode = SD_PHONETEST;
+		mode = SD_BOARDTEST;
 		ret = build_boot_cmd(mode);
-	}else if (hwcfg == 0) {
+	} else if (hwcfg == 0) {
 		mode = keypad_detect();
-		if (mode != CMD_MODE)
-			ret = build_boot_cmd(mode);
-		else
-			ret = 1;
-#if 0
-		if (ret == NAND_BOOT){
-			ret = on_key_detect();
-			if (ret)
-				while(1);
-		}
-#endif
-	}else 
+		ret = build_boot_cmd(mode);
+	} else 
 		/* abort boot, entry command line */
 		return 1;
+
 	return ret;
 }

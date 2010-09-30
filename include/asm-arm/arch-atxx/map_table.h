@@ -20,6 +20,9 @@
  * 
  -----------------------------------------------------------------------------*/
 
+#ifndef __MAP_TABLE_H
+#define __MAP_TABLE_H
+
 #include <asm/sizes.h>
 #include <asm/arch-atxx/memory_map.h>
 
@@ -97,3 +100,4 @@ struct map_desc memory_map[] = {
 	{	0, 0, 0 },
 };
 
+#endif

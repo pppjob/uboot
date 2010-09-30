@@ -58,6 +58,25 @@ static uchar env_get_char_init (int index);
 #define MK_STR(x)	XMK_STR(x)
 
 uchar default_environment[] = {
+
+/* ****************************************************************** */
+
+#ifdef	CONFIG_UBOOT_OFFSET
+	"uboot-nandoff="MK_STR(CONFIG_UBOOT_OFFSET)	"\0"
+#endif
+#ifdef	CONFIG_UBOOT_LADDR
+	"uboot-laddr="	MK_STR(CONFIG_UBOOT_LADDR)	"\0"
+#endif
+
+#ifdef	CONFIG_BOOTARGS_SD
+	"bootargs_sd="	CONFIG_BOOTARGS_SD		"\0"
+#endif
+#ifdef	CONFIG_BOOTCOMMAND_SD
+	"bootcmd_sd="	CONFIG_BOOTCOMMAND_SD		"\0"
+#endif
+
+/* ****************************************************************** */
+
 #ifdef	CONFIG_BOOTARGS
 	"bootargs="	CONFIG_BOOTARGS			"\0"
 #endif

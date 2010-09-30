@@ -96,9 +96,11 @@ ifdef CONFIG_FPGA
 COBJS-$(CONFIG_CMD_FPGA) += cmd_fpga.o
 endif
 ifdef CONFIG_ATXX
-COBJS-$(CONFIG_CMD_TEST) += cmd_test.o
+COBJS-$(CONFIG_CMD_STEST) += cmd_stest.o
 COBJS-$(CONFIG_CMD_HDCVT) += cmd_hdcvt.o
-COBJS-$(CONFIG_CMD_FACTORY_TEST) += cmd_factorytest.o
+COBJS-$(CONFIG_CMD_ATEST) += cmd_atest.o
+COBJS-$(CONFIG_CMD_ADOWNLOAD) += cmd_adownload.o
+COBJS-$(CONFIG_CMD_ABOOT) += cmd_aboot.o
 endif
 COBJS-$(CONFIG_CMD_I2C) += cmd_i2c.o
 COBJS-$(CONFIG_CMD_IDE) += cmd_ide.o

@@ -33,13 +33,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_CMD_LOAD)
-static ulong load_serial_modem (ulong offset, int mode);
-#if 0
-static ulong load_serial_ymodem (ulong offset);
-#endif
-#endif
-
 #if defined(CONFIG_CMD_LOADS)
 static ulong load_serial (long offset);
 static int read_record (char *buf, ulong len);
@@ -983,7 +976,7 @@ static int getcxmodem(void) {
 	return -1;
 }
 #ifdef CONFIG_CMD_LOAD
-static ulong load_serial_modem (ulong offset, int mode)
+ulong load_serial_modem (ulong offset, int mode)
 #endif
 #if 0
 static ulong load_serial_ymodem (ulong offset)

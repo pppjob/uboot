@@ -365,5 +365,8 @@ static void use_default()
 {
 	puts ("*** Warning - bad CRC or NAND, using default environment\n\n");
 	set_default_env();
+
+	puts ("Store default evironment\n\n");
+	run_command("saveenv", 0);
 }
 #endif
