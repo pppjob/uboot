@@ -31,6 +31,7 @@
 #include <asm/arch-atxx/delay.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/memory_map.h>
+#include <asm/arch-atxx/factorydata.h>
 #include <i2c.h>
 
 static void gsm_bridge(void)
@@ -258,80 +259,84 @@ static void gsm_download(void)
 }
 
 /*----------------------------------------------------------------------------*/
-static int sn_test(int argc, char *argv[])
+static int string_data_test(int argc, char *argv[], int index, const char* name)
 {
+	factory_data_t *data = NULL;
 	char *action;
+	int rw;
 	int ret = -1;
 
-	if (argc < 2){
+	if (argc < 3){
 		return ret;
 	}
+
 	action = argv[2];
 	if (!strcmp(action, "read")) {
-		printf("SN:\n");
+		rw = 0;
+	} else if (!strcmp(action, "write")) {
+		rw = 1;
+		if (argc < 4) {
+			return ret;
+		}
+	} else {
+		return ret;
+	}
+
+	data = factory_data_get(index);
+	if (data == NULL) {
+		printf("read %s failed!\n", name);
+		return ret;
+	}
+
+	if (rw) {
+		data->fd_index = index;
+		data->fd_length = strlen(argv[3]);
+		strcpy(data->fd_buf, argv[3]);
+		ret = factory_data_store(data);
+		if (ret == 0) {
+			printf("write %s success!\n", name);
+		} else {
+			printf("write %s failed!\n", name);
+		}
 		ret = 0;
-	} else if (!strcmp(action, "write")){
-		printf("\n");
+	} else {
+		int i;
+		if (data->fd_index != index){
+			printf("%s unavailable!\n", name);
+		} else {
+			printf("%s: ", name);
+			for (i = 0; i < data->fd_length; i++)
+				putc(data->fd_buf[i]);
+			putc('\n');
+		}
 		ret = 0;
 	}
+
+	if (data != NULL)
+		factory_data_put(data);
 	return ret;
+}
+
+static int sn_test(int argc, char *argv[])
+{
+	return string_data_test(argc, argv, FD_SN, "sn");
 }
 
 static int imei_test(int argc, char *argv[])
 {
-	char *action;
-	int ret = -1;
-
-	if (argc < 2){
-		return ret;
-	}
-	action = argv[2];
-	if (!strcmp(action, "read")) {
-		printf("SN:\n");
-		ret = 0;
-	} else if (!strcmp(action, "write")){
-		printf("\n");
-		ret = 0;
-	}
-	return ret;
+	return string_data_test(argc, argv, FD_IMEI, "imei");
 }
 
 static int wifi_test(int argc, char *argv[])
 {
-	char *action;
-	int ret = -1;
+	return string_data_test(argc, argv, FD_WIFI, "wifi");
 
-	if (argc < 2){
-		return ret;
-	}
-	action = argv[2];
-	if (!strcmp(action, "read")) {
-		printf("SN:\n");
-		ret = 0;
-	} else if (!strcmp(action, "write")){
-		printf("\n");
-		ret = 0;
-	}
-	return ret;
 }
 
 static int bt_test(int argc, char *argv[])
 {
-	char *action;
-	int ret = -1;
+	return string_data_test(argc, argv, FD_BLUETOOTH, "bt");
 
-	if (argc < 2){
-		return ret;
-	}
-	action = argv[2];
-	if (!strcmp(action, "read")) {
-		printf("SN:\n");
-		ret = 0;
-	} else if (!strcmp(action, "write")){
-		printf("\n");
-		ret = 0;
-	}
-	return ret;
 }
 
 static int mask_test(int argc, char *argv[])
@@ -411,12 +416,10 @@ int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int ret = -1;
 	char *subcmd;
-
 	if (argc < 1) {
 		goto done;
 	}
 	subcmd = argv[1];
-
 	if (!strcmp(subcmd, "sn")) {
 		ret = sn_test(argc, argv);
 	} else if (!strcmp(subcmd, "imei")) {
@@ -444,7 +447,7 @@ done:
 }
 
 U_BOOT_CMD(
-	atest,   3,   0,	do_atest,
+	atest,   4,   0,	do_atest,
 	"do factory related test.",
 	"atest  <sn / imei / wifi / bt / mask / battery>   <read / write>  <data>\n"
 	"atest autotest - do factory autotest\n"

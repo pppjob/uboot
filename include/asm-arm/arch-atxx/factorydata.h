@@ -35,6 +35,8 @@ enum factory_data_index {
 	FD_GSM,
 	FD_MENU_CONSOLE,
 	FD_SN,
+	FD_IMEI,
+	FD_MASK,
 	FD_MAX
 };
 
