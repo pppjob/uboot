@@ -42,7 +42,7 @@ uint8_t buf[SD_BUF_SIZE];
 uint32_t address;
 uint32_t cd_detect = 0x0000ffff;
 uint32_t cd_wrprotect = 0x0000000;
-uint8_t is_standard_sd_card = 0;/*is_standard_sd_card: 1 -- SD standard card, 0 -- high capacity sd card*/
+static uint32_t is_standard_sd_card = 0;/*is_standard_sd_card: 1 -- SD standard card, 0 -- high capacity sd card*/
 
 static const char sd_state[16][12] =
 {
@@ -871,11 +871,13 @@ void sd_init_card(uint32_t card)
         	ATXX_MMC_DEBUG("READ_BL_LEN= 0x%x\n", read_bl_len);
         	ATXX_MMC_DEBUG("READ_BL_LEN_PER_SECTOR= 0x%x\n", read_bl_len_per_sector);
         	ATXX_MMC_DEBUG("stard sd card mmc_blk_dev.lba= 0x%x\n", (uint32_t)mmc_blk_dev.lba);
-       } else {
+       } else if(0 == is_standard_sd_card){
                /*SD High Capacity card*/
                 c_size = ((resp[1] >> 16)& 0xffff)+((resp[2]& 0x3f) << 16);
                 mmc_blk_dev.lba = (c_size+1)*1024;
         	ATXX_MMC_DEBUG("high capacity sd card mmc_blk_dev.lba= 0x%x\n", (uint32_t)mmc_blk_dev.lba);
+        } else {
+                printf("error sd type! is_standard_sd_card=0x%x\n", is_standard_sd_card);
         }
 
 	ATXX_MMC_DEBUG("rsd_csd[0] 0x%x\n", sd_csd[0]);
@@ -898,10 +900,11 @@ void sd_init_card(uint32_t card)
 	ATXX_MMC_DEBUG("set bus width\n");
 	sd_set_buswidth(0,4);
 
-	ATXX_MMC_DEBUG("get scr regster\n");
-	sd_get_scr_register();
-	ATXX_MMC_DEBUG("get status regster\n");
-	sd_get_status_register();
+	/*ATXX_MMC_DEBUG("get scr regster\n");*/
+	/*sd_get_scr_register();*/
+
+	/*ATXX_MMC_DEBUG("get status regster\n");*/
+	/*sd_get_status_register();*/
 	sd_set_clock(0, (25 * MHZ));
 
 	return;
@@ -999,7 +1002,7 @@ void sd_read_card(uint32_t card,uint32_t addr)
 		if(status & (bSTORAGE_INTSTS_DCRC | bSTORAGE_INTSTS_DRTO | bSTORAGE_INTSTS_SBE | \
                              bSTORAGE_INTSTS_EBE)) {
 			ret = STORAGE_COMMAND_DCRC;
-			atxx_sd_write_reg(STORAGE_RINTSTS, (bSTORAGE_INTSTS_DCRC | bSTORAGE_INTSTS_DRTO |\ 
+			atxx_sd_write_reg(STORAGE_RINTSTS, (bSTORAGE_INTSTS_DCRC | bSTORAGE_INTSTS_DRTO | \ 
                                                             bSTORAGE_INTSTS_SBE | bSTORAGE_INTSTS_EBE));
 			ATXX_MMC_DEBUG("data error 0x%x\n", status);
 			/*return;*/
@@ -1907,13 +1910,16 @@ unsigned long mmc_block_read(int dev_num, unsigned long blknr, lbaint_t blkcnt,v
         if(1 == is_standard_sd_card) {
                 addr = blknr*STORAGE_BLOCK_SIZE;
                 ATXX_MMC_DEBUG("byte offset addr = 0x%x\n", addr);
-                sd_multiblock_read(dev_num, addr, blkcnt, (uint8_t *)dst);	
-        } else {
+                sd_multiblock_read(dev_num, addr, blkcnt, (uint8_t *)dst);
+        } else if(0 == is_standard_sd_card){
                 ATXX_MMC_DEBUG("block offset blknr= 0x%x\n", blknr);
                 sd_multiblock_read(dev_num, blknr, blkcnt, (uint8_t *)dst);	
+        } else {
+                printf("error is_standard_sd_card = 0x%x", is_standard_sd_card);
+                return -1;
         }
 
-
+	sd_init_card(0);
 	return blkcnt; 
 }
 
@@ -1959,11 +1965,12 @@ int mmc_legacy_init(int verbose)
 	ret = fat_register_device(&mmc_blk_dev, 1);
 	if(0 == ret) {
 		ATXX_MMC_DEBUG("mmc_legacy_init: fat_register_device is OK!\n");
-	}
-	else 
-		printf("mmc_legacy_init: fat_register_device is fail!\n");
+                return 0;
+	} else {
+                printf("mmc_legacy_init: fat_register_device is fail!\n");
+                return -1;
+        }
 
-	return 0;
 }
 
 
