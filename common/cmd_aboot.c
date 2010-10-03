@@ -27,21 +27,30 @@
 
 int do_aboot(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
+	char *fstype = NULL;
+
 	if (argc < 2) {
 		goto failed;
 	}
 
 	if (strcmp(argv[1], "nand") == 0) {
-		build_boot_cmd(NAND_BOOT);
+		if (argc == 3) {
+			fstype = argv[2];
+		}
+		build_boot_cmd(NAND_BOOT, fstype);
 	} else if (strcmp(argv[1], "sd") == 0) {
+		if (argc == 4) {
+			fstype = argv[3];
+		}
+
 		if (argc == 2) {
-			build_boot_cmd(SD_BOOT);
+			build_boot_cmd(SD_BOOT, fstype);
 		} else if (strcmp(argv[2], "install") == 0) {
-			build_boot_cmd(SD_INSTALL);
+			build_boot_cmd(SD_INSTALL, fstype);
 		} else if (strcmp(argv[2], "boardtest") == 0) {
-			build_boot_cmd(SD_BOARDTEST);
+			build_boot_cmd(SD_BOARDTEST, fstype);
 		} else if (strcmp(argv[2], "recovery") == 0) {
-			build_boot_cmd(SD_RECOVERY);
+			build_boot_cmd(SD_RECOVERY, fstype);
 		} else {
 			goto failed;
 		}
@@ -58,8 +67,9 @@ failed:
 }
 
 U_BOOT_CMD(
-	aboot, 3, 0, do_aboot,
+	aboot, 4, 0, do_aboot,
 	"atxx boot command",
-	"usage: aboot nand\n"
-	"       aboot sd [install|boardtest|recovery]\n"
+	"usage:\n"
+	"aboot nand [ubifs|yaffs]\n"
+	"aboot sd [install|boardtest|recovery [ubifs|yaffs]]\n"
 );

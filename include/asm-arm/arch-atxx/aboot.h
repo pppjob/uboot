@@ -12,6 +12,6 @@ enum boot_mode {
 	CMD_MODE,
 };
 
-int build_boot_cmd(enum boot_mode mode);
+int build_boot_cmd(enum boot_mode mode, char *fstype);
 
 #endif /* __BOOTPARAM_H */

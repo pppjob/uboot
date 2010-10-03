@@ -26,7 +26,7 @@
 #include <asm/arch-atxx/aboot.h>
 
 /* Modify bootargs and bootcmd*/
-int boot_from_sd(char * str)
+static int boot_from_sd(char * bootstr, char *fstype)
 {
 	int ret = -ENODATA;
 	char *cmd, *args;
@@ -44,8 +44,13 @@ int boot_from_sd(char * str)
 		return ret;
 	}
 
-	if (str) {
-		sprintf(buffer, "%s %s%s", args, "liveboot=", str);
+	if (!fstype) {
+		fstype = "nofs";
+	}
+
+	if (bootstr) {
+		sprintf(buffer, "%s liveboot=%s livefs=%s",
+				args, bootstr, fstype);
 	} else {
 		sprintf(buffer, "%s", args);
 	}
@@ -78,7 +83,7 @@ int boot_from_nand(void)
 	return ret;
 }
 
-int build_boot_cmd(enum boot_mode mode)
+int build_boot_cmd(enum boot_mode mode, char *fstype)
 {
 	int ret;
 
@@ -88,22 +93,22 @@ int build_boot_cmd(enum boot_mode mode)
 			ret = boot_from_nand();
 			break;
 		case SD_BOOT:
-			ret = boot_from_sd(NULL);
+			ret = boot_from_sd(NULL, fstype);
 			break;
 		case SD_INSTALL:
-			ret = boot_from_sd("install");
+			ret = boot_from_sd("install", fstype);
 			break;
 		case SD_PLATFORM:
-			ret = boot_from_sd("platform");
+			ret = boot_from_sd("platform", fstype);
 			break;
 		case SD_BOARDTEST:
-			ret = boot_from_sd("boardtest");
+			ret = boot_from_sd("boardtest", fstype);
 			break;
 		case SD_PHONETEST:
-			ret = boot_from_sd("phonetest");
+			ret = boot_from_sd("phonetest", fstype);
 			break;
 		case SD_RECOVERY:
-			ret = boot_from_sd("recovery");
+			ret = boot_from_sd("recovery", fstype);
 			break;
 		case CMD_MODE:
 			ret = 1;

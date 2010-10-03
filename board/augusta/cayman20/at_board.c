@@ -91,10 +91,10 @@ int do_abortboot(void)
 	hwcfg = pm_read_reg(HWCFGR);
 	if (hwcfg == 2) {
 		mode = SD_BOARDTEST;
-		ret = build_boot_cmd(mode);
+		ret = build_boot_cmd(mode, "ubifs");
 	} else if (hwcfg == 0) {
 		mode = keypad_detect();
-		ret = build_boot_cmd(mode);
+		ret = build_boot_cmd(mode, "ubifs");
 	} else 
 		/* abort boot, entry command line */
 		return 1;

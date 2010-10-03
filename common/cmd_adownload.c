@@ -75,6 +75,7 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	char cmd[CONFIG_SYS_CBSIZE];
 	int addr, size, ret;
+	char *fstype = "";
 	atxx_image_header_t *head = (atxx_image_header_t *)DOWNLOAD_ADDR;
 
 	if (argc < 2) {
@@ -91,6 +92,10 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		ret = image_to_nand(addr, size, head->nand_offset);
 
 	} else if (strcmp(argv[1], "sd") == 0) {
+		if (argc == 4) {
+			fstype = argv[3];
+		}
+
 		if (strcmp(argv[2], "xloader") == 0) {
 			sprintf(cmd, "fatload mmc 1 0x%08x xloader.img", DOWNLOAD_ADDR);
 			if (run_command(cmd, 0)) {
@@ -110,9 +115,14 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
 
 		} else if (strcmp(argv[2], "system") == 0) {
-			ret = run_command("aboot sd install", 0);
+			sprintf(cmd, "aboot sd install %s", fstype);
+			ret = run_command(cmd, 0);
 
 		} else if (strcmp(argv[2], "all") == 0) {
+			/* clean nand env */
+			printf("clean nand env!\n\n");
+			nand_erase_block(CONFIG_ENV_OFFSET, CONFIG_ENV_RANGE);
+
 			/* xloader */
 			sprintf(cmd, "fatload mmc 1 0x%08x xloader.img", DOWNLOAD_ADDR);
 			if (run_command(cmd, 0)) {
@@ -129,13 +139,9 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			size = (head->firm_size + 512 + 4096) & ~4095;
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
 
-			/* update env */
-			printf("Store default evironment\n\n");
-			set_default_env();
-			run_command("saveenv", 0);
-
 			/* run livesd install */
-			ret = run_command("aboot sd install", 0);
+			sprintf(cmd, "aboot sd install %s", fstype);
+			ret = run_command(cmd, 0);
 
 		} else {
 			goto failed;
@@ -153,9 +159,11 @@ failed:
 }
 
 U_BOOT_CMD(
-	adownload, 3, 0, do_adownload,
+	adownload, 4, 0, do_adownload,
 	"atxx download command",
-	"usage: adownload uart\n"
-	"       adownload sd xloader|uboot|system|all\n"
+	"usage:\n"
+	"adownload uart\n"
+	"adownload sd xloader|uboot\n"
+	"adownload sd system|all [ubifs|yaffs]\n"
 );
 
