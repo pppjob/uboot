@@ -34,7 +34,7 @@
 #include <asm/arch-atxx/factorydata.h>
 #include <i2c.h>
 
-static void gsm_bridge(void)
+static void gsm_bridge(int argc, char *argv[])
 {
 	struct clk *clk_pll;
 	struct clk *clk_uart;
@@ -44,13 +44,11 @@ static void gsm_bridge(void)
 	uint8_t ch;
 
 	printf("GSM bridge!\n");
-	printf("Do you want to enable the flow_control?\n");
-	serial_assign("serial0");
-	ch = serial_getc();
-	if (ch == 'y')
+	if (argc == 4) {
+		flow_control_en = argv[3];
+	} else {
 		flow_control_en = 1;
-	else 
-		flow_control_en = 0;
+	}
 
 	val = topctl_read_reg(TOPCTL1);
 	val &= ~(1 << 10);
@@ -339,19 +337,53 @@ static int bt_test(int argc, char *argv[])
 
 }
 
+#define MAX_STATION_MASK	15
 static int mask_test(int argc, char *argv[])
 {
 	char *action;
-	int ret = -1;
+	int ret = -1, i, station_num;
+	factory_data_t *data;
 
 	if (argc < 2){
 		return ret;
 	}
 	action = argv[2];
 	if (!strcmp(action, "read")) {
-		printf("SN:\n");
+		data = factory_data_get(FD_MASK);
+		if (data == NULL) {
+			printf("read factory data failed!\n");
+			return 1;
+		}
+		
+		for (i = 0; i < MAX_STATION_MASK; i++) {
+			printf("Station: %d------%d!\n", i, (data->fd_buf[i] == 0)?0:1);
+		}
+
+		printf("\n");
 		ret = 0;
 	} else if (!strcmp(action, "write")){
+		if (argc != 4)
+			return ret;
+	
+		station_num = simple_strtoul(argv[3], NULL, 10);
+	
+		data = factory_data_get(FD_MASK);
+		if (data == NULL) {
+			printf("read factory data failed!\n");
+			return 1;
+		}
+
+		data->fd_index = FD_MASK;
+		data->fd_length = MAX_STATION_MASK;
+		data->fd_buf[station_num] = 0;
+
+		ret = factory_data_store(data);
+		if (ret != 0) {
+			printf("write MASK failed!\n");
+		} else {
+			printf("write MASK success!\n");
+		}
+		
 		printf("\n");
 		ret = 0;
 	}
@@ -362,7 +394,9 @@ static int battery_test(int argc, char *argv[])
 {
 	char *action;
 	int ret = -1;
-	int adc_value, calibration_k, calibration_b;
+	int adc_value, voltage, calibration_k, calibration_b;
+	factory_data_t *data;
+	uint32_t *p_buf;
 
 	if (argc < 2){
 		return ret;
@@ -373,15 +407,49 @@ static int battery_test(int argc, char *argv[])
 		printf("adc value: %d\n", adc_value);
 		ret = 0;
 	} else if (!strcmp(action, "write")){
+		if (argc != 5)
+			return ret;
+	
 		calibration_k = simple_strtoul(argv[3], NULL, 16);
 		calibration_b = simple_strtoul(argv[4], NULL, 16);
+		data = factory_data_get(FD_BATTERY);
+		if (data == NULL) {
+			printf("read factory data failed!\n");
+			return 1;
+		}
+
+		data->fd_index = FD_BATTERY;
+		data->fd_length = 8;
+		p_buf = (uint32_t *)&data->fd_buf[0];
+		*p_buf = calibration_k;
+		p_buf = (uint32_t *)&data->fd_buf[4];
+		*p_buf = calibration_b;
+
 		printf("k: %d, b: %d\n", calibration_k, calibration_b);
+
+		ret = factory_data_store(data);
+		if (ret != 0) {
+			printf("write battery data failed!\n");
+		} else {
+			printf("write battery data success!\n");
+		}
+	
 		printf("\n");
 		ret = 0;
 	} else if (!strcmp(action, "check")){
 		adc_value = adc_get_aux(TSC_ADC_AUX1);
-		/* todo */
-		printf("voltage: %d\n", adc_value);
+		data = factory_data_get(FD_BATTERY);
+		if (data == NULL) {
+			printf("read factory data failed!\n");
+		} else if (data->fd_index != FD_BATTERY){
+			printf("battery factory data unavailable!\n");
+		} else {
+			calibration_k = *(uint32_t *)&data->fd_buf[0]; 
+			calibration_b = *(uint32_t *)&data->fd_buf[4];
+			voltage = (calibration_k * adc_value + calibration_b) / 1000;
+			printf("voltage: %d\n", voltage);
+		}
+		ret = 0;
 	}
 	return ret;
 }
@@ -406,6 +474,7 @@ static int gsm_test(int argc, char *argv[])
 		gsm_download();
 		ret = 0;
 	} else if (!strcmp(action, "bridge")){
+		gsm_bridge(argc, argv);
 		printf("\n");
 		ret = 0;
 	}
@@ -416,10 +485,12 @@ int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int ret = -1;
 	char *subcmd;
+
 	if (argc < 1) {
 		goto done;
 	}
 	subcmd = argv[1];
+
 	if (!strcmp(subcmd, "sn")) {
 		ret = sn_test(argc, argv);
 	} else if (!strcmp(subcmd, "imei")) {
@@ -447,10 +518,10 @@ done:
 }
 
 U_BOOT_CMD(
-	atest,   4,   0,	do_atest,
+	atest,   8,   0,	do_atest,
 	"do factory related test.",
-	"atest  <sn / imei / wifi / bt / mask / battery>   <read / write>  <data>\n"
-	"atest autotest - do factory autotest\n"
-	"atest gsm <download / bridge> - connect gsm uart to uart0\n"
+	"sn | imei | wifi | bt | mask | battery   read | write  data\n"
+	"atest autotest --- do factory autotest\n"
+	"atest gsm download | bridge --- connect gsm uart to uart0\n"
 );
 

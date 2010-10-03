@@ -39,6 +39,8 @@ static int bad_scan = 1;
 static int ecc_number = CONFIG_NAND_ECC;
 static int oob_size = CONFIG_NAND_OOBSIZE;
 static int bus_width = 0;
+static int nand_fix = 0;
+struct mtd_info *mtd_bak;
 
 /**********************************/
 
@@ -1053,7 +1055,6 @@ static void atxx_nd_write_page_hwecc(struct mtd_info *mtd, struct
 
 	atxx_nd_debug("atxx_nd_write_page_hwecc - page:%08x\n", page);
 
-
 	if (mtd->writesize <= 512) {	/* small page */
 		nfc_config_small_page_write(bus_width, page);
 		if (chip->chipsize > (32 << 20))
@@ -1723,6 +1724,8 @@ static struct nand_flash_dev *atxx_nd_get_flash_type(struct mtd_info *mtd,
 
 	/* fix the nand ID identify for Hynix H27UAG8T2A */
 	if ((*maf_id == 0xad) && (dev_id == 0xd5) && (ext_id_bak == 0x25)) {
+		printf("nand fix H27UAG8T2A!\n");
+		nand_fix = 1;
 		mtd->erasesize = 512 * 1024;
 		mtd->writesize = PAGE_SIZE_4K;
 		ecc_number = 11;
@@ -1773,54 +1776,15 @@ static struct nand_flash_dev *atxx_nd_get_flash_type(struct mtd_info *mtd,
 	return type;
 }
 
-/**
- * atxx_nd_scan - [NAND Interface] Scan for the NAND device
- * @mtd:	MTD device structure
- * @maxchips:	Number of chips to scan for
- *
- * This fills out all the uninitialized function pointers
- * with the defaults.
- * The flash ID is read and the mtd/chip structures are
- * filled with the appropriate values.
- * The mtd->owner field must be set to the module of the caller
- *
- */
-int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
+
+static int atxx_nd_config_init(struct mtd_info *mtd)
 {
-	int i, j, ecc_point, nand_maf_id = 0;
-	uint32_t reg_data;
 	struct nand_chip *chip = mtd->priv;
-	struct nand_flash_dev *type;
+	uint32_t reg_data;
 	struct atxx_nd *hw = (struct atxx_nd *)chip->priv;
+	int i, j, ecc_point;
 
-	/* Set the default functions */
-	nand_set_defaults(chip, 0);
-
-	/* Read the flash type */
-	type = atxx_nd_get_flash_type(mtd, chip, &nand_maf_id);
-
-	if (IS_ERR(type)) {
-		printf("No NAND device found!!!\n");
-		chip->select_chip(mtd, -1);
-		return PTR_ERR(type);
-	}
-
-	/* Check for a chip array */
-	for (i = 1; i < maxchips; i++) {
-		int first_id, second_id, fourth_id;
-		chip->select_chip(mtd, i);
-		atxx_nd_read_ids(&first_id, &second_id, &fourth_id);
-
-		/* Read manufacturer and device IDs */
-		if (nand_maf_id != first_id || type->id != second_id)
-			break;
-	}
-	if (i > 1)
-		printf("%d NAND chips detected\n", i);
-
-	/* Store the number of chips and calc total size for mtd */
-	chip->numchips = i;
-	mtd->size = i * chip->chipsize;
+	mtd->oobsize = oob_size;
 
 	/*
 	 * Setting ecc structure and layout
@@ -1913,18 +1877,21 @@ int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
 	switch (mtd->writesize) {
 	case 4096:
 		reg_data = atxx_nd_read_reg(REG_NFC_PARA0);
+		reg_data &= ~(0xf << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data |= (2 << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data &= ~(1 << 16);
 		atxx_nd_write_reg(REG_NFC_PARA0, reg_data);
 		break;
 	case 2048:
 		reg_data = atxx_nd_read_reg(REG_NFC_PARA0);
+		reg_data &= ~(0xf << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data |= (0x01 << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data &= ~(1 << 16);
 		atxx_nd_write_reg(REG_NFC_PARA0, reg_data);
 		break;
 	case 512:
 		reg_data = atxx_nd_read_reg(REG_NFC_PARA0);
+		reg_data &= ~(0xf << NFC_PARA0_PAGE_SIZE_SHIFT);
 		reg_data |= (1 << 16);
 		reg_data &= ~0xF0;
 		atxx_nd_write_reg(REG_NFC_PARA0, reg_data);
@@ -1943,6 +1910,63 @@ int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
 	    | ((mtd->oobsize / chip->ecc.steps) << 16);
 	atxx_nd_write_reg(REG_NFC_PARA1, reg_data);
 
+	return 0;
+}
+
+
+
+
+/**
+ * atxx_nd_scan - [NAND Interface] Scan for the NAND device
+ * @mtd:	MTD device structure
+ * @maxchips:	Number of chips to scan for
+ *
+ * This fills out all the uninitialized function pointers
+ * with the defaults.
+ * The flash ID is read and the mtd/chip structures are
+ * filled with the appropriate values.
+ * The mtd->owner field must be set to the module of the caller
+ *
+ */
+int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
+{
+	int i, nand_maf_id = 0;
+	struct nand_chip *chip = mtd->priv;
+	struct nand_flash_dev *type;
+
+	mtd_bak = mtd;
+	
+	/* Set the default functions */
+	nand_set_defaults(chip, 0);
+
+	/* Read the flash type */
+	type = atxx_nd_get_flash_type(mtd, chip, &nand_maf_id);
+
+	if (IS_ERR(type)) {
+		printf("No NAND device found!!!\n");
+		chip->select_chip(mtd, -1);
+		return PTR_ERR(type);
+	}
+
+	/* Check for a chip array */
+	for (i = 1; i < maxchips; i++) {
+		int first_id, second_id, fourth_id;
+		chip->select_chip(mtd, i);
+		atxx_nd_read_ids(&first_id, &second_id, &fourth_id);
+
+		/* Read manufacturer and device IDs */
+		if (nand_maf_id != first_id || type->id != second_id)
+			break;
+	}
+	if (i > 1)
+		printf("%d NAND chips detected\n", i);
+
+	/* Store the number of chips and calc total size for mtd */
+	chip->numchips = i;
+	mtd->size = i * chip->chipsize;
+	
+	atxx_nd_config_init(mtd);
+	
 	/* atxx oob read/write function in full hardware mode */
 	chip->ecc.read_oob = atxx_nd_read_oob_std;
 	chip->ecc.write_oob = atxx_nd_write_oob_std;
@@ -2077,3 +2101,26 @@ int board_nand_init(struct nand_chip *this)
 	atxx_nd_controller_init();
 	return 0;
 }
+
+int board_nand_reinit(uint8_t flag)
+{
+	if (nand_fix) {
+		if (flag) {
+			mtd_bak->erasesize = 256 * 1024;
+			mtd_bak->writesize = PAGE_SIZE_2K;
+			ecc_number = 4;
+			oob_size = 64;
+		} else {
+			mtd_bak->erasesize = 512 * 1024;
+			mtd_bak->writesize = PAGE_SIZE_4K;
+			ecc_number = 11;
+			oob_size = 224;
+		}
+		atxx_nd_config_init(mtd_bak);
+	} else {
+		return 0;
+	}
+
+	return 0;
+}
+
