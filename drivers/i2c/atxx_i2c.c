@@ -35,7 +35,6 @@
 #endif
 
 extern  void udelay(unsigned long n);
-extern u8 i2c_pcf50626_test(void);
 
 typedef enum _bool{FALSE, TRUE} bool;
 
@@ -47,7 +46,7 @@ enum {
 static u8 i2c_tx_rx_byte_max;
 int i2c_debug;
 
-static void i2c_ctl_init(u8 init_convalue, u8 target_addr, u32 speedmode)
+static void i2c_ctl_init(u8 init_convalue, u32 speedmode)
 {
 	u8 mylw, i2c_tf_tl, i2c_rf_tl;
 	u32 reg_mid;
@@ -62,7 +61,6 @@ static void i2c_ctl_init(u8 init_convalue, u8 target_addr, u32 speedmode)
 	/*disables and clears all interrupts*/	
 	writel(0, rI2C_CLR_INTR);  
 	writel(init_convalue, rI2C_CON);
-	writel(target_addr, rI2C_TAR); 	
 
 	writel(SS_SCL_HIGH, rI2C_SS_SCL_HCNT);
 	writel(SS_SCL_LOW, rI2C_SS_SCL_LCNT);
@@ -92,16 +90,6 @@ static void i2c_enable(void)
 {
 	writel(1, rI2C_ENABLE);
 }
-
-void i2c_init(int speed, int slaveaddr)
-{
-	i2c_ctl_init(0x61, slaveaddr, speed);
-    	/* PMU only response at delay some flip-flops;*/
-	writel(0x7, I2CCTL);
-	i2c_enable();
-}
-
-
 static bool i2c_check(uchar chip, uint addr, int alen, int buflen)
 {
 	if (alen > 2 || alen <= 0) {
@@ -227,7 +215,7 @@ static bool i2c_is_rx_under(void)
 		return FALSE;
 }
 
-int i2c_transfer(u8 cmd_type, uchar *buf, int len)
+static int i2c_transfer(u8 cmd_type, uchar *buf, int len)
 {
 	int i, ret;
 	u32 timeout = 0;
@@ -339,6 +327,11 @@ int i2c_transfer(u8 cmd_type, uchar *buf, int len)
 }
 
 
+void i2c_init(int speed, int slaveaddr)
+{
+	return;
+}
+
 /*
  * Probe the given I2C chip address.  Returns 0 if a chip responded,
  * not 0 on failure. not implement;
@@ -346,12 +339,6 @@ int i2c_transfer(u8 cmd_type, uchar *buf, int len)
 int i2c_probe(u8 chip)
 {
 	return -1;
-}
-
-
-void at6600_i2c_init()
-{
-	i2c_pcf50626_test();
 }
 
 int i2c_read(uchar chip, uint addr, int alen, uchar * buffer, int len)
@@ -381,7 +368,6 @@ int i2c_read(uchar chip, uint addr, int alen, uchar * buffer, int len)
 	return 0;
 }
 
-
 int i2c_write(uchar chip, uint addr, int alen, uchar * buffer, int len)
 {
 	int ret;
@@ -404,3 +390,13 @@ int i2c_write(uchar chip, uint addr, int alen, uchar * buffer, int len)
 	}
 	return 0;
 }
+
+
+void at6600_i2c_init()
+{
+	i2c_ctl_init(1, 0x61);	
+    	/* PMU only response at delay some flip-flops;*/
+	writel(0x7, I2CCTL);
+	i2c_enable();
+}
+
