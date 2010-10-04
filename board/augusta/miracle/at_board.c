@@ -35,8 +35,6 @@
 #include <asm/arch-atxx/map_table.h>
 #include <asm/arch-atxx/aboot.h>
 
-#include "keypad.h"
-
 DECLARE_GLOBAL_DATA_PTR;
 
 int board_init(void)
@@ -60,12 +58,11 @@ int board_init(void)
 	pmu_init();
 
 	/* arch number of board */
-	gd->bd->bi_arch_number = MACH_TYPE_CAYMAN20;
+	gd->bd->bi_arch_number = MACH_TYPE_MIRACLE;
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_ATAG_ADDR;
 
 	adc_init();
-	keypad_init();
 
 	return 0;
 }
@@ -93,11 +90,11 @@ int do_abortboot(void)
 		mode = SD_BOARDTEST;
 		ret = build_boot_cmd(mode, "ubifs");
 	} else if (hwcfg == 0) {
-		mode = keypad_detect();
-		ret = build_boot_cmd(mode, "ubifs");
+		/* TODO: normal boot */
+		ret = 1;
 	} else 
 		/* abort boot, entry command line */
-		return 1;
+		ret = 1;
 
 	return ret;
 }

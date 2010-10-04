@@ -24,10 +24,12 @@
 #ifndef _GPIO_H
 #define _GPIO_H
 
-#ifdef	CONFIG_BOARD_CAYMAN20
+#if	defined(CONFIG_BOARD_CAYMAN20)
 #include "cayman20_gpio.h"
+#elif	defined(CONFIG_BOARD_MIRACLE)
+#include "miracle_gpio.h"
 #else
-#error
+#error   "<board>_gpio.h is missing!"
 #endif
 
 /*------ This is the interface ----------------------------------------*/

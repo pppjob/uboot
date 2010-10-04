@@ -2402,6 +2402,8 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_MULTIBUS_PBK         2417
 #define MACH_TYPE_TNETV107X            2418
 #define MACH_TYPE_CAYMAN20             8000
+#define MACH_TYPE_G20                  8001
+#define MACH_TYPE_MIRACLE              8002
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type

@@ -34,6 +34,8 @@
 #include <asm/arch-atxx/factorydata.h>
 #include <i2c.h>
 
+#ifdef	CONFIG_BOARD_CAYMAN20
+
 static void gsm_bridge(int argc, char *argv[])
 {
 	struct clk *clk_pll;
@@ -256,6 +258,8 @@ static void gsm_download(void)
 	}
 }
 
+#endif
+
 /*----------------------------------------------------------------------------*/
 static int string_data_test(int argc, char *argv[], int index, const char* name)
 {
@@ -461,6 +465,7 @@ static int auto_test(int argc, char *argv[])
 	return ret;
 }
 
+#ifdef	CONFIG_BOARD_CAYMAN20
 static int gsm_test(int argc, char *argv[])
 {
 	char *action;
@@ -480,6 +485,13 @@ static int gsm_test(int argc, char *argv[])
 	}
 	return ret;
 }
+#else
+static int gsm_test(int argc, char *argv[])
+{
+	printf("Not supported!\n");
+	return 0;
+}
+#endif
 
 int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -520,8 +532,9 @@ done:
 U_BOOT_CMD(
 	atest,   8,   0,	do_atest,
 	"do factory related test.",
-	"sn | imei | wifi | bt | mask | battery   read | write  data\n"
+	"usage:\n"
+	"atest sn|imei|wifi|bt|mask|battery read|write [data]\n"
 	"atest autotest --- do factory autotest\n"
-	"atest gsm download | bridge --- connect gsm uart to uart0\n"
+	"atest gsm download|bridge --- connect gsm uart to uart0\n"
 );
 

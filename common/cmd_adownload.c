@@ -65,7 +65,19 @@ static int image_to_nand(int addr, int size, int offset)
 	ret |= nand_erase_block(ndbeg, ndsz);
 
 	printf("Writing 0x%08x, size 0x%08x\n", offset, size);
+
+	/* work around for xloader nand ops */
+	if (offset == 0) {
+		printf("write xloader nand by workaround!\n");
+		board_nand_reinit(1);
+	}
+
 	ret |= nand_write_skip_bad(nand, ndbeg, &ndsz, (u_char *)NANDBAK_ADDR);
+
+	/* work around for xloader nand ops */
+	if (offset == 0) {
+		board_nand_reinit(0);
+	}
 
 	return ret;
 }
@@ -88,15 +100,7 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		}
 
 		size = (head->firm_size + 512 + 4096) & ~4095;
-		/* work around for xloader download */
-		if (head->nand_offset == 0) {
-			printf("download xloader.\n");
-			board_nand_reinit(1);
-			ret = image_to_nand(addr, size, head->nand_offset);
-			board_nand_reinit(0);
-		} else {
-			ret = image_to_nand(addr, size, head->nand_offset);
-		}
+		ret = image_to_nand(addr, size, head->nand_offset);
 
 	} else if (strcmp(argv[1], "sd") == 0) {
 		if (argc == 4) {
@@ -110,12 +114,7 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			}
 
 			size = (head->firm_size + 512 + 4096) & ~4095;
-
-			/* work around for xloader download */
-			printf("download xloader.\n");
-			board_nand_reinit(1);
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
-			board_nand_reinit(0);
 
 		} else if (strcmp(argv[2], "uboot") == 0) {
 			sprintf(cmd, "fatload mmc 1 0x%08x uboot.img", DOWNLOAD_ADDR);
@@ -142,12 +141,7 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				return -1;
 			}
 			size = (head->firm_size + 512 + 4096) & ~4095;
-
-			/* work around for xloader download */
-			printf("download xloader.\n");
-			board_nand_reinit(1);
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
-			board_nand_reinit(0);
 
 			/* uboot */
 			sprintf(cmd, "fatload mmc 1 0x%08x uboot.img", DOWNLOAD_ADDR);

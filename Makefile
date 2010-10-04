@@ -3711,7 +3711,10 @@ grsim_leon2_config : unconfig
 # AugustaTek ATXX
 cayman20_config : unconfig
 	@$(MKCONFIG) $(@:_config=) arm atxx cayman20 augusta at6600
-	
+
+miracle_smt_config : unconfig
+	@$(MKCONFIG) $(@:_config=) arm atxx miracle augusta at6600
+
 #########################################################################
 #########################################################################
 #########################################################################

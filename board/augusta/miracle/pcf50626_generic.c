@@ -304,16 +304,5 @@ void pmu_power_show()
 
 void set_backlight(u8 dimfreq, u8 ledman)
 {
-	u32 reg1, reg4;
-	u8 dculedc1, dimman;
-
-	pcf50626_read_reg(DCULEDC1, &reg1);
-	pcf50626_read_reg(DIMMAN, &reg4);
-
-	dculedc1 = (reg1 & 0xfc) | (dimfreq & 0x03);
-	dimman = (reg4 & 0x80) | (ledman & 0x3f);
-	pcf50626_write_reg( DCULEDC1, dculedc1);
-	pcf50626_write_reg( DCULEDC3, 0x00);
-	pcf50626_write_reg( DCULEDC2, 0xe0);
-	pcf50626_write_reg( DIMMAN, dimman);
+	/* TODO */
 }

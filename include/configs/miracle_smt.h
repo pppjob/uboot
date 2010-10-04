@@ -25,7 +25,8 @@
 
 #define CONFIG_ATXX
 #define CONFIG_AT6600
-#define CONFIG_BOARD_CAYMAN20
+#define CONFIG_BOARD_MIRACLE
+#define CONFIG_BOARD_MIRACLE_SMT
 #define CONFIG_IDENT_STRING 		" AUGUSTATEK-ATXX "
 #define CONFIG_DISPLAY_CPUINFO
 
@@ -68,7 +69,8 @@
 
 /* Use key detect */
 #define CONFIG_AUTOBOOT_KEYHW
-#define CONFIG_BOOTDELAY		0
+#define CONFIG_BOOTDELAY		1
+
 
 /*
  * Stack sizes

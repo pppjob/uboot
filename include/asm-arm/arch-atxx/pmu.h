@@ -42,9 +42,11 @@ typedef enum {
 	PPS_SD,
 	PPS_CAMERA,
 	PPS_CMMB,
+	PPS_ETH,
+	PPS_SDIO,
 
 	PPS_COMMON = 255,
-}power_supply_component;
+} power_supply_component;
 
 /* pmu power supply mode */
 typedef enum {
@@ -53,9 +55,16 @@ typedef enum {
 	PS_LOW,
 } power_supply_mode;
 
+int pmu_init(void);
+
 /* pmu_power_control -- control device power
  * @power_supply: specify device module
  * @mode: power mode, such as on, off ...
  * @return: 0(successfull), or -1 error
  */
 int pmu_power_control(power_supply_component module, power_supply_mode mode);
+
+void pmu_power_show(void);
+
+void set_backlight(u8 dimfreq, u8 ledman);
+
