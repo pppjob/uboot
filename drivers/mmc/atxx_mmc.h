@@ -361,7 +361,7 @@ enum storage_card_type
 void sd_controller_init(void);
 void sd_read_card_type(int card);
 int sd_set_clock(int card,uint32_t clock);
-void sd_init_card(uint32_t card);
+int sd_init_card(uint32_t card);
 void sd_read_card(uint32_t card, uint32_t addr);
 void sd_write_card(uint32_t card, uint32_t addr);
 void sd_erase_card(uint32_t card, uint32_t addr);

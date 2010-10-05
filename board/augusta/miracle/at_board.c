@@ -47,23 +47,28 @@ int board_init(void)
 	calibrate_delay();
 
 	/* NAND-RDY workaround for 32K clk */
+	val = topctl_read_reg(TOPCTL1);
+	val |= (1 << 13);
+	topctl_write_reg(TOPCTL1, val);
 	atxx_request_gpio(32);
 	atxx_set_gpio_direction(32, 0);
 	atxx_gpio_set(32, 1);
 
-	val = topctl_read_reg(TOPCTL1);
-	val |= (1 << 13);
-	topctl_write_reg(TOPCTL1, val);
+	/* disable vga dac */
+	val = topctl_read_reg(TOPCTL0);
+	val |= 0xf0;
+	topctl_write_reg(TOPCTL0, val);
 
 	at6600_i2c_init();
+
 	pmu_init();
+
+	adc_init();
 
 	/* arch number of board */
 	gd->bd->bi_arch_number = MACH_TYPE_MIRACLE;
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_ATAG_ADDR;
-
-	adc_init();
 
 	return 0;
 }

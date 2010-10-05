@@ -754,7 +754,7 @@ void sd_controller_init(void)
 }
 
 /*reset the card*/
-void sd_init_card(uint32_t card)
+int sd_init_card(uint32_t card)
 {
 	uint32_t resp[4], ret, arg;
 	sd_rca = 0;
@@ -784,7 +784,7 @@ void sd_init_card(uint32_t card)
 	ret = sd_base_command(card,CMD8,arg,resp);
 	if(ret)	{
 		printf("CMD8 init sd card failed!!!\n");
-		return;
+		return -1;
 	}
 
 	/*send  ACMD41*/
@@ -793,10 +793,10 @@ void sd_init_card(uint32_t card)
 		sd_ocr = sd_application_command(card,ACMD41,0x40ff8000);/*standard 0x00ff8000*/
 		if(sd_ocr == 0)	{
 			printf("init sd card failed!!!\n");		
-			return; 
+			return -1;
 		} else if((sd_ocr & 0x00ff8000) == 0) {
 			printf("sd card voltage range error!!!\n");
-			return;
+			return -1;
 		}
 
 		if(sd_ocr & 0x80000000)
@@ -820,7 +820,7 @@ void sd_init_card(uint32_t card)
 	ret = sd_base_command(card,CMD2,0,resp);
 	if(ret)	{
 		printf("CMD2 init sd card failed!!!\n");
-		return;
+		return -1;
 	}
 
 	sd_cid[0] = resp[0];
@@ -839,7 +839,7 @@ void sd_init_card(uint32_t card)
 	ret = sd_base_command(card,CMD3,0,resp);
 	if(ret)	{
 		printf("\n\rCMD3 init sd card failed!!!");
-		return;
+		return -1;
 	}
 
 	udelay(10);
@@ -849,7 +849,7 @@ void sd_init_card(uint32_t card)
 	ret = sd_base_command(card,CMD9,0,resp);
 	if(ret)	{
 		printf("CMD3 init sd card failed!!!\n");
-		return;
+		return -1;
 	}
 
 	sd_csd[0] = resp[0];
@@ -892,7 +892,7 @@ void sd_init_card(uint32_t card)
 	ret = sd_base_command(card,CMD7,sd_rca,resp);
 	if(ret)	{
 		printf("CMD7 init sd card failed!!!\n");
-		return;
+		return -1;
 	}
 
 	udelay(10);
@@ -907,7 +907,7 @@ void sd_init_card(uint32_t card)
 	/*sd_get_status_register();*/
 	sd_set_clock(0, (25 * MHZ));
 
-	return;
+	return 0;
 }
 
 /* be sure of size of data LE fifo depth */
@@ -1944,10 +1944,10 @@ int mmc_legacy_init(int verbose)
 	sd_card_detect();
 
 	if(0 == cd_detect) {
-		sd_init_card(0);
-	}
-	else
-	{
+		if (sd_init_card(0) != 0) {
+			return -1;
+		}
+	} else {
 		ATXX_MMC_DEBUG("There is no SD card!\n");
 		return -1;
 	}
