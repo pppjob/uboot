@@ -46,9 +46,10 @@ int board_init(void)
 
 	calibrate_delay();
 
-	atxx_request_gpio(63);
-	atxx_set_gpio_direction(63, 0);
-	atxx_gpio_set(63, 1);
+	/* NAND-RDY workaround for 32K clk */
+	atxx_request_gpio(32);
+	atxx_set_gpio_direction(32, 0);
+	atxx_gpio_set(32, 1);
 
 	val = topctl_read_reg(TOPCTL1);
 	val |= (1 << 13);
