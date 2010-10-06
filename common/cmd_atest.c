@@ -34,7 +34,7 @@
 #include <asm/arch-atxx/factorydata.h>
 #include <i2c.h>
 
-#ifdef	CONFIG_BOARD_CAYMAN20
+#ifdef	CONFIG_GSM_TEST
 
 static void gsm_bridge(int argc, char *argv[])
 {
@@ -465,7 +465,7 @@ static int auto_test(int argc, char *argv[])
 	return ret;
 }
 
-#ifdef	CONFIG_BOARD_CAYMAN20
+#ifdef	CONFIG_GSM_TEST
 static int gsm_test(int argc, char *argv[])
 {
 	char *action;
