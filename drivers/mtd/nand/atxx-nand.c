@@ -1784,7 +1784,8 @@ static int atxx_nd_config_init(struct mtd_info *mtd)
 	struct atxx_nd *hw = (struct atxx_nd *)chip->priv;
 	int i, j, ecc_point;
 
-	mtd->oobsize = oob_size;
+	if (nand_fix)
+		mtd->oobsize = oob_size;
 
 	/*
 	 * Setting ecc structure and layout
