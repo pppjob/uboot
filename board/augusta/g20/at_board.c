@@ -70,7 +70,7 @@ int board_init(void)
 	keypad_init();
 
 	/* arch number of board */
-	gd->bd->bi_arch_number = MACH_TYPE_CAYMAN20;
+	gd->bd->bi_arch_number = MACH_TYPE_G20;
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_ATAG_ADDR;
 
