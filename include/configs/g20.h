@@ -26,7 +26,7 @@
 #define CONFIG_ATXX
 #define CONFIG_AT6600
 #define CONFIG_BOARD_G20
-#define CONFIG_IDENT_STRING 		" AUGUSTATEK-ATXX "
+#define CONFIG_IDENT_STRING 		"\n== ATXX-G20 ==\n"
 #define CONFIG_DISPLAY_CPUINFO
 
 /* useless macro, just for compile */

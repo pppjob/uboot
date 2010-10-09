@@ -83,11 +83,13 @@ int dram_init (void)
 	 return 0;
 }
 
+extern int tstc(void);
+
 int do_abortboot(void)
 {
 	unsigned int hwcfg;
 	enum boot_mode mode;
-	int ret;
+	int ret, tick, count;
 
 	run_command("mmc init", 0);
 
@@ -96,8 +98,20 @@ int do_abortboot(void)
 		mode = SD_BOARDTEST;
 		ret = build_boot_cmd(mode, "ubifs");
 	} else if (hwcfg == 0) {
-		/* TODO: normal boot */
-		ret = 1;
+		/* normal boot */
+		ret = 0;
+		tick = 1000000;
+		count = tick * 5;
+
+		do {
+			if (count % tick == 0) {
+				printf("Press KEY to enter cmd mode: %d\r", count / tick);
+			}
+			if (tstc()) {
+				ret = 1;
+				break;
+			}
+		} while (count-- > 0);
 	} else 
 		/* abort boot, entry command line */
 		ret = 1;
