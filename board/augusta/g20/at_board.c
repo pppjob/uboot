@@ -89,22 +89,20 @@ int dram_init (void)
 
 int do_abortboot(void)
 {
-	unsigned int hwcfg;
 	enum boot_mode mode;
 	int ret;
 
 	run_command("mmc init", 0);
 
-	hwcfg = pm_read_reg(HWCFGR);
-	if (hwcfg == 2) {
-		mode = SD_BOARDTEST;
-		ret = build_boot_cmd(mode, "ubifs");
-	} else if (hwcfg == 0) {
+	mode = hwcfg_detect();
+	if (mode == NAND_BOOT) {
 		mode = keypad_detect();
-		ret = build_boot_cmd(mode, "ubifs");
-	} else 
-		/* abort boot, entry command line */
-		return 1;
+		if (mode == NAND_BOOT) {
+			mode = swcfg_detect();
+		}
+	}
+
+	ret = build_boot_cmd(mode, "ubifs");
 
 	return ret;
 }

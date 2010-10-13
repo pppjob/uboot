@@ -83,38 +83,22 @@ int dram_init (void)
 	 return 0;
 }
 
-extern int tstc(void);
-
 int do_abortboot(void)
 {
-	unsigned int hwcfg;
 	enum boot_mode mode;
-	int ret, tick, count;
+	int ret;
 
 	run_command("mmc init", 0);
 
-	hwcfg = pm_read_reg(HWCFGR);
-	if (hwcfg == 2) {
-		mode = SD_BOARDTEST;
-		ret = build_boot_cmd(mode, "ubifs");
-	} else if (hwcfg == 0) {
-		/* normal boot */
-		ret = 0;
-		tick = 1000000;
-		count = tick * 5;
+	mode = hwcfg_detect();
+	if (mode == NAND_BOOT) {
+		mode = serial_detect(5);
+		if (mode == NAND_BOOT) {
+			mode = swcfg_detect();
+		}
+	}
 
-		do {
-			if (count % tick == 0) {
-				printf("Press KEY to enter cmd mode: %d\r", count / tick);
-			}
-			if (tstc()) {
-				ret = 1;
-				break;
-			}
-		} while (count-- > 0);
-	} else 
-		/* abort boot, entry command line */
-		ret = 1;
+	ret = build_boot_cmd(mode, "ubifs");
 
 	return ret;
 }

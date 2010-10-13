@@ -12,6 +12,9 @@ enum boot_mode {
 	CMD_MODE,
 };
 
+enum boot_mode hwcfg_detect(void);
+enum boot_mode swcfg_detect(void);
+
 int build_boot_cmd(enum boot_mode mode, char *fstype);
 
 #endif /* __BOOTPARAM_H */

@@ -23,7 +23,63 @@
 #include <common.h>
 #include <asm/string.h>
 #include <asm/errno.h>
+#include <asm/io.h>
+#include <asm/arch-atxx/regs_base.h>
+#include <asm/arch-atxx/pm.h>
 #include <asm/arch-atxx/aboot.h>
+
+enum boot_mode hwcfg_detect(void)
+{
+	int hwcfg, mode;
+
+	hwcfg = pm_read_reg(HWCFGR);
+	if (hwcfg == 0) {
+		mode = NAND_BOOT;
+	} else if (hwcfg == 2) {
+		mode = SD_BOARDTEST;
+	} else
+		mode = CMD_MODE;
+
+	return mode;
+}
+
+enum boot_mode swcfg_detect(void)
+{
+	int swcfg, mode;
+
+	swcfg = pm_read_reg(SWCFGR);
+	if ((swcfg & SWCFGR_REBOOT_MASK) == SWCFGR_REBOOT_RECOVERY) {
+		mode = SD_RECOVERY;
+	} else if ((swcfg & SWCFGR_REBOOT_MASK) == SWCFGR_REBOOT_UBOOTCMD) {
+		mode = CMD_MODE;
+	} else
+		mode = NAND_BOOT;
+
+	return mode;
+}
+
+extern int tstc(void);
+
+enum boot_mode serial_detect(int num)
+{
+	int mode;
+	int tick = 1000000;
+	int count = tick * num;
+
+	/* normal boot */
+	mode = NAND_BOOT;
+	do {
+		if (count % tick == 0) {
+			printf("Press KEY to enter cmd mode: %d\r", count / tick);
+		}
+		if (tstc()) {
+			mode = CMD_MODE;
+			break;
+		}
+	} while (count-- > 0);
+
+	return mode;
+}
 
 /* Modify bootargs and bootcmd*/
 static int boot_from_sd(char * bootstr, char *fstype)
@@ -90,27 +146,35 @@ int build_boot_cmd(enum boot_mode mode, char *fstype)
 	printf("Boot mode: %d\n", mode);
 	switch (mode){
 		case NAND_BOOT:
+			printf("Enter NAND boot mode\n");
 			ret = boot_from_nand();
 			break;
 		case SD_BOOT:
+			printf("Enter SD boot mode\n");
 			ret = boot_from_sd(NULL, fstype);
 			break;
 		case SD_INSTALL:
+			printf("Enter SD install mode\n");
 			ret = boot_from_sd("install", fstype);
 			break;
 		case SD_PLATFORM:
+			printf("Enter SD platform mode\n");
 			ret = boot_from_sd("platform", fstype);
 			break;
 		case SD_BOARDTEST:
+			printf("Enter SD boardtest mode\n");
 			ret = boot_from_sd("boardtest", fstype);
 			break;
 		case SD_PHONETEST:
+			printf("Enter SD phonetest mode\n");
 			ret = boot_from_sd("phonetest", fstype);
 			break;
 		case SD_RECOVERY:
+			printf("Enter SD recovery mode\n");
 			ret = boot_from_sd("recovery", fstype);
 			break;
 		case CMD_MODE:
+			printf("Enter command mode\n");
 			ret = 1;
 			break;
 		default:

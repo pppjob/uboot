@@ -98,29 +98,24 @@ enum boot_mode keypad_detect(void)
 
 	/* 2 volume + home key */
 	if (~keystate_l == KP_HOME_VOL_UP_DOWN) {
-		printf("Enter SD boardtest mode\n");
 		return SD_BOARDTEST;
 	}
 	/* 2 volume key */
 	if (~keystate_l == 
 		(KP_VOL_UP|KP_VOL_DOWN)) {
-		printf("Enter command mode\n");
 		return CMD_MODE;
 	}
 	/* volume up + home key */	
 	if (~keystate_l == 
 		(KP_VOL_UP|KP_HOME)) {
-		printf("Enter SD recovery mode\n");
 		return SD_RECOVERY;
 	}
 	/* volume down + home key */	
 	if (~keystate_l == 
 		(KP_VOL_DOWN|KP_HOME)) {
-		printf("Enter SD install mode\n");
 		return SD_INSTALL;
 	}
 	/* not all of above */
-	printf("Boot from nand\n");
 	return NAND_BOOT;
 }
 
