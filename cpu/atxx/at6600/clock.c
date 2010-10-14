@@ -166,7 +166,7 @@ static struct pll_set pll_table[] = {
 	}, {
 		624 * MHZ, (2 << PLL_BS) | (23 << PLL_F),
 	}, {
-		708 * MHZ, (2 << PLL_BS) | (26 << PLL_F),
+		702 * MHZ, (2 << PLL_BS) | (26 << PLL_F),
 	},{
 		728 * MHZ, (2 << PLL_BS) | (27 << PLL_F),
 	}, {
@@ -187,6 +187,15 @@ static int atxx_pll_enable(struct clk *clk, int enable)
 		pllreg |= 1 << PLL_PD;
 
 	writel(pllreg, PLLCTLR(clk->index));
+
+	/* To work around an asic bug: if PLL2/PLL3 is powered-down,
+	 * needs to rewrite PLL1 regs, in case sleep can't be waked up */
+	if (enable == 0 && clk->index != 0) {
+		pllreg = readl(PLLCTLR(0));
+		pllreg &= ~(1 << PLL_PD);
+		writel(pllreg, PLLCTLR(0));
+	}
+
 	return 0;
 }
 

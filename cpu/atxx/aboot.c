@@ -55,6 +55,10 @@ enum boot_mode swcfg_detect(void)
 	} else
 		mode = NAND_BOOT;
 
+	/* clear reboot flags */
+	swcfg &= ~SWCFGR_REBOOT_MASK;
+	pm_write_reg(SWCFGR, swcfg);
+
 	return mode;
 }
 
