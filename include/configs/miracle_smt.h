@@ -115,7 +115,7 @@
 #define CONFIG_SERIAL_MULTI
 
 #define CONFIG_BOOTARGS			\
-		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs"
+		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs ro"
 #define CONFIG_BOOTCOMMAND	 	"nand read 88807e00 600000 200000; hdcvt 88807e00; bootm 88807fc0"
 
 #define CONFIG_BOOTARGS_SD		\
