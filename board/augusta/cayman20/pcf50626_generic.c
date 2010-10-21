@@ -265,20 +265,61 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode)
 	return ret;
 }
 
+void power_on_detect (void)
+{
+	u8 reg_val;
+	u32 t1, t2;
+
+	/*reset the ON/OFF timeout timer*/
+	pcf50626_read_reg (OOCC1, &reg_val);
+	reg_val |= PCF50626_OOCC1_TOT_RST;
+	pcf50626_write_reg (OOCC1, reg_val);
+
+	pcf50626_read_reg (INT1, &reg_val);
+	if ((reg_val & PCF50626_INT1_ONKEYF) == 0)
+	{
+		return;
+	}
+	if ((reg_val & PCF50626_INT1_ONKEYR) != 0)
+	{
+		goto power_off;
+	}
+
+	t1 = get_timer (0);
+	do {
+		t2 = get_timer (0);
+		if ((t2 - t1) >= 1000)
+			break;
+	} while (1);
+
+	pcf50626_read_reg (INT1, &reg_val);
+	if ((reg_val & PCF50626_INT1_ONKEYR) != 0)
+	{
+		goto power_off;
+	}
+
+	return;
+
+power_off:
+	printf ("\n\rMiss power on,you must press power key more than 1s, turn off!\n");
+	pcf50626_write_reg (OOCC1, PCF50626_OOCC1_GO_OFF);
+	while (1);
+}
+
 int pmu_init(void)
 {
 	u8 buf;
 
 	/* read a readonly register */
-	pcf50626_read_reg(ID, &buf);
+	pcf50626_read_reg (ID, &buf);
 
-	if(buf!=PCF50626_ID){
-		DPRINTF("\nPMU read ID failed, wrong id value = 0x%x", buf);
+	if (buf != PCF50626_ID){
+		printf ("\nPMU read ID failed, wrong id value = 0x%x", buf);
 		return -1;
 	}
 
 	DPRINTF("******* pcf50626 read ID succeed *******\n");
-
+	power_on_detect ();
 	default_power_supply();
 
 	return 0;
