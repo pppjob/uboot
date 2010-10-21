@@ -61,6 +61,7 @@
 #define KP_VOL_UP	(1 << 16)
 #define KP_VOL_DOWN	(1 << 17)
 #define KP_HOME		(1 << 25)
+#define KP_HOME_VOL_DOWN (0x2020202)
 #define KP_HOME_VOL_UP_DOWN		(0x3030000)
 
 int keypad_init(void)
@@ -112,7 +113,7 @@ enum boot_mode keypad_detect(void)
 	}
 	/* volume down + home key */	
 	if (~keystate_l == 
-		(KP_VOL_DOWN|KP_HOME)) {
+		(KP_HOME_VOL_DOWN)) {
 		return SD_INSTALL;
 	}
 	/* not all of above */

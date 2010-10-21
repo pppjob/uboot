@@ -60,8 +60,8 @@
 
 #define KP_VOL_UP	(1 << 17)
 #define KP_VOL_DOWN	(1 << 18)
-#define KP_HOME		(1 << 25)
-#define KP_HOME_VOL_UP_DOWN		(0x3030000)
+#define KP_HOME		(1 << 2)
+#define KP_HOME_VOL_UP_DOWN		(0x00060006)
 
 int keypad_init(void)
 {
@@ -72,8 +72,8 @@ int keypad_init(void)
 	/* init keypad hardware */
 	writel(KP_SET_DIVIDER | KP_SET_DEBOUNCE, KP_SET2_WR);
 
-	/* config gpio/keypad pin mux, CAYMAN2: GPIO 2-3, GPIO 8-10 */
-	writel(0x070c, KP_SELECT_WR);
+	/* config gpio/keypad pin mux, G20: GPIO 0,2 ; GPIO 8-10 */
+	writel(0x0705, KP_SELECT_WR);
 
 	/* enable keypad */
 	writel(KP_SET_MASK | KP_SET_ENABLE, KP_SET1_WR); 
