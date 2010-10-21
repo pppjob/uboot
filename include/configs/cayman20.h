@@ -29,6 +29,14 @@
 #define CONFIG_IDENT_STRING 		"\n== ATXX-CAYMAN20 ==\n"
 #define CONFIG_DISPLAY_CPUINFO
 
+/* LCD Setting */
+#define CONFIG_LCD
+#define CONFIG_ATXX_LCD
+#define CONFIG_VIDEO_TM320
+
+#define CONFIG_SYS_WHITE_ON_BLACK
+#define LCD_BPP				LCD_COLOR16
+
 /* useless macro, just for compile */
 #define CONFIG_SYS_HZ 			1000
 

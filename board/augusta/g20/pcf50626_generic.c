@@ -24,6 +24,7 @@
 #include <linux/types.h>
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/pmu.h>
+#include <asm/arch-atxx/gpio.h>
 #include <i2c.h>
 #include "pcf50626_regs.h"
 #include "power_table.c"
@@ -344,6 +345,34 @@ void pmu_power_show()
 	printf("******* pcf50626 power array end*******\n");
 }
 
+/* The following is for keypad & LCD backlight control */
+#define	GPIOx_PWM1_OUTPUT	0x3
+#define	PWMx_SELECT			0x1
+
 void set_backlight(u8 dimfreq, u8 ledman)
 {
+	uint8_t	reg;
+	int ret = 0;
+
+	pcf50626_read_reg(PWM1S, &reg);
+	reg = (reg | PWMx_SELECT) | (dimfreq << 5);
+	pcf50626_write_reg(PWM1S, reg);
+	pcf50626_write_reg(PWM1D, (ledman << 1) & 0xff);
+
+	/* power on */
+	pcf50626_write_reg(GPIO3C1, GPIOx_PWM1_OUTPUT);
+	pcf50626_write_reg(GPIO4C1, GPIOx_PWM1_OUTPUT);
+	pcf50626_write_reg(GPIO5C1, GPIOx_PWM1_OUTPUT);
+	pcf50626_write_reg(GPIO6C1, GPIOx_PWM1_OUTPUT);
+	pcf50626_write_reg(GPIO7C1, GPIOx_PWM1_OUTPUT);
+	pcf50626_write_reg(GPIO8C1, GPIOx_PWM1_OUTPUT);
+
+	ret = atxx_request_gpio(GPIO_LCD_BL_EN);
+	if (ret) {
+		printf("Failed to request gpio LCD backlight %d!\n", ret);
+		return;
+	}
+	atxx_set_gpio_direction(GPIO_LCD_BL_EN, 0);
+	atxx_gpio_set(GPIO_LCD_BL_EN, 1);
+	atxx_free_gpio(GPIO_LCD_BL_EN);
 }

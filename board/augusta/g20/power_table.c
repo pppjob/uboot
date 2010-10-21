@@ -47,7 +47,7 @@ static ps_setting_t ps_setting_default[] = {
 	{RF3REGC1,   "VBT_3V0",           PPS_BT,     3000, PS_OFF, PS_OFF},
 	{RF4REGC1,   "VGPS_3V0",          PPS_GPS,    3000, PS_OFF, PS_OFF},
 	{IOREGC1,    "IOVDD_3V0",         PPS_COMMON, 3000, PS_ON,  PS_ON},
-	{USBREGC1,   "VUSB_VDD3V3",       PPS_USB,    3300, PS_OFF, PS_OFF},
+	{USBREGC1,   "VUSB_VDD3V3",       PPS_USB,    3300, PS_ON,  PS_ON},
 	{HCREGC1,    "VCAMERA_3V0",       PPS_CAMERA, 3000, PS_OFF, PS_OFF},
 	{LCREGC1,    "VDD_CRYSTAL_1V8",   PPS_COMMON, 1800, PS_ON,  PS_ON},
 	{USIMREGC1,  "VWFVDD_3V0",        PPS_SDIO,   3000, PS_OFF, PS_OFF},

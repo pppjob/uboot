@@ -24,6 +24,7 @@
 #include <linux/types.h>
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/pmu.h>
+#include <asm/arch-atxx/gpio.h>
 #include <i2c.h>
 #include "pcf50626_regs.h"
 #include "power_table.c"
@@ -346,5 +347,15 @@ void pmu_power_show()
 
 void set_backlight(u8 dimfreq, u8 ledman)
 {
-	/* TODO */
+	int ret = 0;
+	ret = atxx_request_gpio(GPIO_LCD_BL_DIM);
+	if (ret) {
+		printf("Failed to request gpio LCD backlight %d!\n", ret);
+		return;
+	}
+
+	atxx_set_gpio_direction(GPIO_LCD_BL_DIM, 0);
+	atxx_gpio_set(GPIO_LCD_BL_DIM, 1);
+
+	atxx_free_gpio(GPIO_LCD_BL_DIM);
 }
