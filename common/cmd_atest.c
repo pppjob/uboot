@@ -22,7 +22,9 @@
 #include <command.h>
 #include <common.h>
 #include <serial.h>
+#include <nand.h>
 #include <linux/types.h>
+#include <asm/sizes.h>
 #include <asm/string.h>
 #include <asm/arch-atxx/clock.h>
 #include <asm/arch-atxx/topctl.h>
@@ -32,28 +34,58 @@
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/memory_map.h>
 #include <asm/arch-atxx/factorydata.h>
+#include <asm/arch-atxx/hdcvt.h>
+#include <asm/arch-atxx/atest.h>
 #include <i2c.h>
 
+#define DOWNLOAD_ADDR   (MDDR_BASE_ADDR + 16 * SZ_1M)
+
 #ifdef	CONFIG_GSM_TEST
+
+typedef union
+{
+	uint8_t uint8_data[4];
+	uint32_t uint32_data;
+} NEW_BAUDRATE;
+
+static void gsm_delay(uint32_t ms)
+{
+#if 0
+	mdelay(ms/2);
+#else
+	uint32_t tick1, tick2;
+
+	tick1 = get_timer(0);
+	do {
+		tick2 = get_timer(0);
+	} while ((tick2 - tick1) < ms);
+#endif
+}
 
 static void gsm_bridge(int argc, char *argv[])
 {
 	struct clk *clk_pll;
 	struct clk *clk_uart;
-	uint32_t flow_control_en, val;
+	char *flow_control;
+	uint32_t flow_control_en = 0, val;
 	uint32_t clk_freq, uart_baudrate;
 	uart_t uart0, uart1;
 	uint8_t ch;
 
 	printf("GSM bridge!\n");
 	if (argc == 4) {
-		flow_control_en = argv[3];
-	} else {
-		flow_control_en = 1;
+		flow_control = argv[3];
+		if (!strcmp(flow_control, "1")) {
+			flow_control_en = 1;
+		} else {
+			flow_control_en = 0;
+		}
 	}
 
+	mdelay(100);
 	val = topctl_read_reg(TOPCTL1);
 	val &= ~(1 << 10);
+	val |= (1 << 13);
 	topctl_write_reg(TOPCTL1, val);
 
 	clk_pll = clk_get("pll3");
@@ -61,27 +93,34 @@ static void gsm_bridge(int argc, char *argv[])
 
 	clk_set_rate(clk_pll, 312 * MHZ);
 	clk_set_parent(clk_uart, clk_pll);
-	clk_set_rate(clk_uart, 14 * MHZ);
+	clk_set_rate(clk_uart, 15 * MHZ);
 
-	clk_freq = (14745600 * 2);
-	uart_baudrate = 115200;
-
-	uart1.clkfreq = clk_freq;
-	uart1.baudrate = uart_baudrate;
-	uart1.fifo_cfg = 1;
-	uart1.loop_enable = 0;
-	uart1.flow_control = flow_control_en;
-	serial_assign("serial1");
-	serial_init_adv(&uart1);
-
-	uart0.clkfreq = clk_freq;
-	uart0.baudrate = uart_baudrate;
-	uart0.fifo_cfg = 1;
+	uart0.clkfreq = 14745600;
+	uart0.baudrate = 115200 * 8;
+	uart0.fifo_cfg = 2;
 	uart0.loop_enable = 0;
 	uart0.flow_control = flow_control_en;
 	serial_assign("serial0");
 	serial_init_adv(&uart0);
 
+	mdelay(100);
+
+	clk_freq = 14745600;
+	uart_baudrate = 115200;
+
+	mdelay(100);
+	uart1.clkfreq = clk_freq;
+	uart1.baudrate = uart_baudrate;
+	uart1.fifo_cfg = 2;
+	uart1.loop_enable = 0;
+	uart1.flow_control = 1; //flow_control_en;
+	printf("assign uart1!\n");
+	serial_assign("serial1");
+	serial_init_adv(&uart1);
+	serial_assign("serial0");
+
+	mdelay(100);
+	printf("set gpio!\n");
 	if (atxx_request_gpio(GPIO_GSM_DTR) 
 			|| atxx_request_gpio(GPIO_GSM_ON)
 			|| atxx_request_gpio(GPIO_GSM_ACKON)
@@ -100,9 +139,16 @@ static void gsm_bridge(int argc, char *argv[])
 	atxx_gpio_set(GPIO_GSM_ON,1);
 	mdelay(1000);
 	atxx_gpio_set(GPIO_GSM_ON,0);
-	mdelay(1000);
+
+	uart0.clkfreq = clk_freq;
+	uart0.baudrate = uart_baudrate;
+	uart0.fifo_cfg = 2;
+	uart0.loop_enable = 0;
+	uart0.flow_control = flow_control_en;
+	serial_assign("serial0");
+	serial_init_adv(&uart0);
+
 	atxx_gpio_set(GPIO_GSM_DTR,1);
-	mdelay(10);
 
 	while(1) {
 		if (serial_get_bridge(&ch) == 1) {
@@ -115,12 +161,6 @@ static void gsm_bridge(int argc, char *argv[])
 	}
 
 }
-
-typedef union
-{
-	uint8_t uint8_data[4];
-	uint32_t uint32_data;
-} NEW_BAUDRATE;
 
 static void gsm_download(void)
 {
@@ -139,16 +179,18 @@ static void gsm_download(void)
 	clk_pll = clk_get("pll3");
 	clk_uart = clk_get("uart");
 
-	clk_set_rate(clk_pll, 312 * MHZ);
+	clk_set_rate(clk_pll, 624 * MHZ);
 	clk_set_parent(clk_uart, clk_pll);
-	clk_set_rate(clk_uart, 29 * MHZ);
+	clk_set_rate(clk_uart, 30 * MHZ);
+
+	gsm_delay(100);
 
 	clk_freq = (14745600 * 2);
 	uart_baudrate = 115200;
 
 	uart1.clkfreq = clk_freq;
 	uart1.baudrate = uart_baudrate;
-	uart1.fifo_cfg = 1;
+	uart1.fifo_cfg = 2;
 	uart1.loop_enable = 0;
 	uart1.flow_control = 0;
 	serial_assign("serial1");
@@ -156,13 +198,13 @@ static void gsm_download(void)
 
 	uart0.clkfreq = clk_freq;
 	uart0.baudrate = uart_baudrate;
-	uart0.fifo_cfg = 1;
+	uart0.fifo_cfg = 2;
 	uart0.loop_enable = 0;
 	uart0.flow_control = 0;
 	serial_assign("serial0");
 	serial_init_adv(&uart0);
 
-	mdelay(100);
+	gsm_delay(10000);
 
 	if (atxx_request_gpio(GPIO_GSM_DTR) 
 			|| atxx_request_gpio(GPIO_GSM_ON)
@@ -180,15 +222,16 @@ static void gsm_download(void)
 	atxx_gpio_set(GPIO_GSM_ON, 0);
 	atxx_gpio_set(GPIO_GSM_DTR, 0);
 	atxx_gpio_set(GPIO_GSM_RESETn, 1);
-	mdelay(1000);
+	gsm_delay(10);
+
 	atxx_gpio_set(GPIO_GSM_ON, 1);
 	atxx_gpio_set(GPIO_GSM_DTR, 1);
 	atxx_gpio_set(GPIO_GSM_RESETn, 0);
-	mdelay(10);
-	timer_counts = get_timer(0);
+	gsm_delay(1000);
 
+	timer_counts = get_timer(0);
 	while(1) {
-		if (get_timer(timer_counts) >= 1000)
+		if (get_timer(timer_counts) >= 100)
 			atxx_gpio_set(GPIO_GSM_RESETn, 1);
 
 		if (change_signal == 1) {
@@ -196,7 +239,7 @@ static void gsm_download(void)
 				new_baudrate.uint8_data[change_count-8] = ch;
 			}
 			if (change_count >= 29) {  //29=15+6+8 
-				mdelay(10);
+				gsm_delay(1);
 
 				uart1.clkfreq = clk_freq;
 				uart1.baudrate = new_baudrate.uint32_data;
@@ -249,6 +292,7 @@ static void gsm_download(void)
 			}
 			serial_assign("serial1");
 			serial_putc(ch);
+			serial_assign("serial0");
 			last_data = 1;
 		} else {
 			serial_assign("serial0");
@@ -461,6 +505,104 @@ static int battery_test(int argc, char *argv[])
 static int auto_test(int argc, char *argv[])
 {
 	int ret = -1;
+	int sd_result = 0, nand_result = 0;
+	char cmd[CONFIG_SYS_CBSIZE];
+	atxx_image_header_t *head = (atxx_image_header_t *)DOWNLOAD_ADDR;
+	nand_info_t *nand = &nand_info[nand_curr_device];
+	int nand_offset, i;
+	u_char *test_buf = (u_char *)DOWNLOAD_ADDR;
+	unsigned char i2c_buf[6];
+
+	/* sd test */
+	run_command("mmc init", 0);
+
+	sprintf(cmd, "fatload mmc 1 0x%08x xloader.img", DOWNLOAD_ADDR);
+	if (run_command(cmd, 0)) {
+		ret = 1;
+	}
+
+	if (ret != 1) {
+		if (head->boot_signature == HEAD_SIGNATURE)
+			sd_result = 0; 
+		else
+			sd_result = 1; 
+	} else {
+		sd_result = 1; 
+	}
+
+	/* nand test */
+	ret = 0;
+	run_command("nand erase", 0);
+
+	for (i = 0; i < nand->writesize; i++) {
+		test_buf[i] = i & 0xff;
+	}
+
+	nand_offset = 0x100000;
+	if ((nand_write(nand, nand_offset, &nand->writesize, test_buf)) < 0) { 
+		ret = 1;
+		goto nand_test_result;
+	}
+	if ((nand_read(nand, nand_offset, &nand->writesize, 
+					test_buf + nand->writesize)) < 0) { 
+		ret = 1;
+		goto nand_test_result;
+	}
+
+	for (i = 0; i < nand->writesize; i++) {
+		if (test_buf[i + nand->writesize] != (i & 0xff)) {
+			ret = 1;
+			break;
+		}
+	}
+
+	run_command("nand erase 0x100000 0x100000", 0);
+
+nand_test_result:
+	if (ret)
+		nand_result = 1; 
+	else
+		nand_result = 0; 
+
+	/* print out the test result */
+	printf("############ Test Result ##############\n");
+
+	if (nand_result)
+		printf("NAND test FAIL!\n");
+	else
+		printf("NAND test OK!\n");
+
+	if (sd_result)
+		printf("SD test FAIL!\n");
+	else
+		printf("SD test OK!\n");
+
+
+	/* i2c devices test */
+
+	ret = 0;
+	memset(i2c_buf, 0, sizeof(i2c_buf));
+
+	for (i = 0; i < ATEST_I2C_COUNT; i++) {
+		if (atest_i2c_item[i].test_type == READ_ID) {
+			if ( 0 != i2c_read(atest_i2c_item[i].chip_addr, 
+						atest_i2c_item[i].id_addr, 
+						atest_i2c_item[i].id_addr_len, 
+						i2c_buf, 
+						atest_i2c_item[i].id_data_len) ) {
+				ret = 1;
+			} else {
+				if (i2c_buf[0] != atest_i2c_item[i].id_data)
+					ret = 1;
+			}
+		} else {
+			//TODO
+		}
+		if (ret)
+			printf("%s test FAIL!\n", atest_i2c_item[i].name);
+		else
+			printf("%s test OK!\n", atest_i2c_item[i].name);
+	}
 
 	return ret;
 }

@@ -132,8 +132,7 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		} else if (strcmp(argv[2], "all") == 0) {
 			/* clean nand env */
 			printf("clean nand env!\n\n");
-			nand_erase_block(CONFIG_ENV_OFFSET, 
-					CONFIG_ENV_OFFSET + CONFIG_ENV_RANGE);
+			nand_erase_block(CONFIG_ENV_OFFSET, CONFIG_ENV_RANGE);
 
 			/* xloader */
 			sprintf(cmd, "fatload mmc 1 0x%08x xloader.img", DOWNLOAD_ADDR);

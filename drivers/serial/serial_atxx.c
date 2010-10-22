@@ -28,6 +28,7 @@
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/delay.h>
 
+static int gsm_bridge_flag = 0;
 
 /*--------------------------- basic operation----------------------------------*/
 
@@ -78,6 +79,7 @@ static void uart_set_flowcontrol(uint32_t base_addr, uint32_t enable)
 				| bUART_FCR_FIFOE);
 	} else {
 		val = serial_read_reg(base_addr, UART_MCR_OFS);
+		val |= bUART_MCR_RTS;
 		serial_write_reg(base_addr, UART_MCR_OFS, val & ~bUART_MCR_AFCE);
 	}
 }
@@ -87,10 +89,22 @@ static int dwapbuart_init(uint32_t base_addr, uart_t *p_uart)
 {
 	unsigned long val, val1;
 
+	uart_clear_rx_fifo(base_addr);
+	uart_clear_tx_fifo(base_addr);
+
+	/* FIFO control */
+	if (p_uart->fifo_cfg == 1) {
+		serial_write_reg(base_addr, UART_FCR_OFS, 
+				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF | bUART_FCR_FIFOE);
+	} else if (p_uart->fifo_cfg == 2) {
+		serial_write_reg(base_addr, UART_FCR_OFS, 
+				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_ONE | bUART_FCR_FIFOE);
+	} else {
+		serial_write_reg(base_addr, UART_FCR_OFS, 
+				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF);
+	}
+
 	/* enable DLL/DLH R/W */
-	do {
-		val = serial_read_reg(base_addr, UART_USR_OFS);
-	} while (val & 0x1);
 	serial_write_reg(base_addr, UART_LCR_OFS, bUART_LCR_DLAB);
 
 	/* config DLL/DLH */
@@ -110,22 +124,10 @@ static int dwapbuart_init(uint32_t base_addr, uart_t *p_uart)
 		serial_write_reg(base_addr, UART_MCR_OFS, val & ~bUART_MCR_LB);
 	}
 
-	/* FIFO control */
-	if (p_uart->fifo_cfg == 1) {
-		serial_write_reg(base_addr, UART_FCR_OFS, 
-				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF | bUART_FCR_FIFOE);
-	} else if (p_uart->fifo_cfg == 2) {
-		serial_write_reg(base_addr, UART_FCR_OFS, 
-				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_ONE | bUART_FCR_FIFOE);
-	} else {
-		serial_write_reg(base_addr, UART_FCR_OFS, 
-				bUART_FCR_RCVR_2LESS | bUART_FCR_TET_HALF);
-	}
-
-	uart_set_flowcontrol(base_addr, p_uart->flow_control);
-
 	uart_clear_rx_fifo(base_addr);
 	uart_clear_tx_fifo(base_addr);
+
+	uart_set_flowcontrol(base_addr, p_uart->flow_control);
 
 	return 0;
 }
@@ -199,8 +201,10 @@ static int atxx_uart0_init_adv(uart_t *p_uart)
 
 static void atxx_uart0_putc(const char c)
 {
-	if (c == '\n')
-		dwapbuart_putc(ATXX_UART0_BASE, '\r');
+	if (!gsm_bridge_flag) {
+		if (c == '\n')
+			dwapbuart_putc(ATXX_UART0_BASE, '\r');
+	}
 
 	dwapbuart_putc(ATXX_UART0_BASE, c);
 }
@@ -231,6 +235,7 @@ static int atxx_uart0_get_bridge(char *pch)
 {
 	uint32_t val;
 
+	gsm_bridge_flag = 1;
 	do{
 		val = serial_read_reg(ATXX_UART0_BASE, UART_LSR_OFS);
 		if ((val & bUART_LSR_DR) != 0) {
@@ -251,7 +256,6 @@ static int atxx_uart0_get_bridge(char *pch)
 static int atxx_uart1_init(void)
 {
 	uart_t uart;
-
 	uart.clkfreq = CFG_UART_CLOCK_FREQ;
 	uart.baudrate = CONFIG_BAUDRATE;
 #ifdef CFG_UART_FIFO_ON
@@ -276,9 +280,10 @@ static int atxx_uart1_init_adv(uart_t *p_uart)
 
 static void atxx_uart1_putc(const char c)
 {
-	if (c == '\n')
-		dwapbuart_putc(ATXX_UART1_BASE, '\r');
-
+	if (!gsm_bridge_flag) {
+		if (c == '\n')
+			dwapbuart_putc(ATXX_UART1_BASE, '\r');
+	}
 	dwapbuart_putc(ATXX_UART1_BASE, c);
 }
 
@@ -308,6 +313,7 @@ static int atxx_uart1_get_bridge(char *pch)
 {
 	uint32_t val;
 
+	gsm_bridge_flag = 1;
 	do{
 		val = serial_read_reg(ATXX_UART0_BASE, UART_LSR_OFS);
 		if ((val & bUART_LSR_DR) != 0) {

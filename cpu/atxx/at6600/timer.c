@@ -129,7 +129,7 @@ static  unsigned long timer_read_cycles(int index)
 
 static  unsigned long tick_to_ms(unsigned long tick)
 {
-	tick *= 1000;
+	tick *= 1024;
 	tick /= TIMER_FREQ_HZ;
 	return tick;
 }
