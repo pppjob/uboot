@@ -98,10 +98,12 @@ int do_abortboot(void)
 	if (mode == NAND_BOOT) {
 		mode = keypad_detect();
 		if (mode == NAND_BOOT) {
-			mode = swcfg_detect();
+			mode = serial_detect(2);
+			if (mode == NAND_BOOT) {
+				mode = swcfg_detect();
+			}
 		}
 	}
-
 	ret = build_boot_cmd(mode, "ubifs");
 
 	return ret;

@@ -24,6 +24,8 @@
 #include <linux/types.h>
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/pmu.h>
+#include <asm/arch-atxx/pm.h>
+#include <asm/arch-atxx/aboot.h>
 #include <asm/arch-atxx/gpio.h>
 #include <i2c.h>
 #include "pcf50626_regs.h"
@@ -269,7 +271,18 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode)
 void power_on_detect (void)
 {
 	u8 reg_val;
-	u32 t1, t2;
+	u32 t1, t2, swcfg;
+
+	if (hwcfg_detect() != NAND_BOOT) {
+		return;
+	}
+
+	swcfg = pm_read_reg(SWCFGR);
+	if (swcfg & SWCFGR_POWERON_XLOAD) {
+		swcfg &= ~SWCFGR_POWERON_XLOAD;
+		pm_write_reg(SWCFGR, swcfg);
+		return;
+	}
 
 	/*reset the ON/OFF timeout timer*/
 	pcf50626_read_reg (OOCC1, &reg_val);
