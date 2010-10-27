@@ -49,7 +49,7 @@ enum boot_mode swcfg_detect(void)
 
 	swcfg = pm_read_reg(SWCFGR);
 	if ((swcfg & SWCFGR_REBOOT_MASK) == SWCFGR_REBOOT_RECOVERY) {
-		mode = SD_RECOVERY;
+		mode = NAND_RECOVERY;
 	} else if ((swcfg & SWCFGR_REBOOT_MASK) == SWCFGR_REBOOT_UBOOTCMD) {
 		mode = CMD_MODE;
 	} else
@@ -151,6 +151,10 @@ int build_boot_cmd(enum boot_mode mode, char *fstype)
 	switch (mode){
 		case NAND_BOOT:
 			printf("Enter NAND boot mode\n");
+			ret = boot_from_nand();
+			break;
+		case NAND_RECOVERY:
+			printf("Enter NAND recovery mode\n");
 			ret = boot_from_nand();
 			break;
 		case SD_BOOT:

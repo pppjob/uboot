@@ -3,6 +3,7 @@
 
 enum boot_mode {
 	NAND_BOOT = 0,
+	NAND_RECOVERY,
 	SD_BOOT,
 	SD_INSTALL,
 	SD_PLATFORM,
