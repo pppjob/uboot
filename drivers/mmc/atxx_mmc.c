@@ -364,6 +364,10 @@ uint32_t sd_base_command(int card,int index,uint32_t arg,uint32_t *resp)
 			break;
 		}
 
+		if((status & bSTORAGE_INTSTS_RTO) && cmd == CMD8) {
+			break;
+		}
+
 		if(status & (bSTORAGE_INTSTS_RE | bSTORAGE_INTSTS_RTO)) {
 			ATXX_MMC_DEBUG("status 0x%x\n", status);
 			atxx_sd_write_reg(STORAGE_RINTSTS, 0xffffffff);
@@ -378,6 +382,7 @@ uint32_t sd_base_command(int card,int index,uint32_t arg,uint32_t *resp)
 	}
 
 	ATXX_MMC_DEBUG("status 0x%x\n", status);
+	udelay(1);
 
 	atxx_sd_write_reg(STORAGE_RINTSTS, 0xffffffff);
 
@@ -1754,7 +1759,7 @@ void sd_get_status_register(void)
 
                 /*bSTORAGE_INTSTS_RXDR*/
 		if(status & bSTORAGE_INTSTS_RXDR) {
-			status = atxx_sd_read_reg(STORAGE_STATUS);
+			status = atxx_sd_read_reg(STORAGE_RINTSTS);
 			sd_read_fifo(&data[size],&len);
 			size += len;
 			atxx_sd_write_reg(STORAGE_RINTSTS, bSTORAGE_INTSTS_RXDR);
