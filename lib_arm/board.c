@@ -332,7 +332,7 @@ void start_armboot (void)
 		 * reserve memory for LCD display (always full pages)
 		 */
 		/* bss_end is defined in the board-specific linker script */
-		addr = (_bss_end + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
+		addr = CONFIG_SYS_MALLOC_END;
 		lcd_setmem (addr);
 		gd->fb_base = addr;
 	}
