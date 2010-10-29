@@ -22,6 +22,7 @@
 #include <command.h>
 #include <common.h>
 #include <asm/string.h>
+#include <linux/list.h>
 #include <asm/arch-atxx/clock.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/memory_map.h>
@@ -227,6 +228,65 @@ int do_i2c(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 
+int set_clock (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+{
+	char *name;
+	ulong rate;
+	int ret;
+
+	if(argc < 3)
+		return -1;
+
+	name = argv[1];
+	rate = simple_strtoul(argv[2], NULL, 0);
+	ret = clk_set_by_name(name, rate * MHZ);
+	if(ret){
+		printf("set clock rate failing\n");
+	}
+
+	return 0;
+}
+
+int enable_clock (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+{
+	char *name = NULL;
+	unsigned int enable_flag = 0;
+	int ret;
+
+	if(argc < 3)
+		return -1;
+
+	name = argv[1];
+	enable_flag = simple_strtoul(argv[2], NULL, 0);
+	ret = clk_enable_by_name(name, enable_flag);
+	if(ret){
+		if(enable_flag){
+			printf("enable clock failing\n");
+		}else{
+			printf("disable clock failing\n");
+		}
+	}
+
+	return 0;
+}
+
+int parent_clock (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+{
+	char *name = NULL, *parent_name = NULL;
+	int ret;
+
+	if(argc < 3)
+		return -1;
+
+	name = argv[1];
+	parent_name = argv[2];
+	ret = clk_parent_by_name(name, parent_name);
+	if(ret){
+		printf("set clock parent failing\n");
+	}
+
+	return 0;
+}
 
 int do_test(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -246,6 +306,18 @@ int do_test(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}else if (!strcmp(subcmd, "clkd")) {
 			dump_clock();
 			ret = 0;
+	}else if (!strcmp (subcmd, "clks")) {
+			argc--;
+			argv++;
+			ret = set_clock (cmdtp, flag, argc, argv);
+	}else if (!strcmp (subcmd, "clke")) {
+			argc--;
+			argv++;
+			ret = enable_clock (cmdtp, flag, argc, argv);
+	}else if (!strcmp (subcmd, "clkp")) {
+			argc--;
+			argv++;
+			ret = parent_clock (cmdtp, flag, argc, argv);
 	}else if (!strcmp(subcmd, "i2c")) {
 			argc--;
 			argv++;
@@ -263,6 +335,9 @@ U_BOOT_CMD(
 	"self test for: cache, clkd, i2c",
 	"stest cache on|off\n"
 	"stest clkd - clock dump\n"
+	"stest clks [name] [rate] - clock set\n"
+	"stest clke [name] [enable] - clock enable/disable\n"
+	"stest clkp [name] [parent name] - set parent node of current clock \n"
 	"stest i2c read chip address [# of objects] - read from I2C device\n"
 	"stest i2c write chip address value [count] - write to I2C device (fill)\n"
 	"stest i2c reset - re-init the I2C Controller\n"

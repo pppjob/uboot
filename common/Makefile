@@ -101,6 +101,7 @@ COBJS-$(CONFIG_CMD_HDCVT) += cmd_hdcvt.o
 COBJS-$(CONFIG_CMD_ATEST) += cmd_atest.o
 COBJS-$(CONFIG_CMD_ADOWNLOAD) += cmd_adownload.o
 COBJS-$(CONFIG_CMD_ABOOT) += cmd_aboot.o
+COBJS-$(CONFIG_CMD_CLOCKENV) += cmd_clockenv.o
 endif
 COBJS-$(CONFIG_CMD_I2C) += cmd_i2c.o
 COBJS-$(CONFIG_CMD_IDE) += cmd_ide.o

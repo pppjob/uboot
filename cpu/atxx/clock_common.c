@@ -72,6 +72,69 @@ struct clk *clk_get(const char *id)
 	return clk;
 }
 
+/* only match clock name */
+int clk_set_by_name(const char *name, unsigned long rate)
+{
+	struct clk *p;
+	int ret = -1;
+
+	list_for_each_entry (p, &clocks, list) {
+		if (strcmp (name, p->name) == 0) {
+			ret = clk_set_rate (p, rate);
+			break;
+		}
+	}
+
+	return ret;
+}
+
+/* only match clock name, if flag = 1, enable clk; else
+ * flag = 0, disable clk
+ */
+int clk_enable_by_name (const char *name, unsigned int flag)
+{
+	struct clk *p;
+	int ret = -1;
+
+	list_for_each_entry (p, &clocks, list) {
+		if (strcmp (name, p->name) == 0) {
+			if (flag) {
+				ret = clk_enable (p);
+			} else {
+				clk_disable(p);
+				ret = 0;
+			}
+			break;
+		}
+	}
+
+	return ret;
+}
+
+int clk_parent_by_name (const char *name, const char *parent_name)
+{
+	struct clk *p1, *p2, *cur_clk = NULL, *parent_clk = NULL;
+	int ret = -1;
+
+	list_for_each_entry (p1, &clocks, list) {
+		if (strcmp (name, p1->name) == 0) {
+			cur_clk = p1;
+			break;
+		}
+	}
+
+	list_for_each_entry (p2, &clocks, list) {
+		if (strcmp (parent_name, p2->name) == 0) {
+			parent_clk = p2;
+			break;
+		}
+	}
+
+	ret = clk_set_parent (cur_clk, parent_clk);
+	return ret;
+}
+
+
 int clk_enable(struct clk *clk)
 {
 	if (IS_ERR(clk) || clk == NULL)
