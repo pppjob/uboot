@@ -91,14 +91,23 @@ int do_abortboot(void)
 	run_command("mmc init", 0);
 
 	mode = hwcfg_detect();
-	if (mode == NAND_BOOT) {
-		mode = serial_detect(5);
-		if (mode == NAND_BOOT) {
-			mode = swcfg_detect();
-		}
+	if (mode != NAND_BOOT) {
+		goto non_nand_boot;
 	}
 
-	ret = build_boot_cmd(mode, "ubifs");
+	mode = mmc_detect();
+	if (mode != NAND_BOOT) {
+		goto non_nand_boot;
+	}
 
+	mode = serial_detect(5);
+	if (mode != NAND_BOOT) {
+		 goto non_nand_boot;
+	}
+
+	mode = swcfg_detect();
+
+non_nand_boot:
+	ret = build_boot_cmd(mode, "ubifs");
 	return ret;
 }

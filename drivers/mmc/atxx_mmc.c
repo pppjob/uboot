@@ -23,6 +23,7 @@
 #include <part.h>
 #include <asm/io.h>
 #include <asm/arch-atxx/pmu.h>
+#include <asm/arch-atxx/aboot.h>
 #include "atxx_mmc.h"
 
 /* SD/MMC/CE-ATA Controller - #0 0x3FFDE000 , for SD/MMC*/
@@ -238,6 +239,26 @@ static void  storage_set_rxwmark(uint32_t data)
 static void storage_set_debouncecount(uint32_t data)
 {
 	atxx_sd_write_reg(STORAGE_DEBNCE, ((atxx_sd_read_reg(STORAGE_DEBNCE) & 0x00ffffff) | (data)));
+}
+
+enum boot_mode mmc_detect (void)
+{
+	int ret;
+	enum boot_mode mode;
+
+	ret = run_command("fatname mmc 1 do_auto_phonetest", 0);
+	if (ret >= 0) {
+		mode = SD_PHONETEST;
+		return mode;
+	}
+
+	ret = run_command("fatname mmc 1 do_auto_install", 0);
+	if (ret >= 0) {
+		mode = SD_INSTALL;
+		return mode;
+	}
+
+	return NAND_BOOT;
 }
 
 int storage_send_base_command(uint32_t command,uint32_t arg,uint32_t *resp)
