@@ -7,7 +7,9 @@ struct loop_item {
 };
 
 static struct loop_item loop_table[] = {
+	{312 * MHZ, 1560000},
 	{624 * MHZ, 3112960},
+	{702 * MHZ, 3510000},
 };
 
 #define LOOP_TABLE_SIZE		ARRAY_SIZE(loop_table)
@@ -27,6 +29,7 @@ void calibrate_delay(void)
 	}
 
 	if (loops_per_jiffy == 0){
+		loops_per_jiffy = 3120000;
 		printf("loops_per_jiffy NULL, rate: %ld\n", rate);
 	}
 	return;

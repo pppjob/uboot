@@ -34,6 +34,10 @@
 #define PCF50626_ID		0x31
 #define PCF50626_ADDR		0x70
 
+#define	GPIOx_HIGH_IMPEDANCE		0x7
+#define	GPIOx_ZERO			0x0
+
+
 //#define DEBUG
 #ifdef DEBUG
 #define DPRINTF(args...) printf(args)
@@ -268,6 +272,26 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode)
 	return ret;
 }
 
+void pcf50626_vibrator_motor_power_on_off(power_supply_mode mode)
+{
+	uint8_t gpioxc1 = 0;
+
+	/* set bit6-7 to 00 to configure gpio1 as output without inversion */
+	switch (mode) {
+	case PS_ON:
+		gpioxc1 |= GPIOx_ZERO;
+		break;
+	case PS_OFF:
+		gpioxc1 |= GPIOx_HIGH_IMPEDANCE;
+		break;
+	default:
+		DPRINTF("wrong mode for vibrator motor\n");
+		return;
+	}
+	pcf50626_write_reg(GPIO1C1, gpioxc1);
+	pcf50626_write_reg(GPIO2C1, gpioxc1);
+}
+
 void power_on_detect (void)
 {
 	u8 reg_val;
@@ -310,7 +334,16 @@ void power_on_detect (void)
 	{
 		goto power_off;
 	}
-
+	
+	pcf50626_vibrator_motor_power_on_off(PS_ON);
+	t1 = get_timer (0);
+	do {
+		t2 = get_timer (0);
+		if ((t2 - t1) >= 100)
+			break;
+	} while (1);
+	pcf50626_vibrator_motor_power_on_off(PS_OFF);
+	
 	return;
 
 power_off:
