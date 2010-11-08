@@ -3718,6 +3718,9 @@ g20_config : unconfig
 miracle_smt_config : unconfig
 	@$(MKCONFIG) $(@:_config=) arm atxx miracle augusta at6600
 
+t3c_config : unconfig
+	@$(MKCONFIG) $(@:_config=) arm atxx t3c augusta at6600
+
 #########################################################################
 #########################################################################
 #########################################################################

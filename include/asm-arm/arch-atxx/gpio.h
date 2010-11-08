@@ -30,6 +30,8 @@
 #include "miracle_gpio.h"
 #elif	defined(CONFIG_BOARD_G20)
 #include "g20_gpio.h"
+#elif	defined(CONFIG_BOARD_T3C)
+#include "t3c_gpio.h"
 #else
 #error   "<board>_gpio.h is missing!"
 #endif
