@@ -32,6 +32,7 @@
 #include <asm/arch-atxx/delay.h>
 #include <asm/arch-atxx/pm.h>
 #include <asm/arch-atxx/pmu.h>
+#include <asm/arch-atxx/gpio.h>
 #include <asm/arch-atxx/map_table.h>
 #include <asm/arch-atxx/aboot.h>
 
@@ -52,14 +53,9 @@ int board_init(void)
 	val = topctl_read_reg(TOPCTL1);
 	val |= (1 << 13);
 	topctl_write_reg(TOPCTL1, val);
-	atxx_request_gpio(63);
-	atxx_set_gpio_direction(63, 0);
-	atxx_gpio_set(63, 1);
-
-	/* disable vga dac */
-	val = topctl_read_reg(TOPCTL0);
-	val |= 0xf0;
-	topctl_write_reg(TOPCTL0, val);
+	atxx_request_gpio(GPIO_GATE_DISB);
+	atxx_set_gpio_direction(GPIO_GATE_DISB, 0);
+	atxx_gpio_set(GPIO_GATE_DISB, 1);
 
 	at6600_i2c_init();
 
