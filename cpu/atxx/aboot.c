@@ -163,10 +163,6 @@ int build_boot_cmd(enum boot_mode mode, char *fstype)
 			break;
 		case SD_INSTALL:
 			printf("Enter SD install mode\n");
-			printf("Donwload xloader.\n");
-			run_command("adownload sd xloader", 0);
-			printf("Donwload uboot.\n");
-			run_command("adownload sd uboot", 0);
 			ret = boot_from_sd("install", fstype);
 			break;
 		case SD_PLATFORM:

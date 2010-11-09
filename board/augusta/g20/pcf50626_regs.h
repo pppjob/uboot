@@ -358,5 +358,27 @@ enum cbcc2 {
 	PCF50626_CBCC2_SUSPENA	= 0x02, /* enable USB suspend mode control */
 };
 
+enum recc1 {
+	PCF50626_RECC1_VTH	= 0x0F,
+	PCF50626_RECC1_REC1_EN	= 0x10,
+	PCF50626_RECC1_REC2_EN	= 0x20,
+	PCF50626_RECC1_REC2_MOD	= 0x40,
+	PCF50626_RECC1_MICBEN	= 0x80,
+};
+
+enum precharge_current_VBUS {
+	CURRAT2_0	= 0x0,
+	CURRAT2_2	= 0x2,
+	CURRAT2_4	= 0x4,
+	CURRAT2_8	= 0x8,
+	CURRAT2_16	= 0x10,
+	CURRAT2_18	= 0x12,
+	CURRAT2_32	= 0x20,
+	CURRAT2_64	= 0x40,
+	CURRAT2_128	= 0x80,
+	CURRAT2_255	= 0xff,
+};
+
+
 #endif /* ___PCF50626_REGS_H_______ */
 
