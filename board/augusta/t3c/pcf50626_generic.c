@@ -245,7 +245,6 @@ int default_power_supply(void)
 	for (i = 0; i < PS_SETTING_COUNT; i++) {
 		mode = ps_setting_default[i].default_mode;
 		ret |= pcf50626_set_power_supply(ps_setting_default[i], mode);
-		udelay(1000);
 	}
 
 	return ret;
@@ -265,7 +264,6 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode)
 		if (ps_setting_default[i].module == module) {
 			ret |= pcf50626_set_power_supply(ps_setting_default[i], mode);
 			ps_setting_default[i].cur_mode = mode;
-			udelay(1000);
 		}
 	}
 	
@@ -307,6 +305,7 @@ void power_on_detect (void)
 		pm_write_reg(SWCFGR, swcfg);
 		return;
 	}
+
 	/*reset the ON/OFF timeout timer*/
 	pcf50626_read_reg (OOCC1, &reg_val);
 	reg_val |= PCF50626_OOCC1_TOT_RST;
@@ -364,7 +363,7 @@ int pmu_init(void)
 		return -1;
 	}
 
-	DPRINTF("******* pcf50626 read ID succeed *******\n");
+	printf ("\nPMU read ID ok, id value = 0x%x", buf);
 
 	power_on_detect ();
 	default_power_supply();

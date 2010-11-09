@@ -245,7 +245,6 @@ int default_power_supply(void)
 	for (i = 0; i < PS_SETTING_COUNT; i++) {
 		mode = ps_setting_default[i].default_mode;
 		ret |= pcf50626_set_power_supply(ps_setting_default[i], mode);
-		udelay(1000);
 	}
 
 	return ret;
@@ -265,7 +264,6 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode)
 		if (ps_setting_default[i].module == module) {
 			ret |= pcf50626_set_power_supply(ps_setting_default[i], mode);
 			ps_setting_default[i].cur_mode = mode;
-			udelay(1000);
 		}
 	}
 	
