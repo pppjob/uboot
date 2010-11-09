@@ -306,6 +306,14 @@ void power_on_detect (void)
 		return;
 	}
 
+	/* power on if usb charger is connected */
+	pcf50626_read_reg (OOCS, &reg_val);
+	if (reg_val & 0x20) {
+		reg_val = CURRAT2_255;
+		pcf50626_write_reg (CBCC4, reg_val);
+		return;
+	}
+
 	/*reset the ON/OFF timeout timer*/
 	pcf50626_read_reg (OOCC1, &reg_val);
 	reg_val |= PCF50626_OOCC1_TOT_RST;
@@ -314,8 +322,13 @@ void power_on_detect (void)
 	pcf50626_read_reg (INT1, &reg_val);
 	if ((reg_val & PCF50626_INT1_ONKEYF) == 0)
 	{
-		return;
+		swcfg = pm_read_reg(SWCFGR);
+		if (swcfg & SWCFGR_REBOOT_MASK) {
+			return;
+		}
+		goto power_off;
 	}
+
 	if ((reg_val & PCF50626_INT1_ONKEYR) != 0)
 	{
 		goto power_off;
@@ -347,7 +360,16 @@ void power_on_detect (void)
 
 power_off:
 	printf ("\n\rMiss power on,you must press power key more than 1s, turn off!\n");
-	pcf50626_write_reg (OOCC1, PCF50626_OOCC1_GO_OFF);
+
+	pcf50626_read_reg (RECC1, &reg_val);
+	reg_val &= ~PCF50626_RECC1_REC1_EN;
+	pcf50626_write_reg (RECC1, reg_val);
+
+	pcf50626_read_reg (OOCC1, &reg_val);
+	reg_val &= ~PCF50626_OOCC1_RTC_WAK;
+	reg_val |= PCF50626_OOCC1_GO_OFF;
+	pcf50626_write_reg (OOCC1, reg_val);
+
 	while (1);
 }
 

@@ -26,6 +26,12 @@
 
 void reset_cpu (ulong addr)
 {
+	uint8_t swcfg;
+
+	swcfg = pm_read_reg(SWCFGR);
+	swcfg |= SWCFGR_REBOOT_NORMAL;
+	pm_write_reg(SWCFGR, swcfg);
+
 	/* trigger software reset */
 	pm_write_reg(SWRSTR, SWRSTR_SOFT_RESET);
 }

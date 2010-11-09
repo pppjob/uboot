@@ -117,6 +117,14 @@ int do_abortboot(void)
 	mode = swcfg_detect();
 
 non_nand_boot:
+	/* download all for auto download mode*/
+	if (mode == SD_INSTALL) {
+		printf("Donwload xloader.\n");
+		run_command("adownload sd xloader", 0);
+		printf("Donwload uboot.\n");
+		run_command("adownload sd uboot", 0);
+	}
+
 	ret = build_boot_cmd(mode, "ubifs");
 	return ret;
 }

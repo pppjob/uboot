@@ -271,13 +271,25 @@ void power_on_detect (void)
 	u32 t1, t2, swcfg;
 
 	if (hwcfg_detect() != NAND_BOOT) {
+		printf("not nand boot by hwcfg.\n");
 		return;
 	}
 
 	swcfg = pm_read_reg(SWCFGR);
+	printf("swcfg: 0x%02x.\n", swcfg);
 	if (swcfg & SWCFGR_POWERON_XLOAD) {
 		swcfg &= ~SWCFGR_POWERON_XLOAD;
 		pm_write_reg(SWCFGR, swcfg);
+		printf("load from uart.\n");
+		return;
+	}
+
+	/* power on if usb charger is connected */
+	pcf50626_read_reg (OOCS, &reg_val);
+	if (reg_val & 0x20) {
+		reg_val = CURRAT2_255;
+		pcf50626_write_reg (CBCC4, reg_val);
+		printf("usb charger connected.\n");
 		return;
 	}
 
@@ -289,7 +301,11 @@ void power_on_detect (void)
 	pcf50626_read_reg (INT1, &reg_val);
 	if ((reg_val & PCF50626_INT1_ONKEYF) == 0)
 	{
-		return;
+		swcfg = pm_read_reg(SWCFGR);
+		if (swcfg & SWCFGR_REBOOT_MASK) {
+			return;
+		}
+		goto power_off;
 	}
 	if ((reg_val & PCF50626_INT1_ONKEYR) != 0)
 	{
@@ -313,7 +329,16 @@ void power_on_detect (void)
 
 power_off:
 	printf ("\n\rMiss power on,you must press power key more than 1s, turn off!\n");
-	pcf50626_write_reg (OOCC1, PCF50626_OOCC1_GO_OFF);
+
+	pcf50626_read_reg (RECC1, &reg_val);
+	reg_val &= ~PCF50626_RECC1_REC1_EN;
+	pcf50626_write_reg (RECC1, reg_val);
+
+	pcf50626_read_reg (OOCC1, &reg_val);
+	reg_val &= ~PCF50626_OOCC1_RTC_WAK;
+	reg_val |= PCF50626_OOCC1_GO_OFF;
+	pcf50626_write_reg (OOCC1, reg_val);
+	
 	while (1);
 }
 
