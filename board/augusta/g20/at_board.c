@@ -109,7 +109,7 @@ int do_abortboot(void)
 		goto non_nand_boot;
 	}
 
-	mode = serial_detect(2);
+	mode = serial_detect(0);
 	if (mode != NAND_BOOT) {
 		goto non_nand_boot;
 	}
