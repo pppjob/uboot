@@ -420,7 +420,6 @@ void set_backlight(u8 dimfreq, u8 ledman)
 	uint8_t	reg;
 	int ret = 0;
 
-#if 0
 	pcf50626_read_reg(PWM1S, &reg);
 	reg = (reg | PWMx_SELECT) | (dimfreq << 5);
 	pcf50626_write_reg(PWM1S, reg);
@@ -432,8 +431,6 @@ void set_backlight(u8 dimfreq, u8 ledman)
 	pcf50626_write_reg(GPIO5C1, GPIOx_PWM1_OUTPUT);
 	pcf50626_write_reg(GPIO6C1, GPIOx_PWM1_OUTPUT);
 	pcf50626_write_reg(GPIO7C1, GPIOx_PWM1_OUTPUT);
-	pcf50626_write_reg(GPIO8C1, GPIOx_PWM1_OUTPUT);
-#endif
 
 	ret = atxx_request_gpio(GPIO_LCD_BL_EN);
 	if (ret) {

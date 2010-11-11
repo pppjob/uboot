@@ -30,9 +30,9 @@
 #define CONFIG_DISPLAY_CPUINFO
 
 /* LCD Setting */
-//#define CONFIG_LCD
-//#define CONFIG_ATXX_LCD
-//#define CONFIG_VIDEO_R61581
+#define CONFIG_LCD
+#define CONFIG_ATXX_LCD
+#define CONFIG_VIDEO_LMS350DF04
 
 #define CONFIG_SYS_WHITE_ON_BLACK
 #define LCD_BPP				LCD_COLOR16
