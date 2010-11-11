@@ -75,6 +75,28 @@ uchar default_environment[] = {
 	"bootcmd_sd="	CONFIG_BOOTCOMMAND_SD		"\0"
 #endif
 
+#ifdef	CONFIG_CLK_ARM
+	"clk-arm="	MK_STR(CONFIG_CLK_ARM)		"\0"
+#endif
+#ifdef	CONFIG_CLK_AXI
+	"clk-axi="	MK_STR(CONFIG_CLK_AXI)		"\0"
+#endif
+#ifdef	CONFIG_CLK_APP
+	"clk-app="	MK_STR(CONFIG_CLK_APP)		"\0"
+#endif
+#ifdef	CONFIG_CLK_MDDR
+	"clk-mddr="	MK_STR(CONFIG_CLK_MDDR)		"\0"
+#endif
+#ifdef	CONFIG_CLK_GCLK
+	"clk-gclk="	MK_STR(CONFIG_CLK_GCLK)		"\0"
+#endif
+#ifdef	CONFIG_CLK_VPCLK
+	"clk-vpclk="	MK_STR(CONFIG_CLK_VPCLK)	"\0"
+#endif
+#ifdef	CONFIG_CLK_VSCLK
+	"clk-vsclk="	MK_STR(CONFIG_CLK_VSCLK)	"\0"
+#endif
+
 /* ****************************************************************** */
 
 #ifdef	CONFIG_BOOTARGS
