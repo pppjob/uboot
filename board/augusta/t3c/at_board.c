@@ -61,6 +61,11 @@ int board_init(void)
 
 	pmu_init();
 
+	/* put vmem to pmu */
+	atxx_request_gpio(GPIO_MEM_1V8_EN);
+	atxx_set_gpio_direction(GPIO_MEM_1V8_EN, 0);
+	atxx_gpio_set(GPIO_MEM_1V8_EN, 0);
+
 	adc_init();
 
 	keypad_init();

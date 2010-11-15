@@ -43,7 +43,7 @@ static ps_setting_t ps_setting_default[] = {
 	{D7REGC1,    "VDDLCD_3V0",        PPS_LCD,    3000, PS_OFF, PS_OFF},
 	{D8REGC1,    "VCMMB_CA_3V0",      PPS_CMMB,   3000, PS_OFF, PS_OFF},
 	{RF1REGC1,   "VGPS_3V0",          PPS_GPS,    3000, PS_OFF, PS_OFF},
-	{RF2REGC1,   "VCTP_1V8",          PPS_TP,     1800, PS_OFF, PS_OFF},
+	{RF2REGC1,   "VCTP_1V8",          PPS_TP,     1800, PS_ON, PS_ON},
 	{RF4REGC1,   "VDVDD_1V8",         PPS_TUNER,  1800, PS_OFF, PS_OFF},
 	{IOREGC1,    "IOVDD_3V0",         PPS_COMMON, 3000, PS_ON,  PS_ON},
 	{USBREGC1,   "VUSB_VDD3V3",       PPS_USB,    3300, PS_ON,  PS_ON},
