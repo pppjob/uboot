@@ -306,9 +306,9 @@ void power_on_detect (void)
 		return;
 	}
 
-	/* power on if usb charger is connected */
+	/* power on if charger is connected */
 	pcf50626_read_reg (OOCS, &reg_val);
-	if (reg_val & 0x20) {
+	if (reg_val & 0x10) {
 		reg_val = CURRAT2_255;
 		pcf50626_write_reg (CBCC4, reg_val);
 		return;
