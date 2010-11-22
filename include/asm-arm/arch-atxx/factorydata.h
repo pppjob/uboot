@@ -46,6 +46,17 @@ typedef	struct factory_data {
 	char	fd_buf[0];	/* customized data area */
 } factory_data_t;
 
+typedef struct mddr_f_data{
+	uint8_t mddr_size;
+	uint8_t mddr_cal_data[8];
+}mddr_f_data_t;
+
+struct boot_parameter{
+        char magic[16];
+        int mddr_data_send;
+        mddr_f_data_t f_mddr;
+};
+
 /* interfaces to get/release factory data */
 factory_data_t	*factory_data_get(int fd_index);
 void		factory_data_put(factory_data_t *fd);
