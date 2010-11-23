@@ -33,7 +33,7 @@
 /* LCD Setting */
 #define CONFIG_LCD
 #define CONFIG_ATXX_LCD
-#define CONFIG_VIDEO_INNO7DD
+#define CONFIG_VIDEO_HSD070lDW1
 
 #define CONFIG_SYS_WHITE_ON_BLACK
 #define LCD_BPP				LCD_COLOR16
