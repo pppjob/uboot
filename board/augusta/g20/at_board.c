@@ -34,6 +34,7 @@
 #include <asm/arch-atxx/pmu.h>
 #include <asm/arch-atxx/map_table.h>
 #include <asm/arch-atxx/aboot.h>
+#include <asm/arch-atxx/factorydata.h>
 
 #include "keypad.h"
 
@@ -79,7 +80,34 @@ int board_init(void)
 
 int misc_init_r(void)
 {
-	return 1;
+	factory_data_t *fd = NULL;
+	int i;
+	struct boot_parameter *b_param = (struct boot_parameter *)MDDR_BASE_ADDR;
+
+	if (!b_param->mddr_data_send) {
+		return 0;
+	}
+
+	fd = factory_data_get(FD_MDDR);
+	if (fd == NULL) {
+		return -1;
+	}
+	fd->fd_index = FD_MDDR;
+	fd->fd_length = 9;
+	memcpy(fd->fd_buf, (uint8_t *)&b_param->f_mddr, 9);
+
+	if (factory_data_store(fd)) {
+		printf("MDDR Factory results save failed\n");
+	} else {
+		printf("MDDR Factory results save OK\n");
+		printf("MDDR size: %dM\n", ((1 << fd->fd_buf[0]) * 64));
+		for (i = 1; i < 9; i++)
+			printf("data[%d] = 0x%02x\n", i, (fd->fd_buf[i]&0xff));
+
+	}
+
+	factory_data_put(fd);
+	return 0;
 }
 
 int dram_init (void)
