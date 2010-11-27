@@ -144,6 +144,7 @@
 #define LCD_YRES_320		320
 #define LCD_YRES_640		640
 #define LCD_YRES_480		480
+#define LCD_YRES_600		600
 
 /*-------------------------------------------------------------------------
  *
@@ -174,7 +175,8 @@ enum vga_mode {
 	ATXX_QVGA = 0,
 	ATXX_HVGA,
 	ATXX_VGA,
-	ATXX_WVGA
+	ATXX_WVGA,
+	ATXX_SVGA
 };
 
 enum pix_format {

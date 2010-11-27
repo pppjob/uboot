@@ -724,9 +724,14 @@ void lcd_ctrl_init(void *lcdbase)
 			lcd_yres = LCD_YRES_480;
 			break;
 		case ATXX_HVGA:
-		default:
 			lcd_xres = LCD_XRES_320;
 			lcd_yres = LCD_YRES_480;
+			break;
+		case ATXX_SVGA:
+			lcd_xres = LCD_XRES_800;
+			lcd_yres = LCD_YRES_600;
+			break;
+		default:
 			break;
 	}
 
