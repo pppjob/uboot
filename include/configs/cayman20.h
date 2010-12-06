@@ -184,6 +184,7 @@
 #define CONFIG_CMD_CLOCKENV
 
 #define CONFIG_GSM_TEST
+#define CONFIG_PMU_ADC 
 
 #define CONFIG_SYS_LONGHELP
 

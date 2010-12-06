@@ -30,6 +30,7 @@
 #include <asm/arch-atxx/topctl.h>
 #include <asm/arch-atxx/gpio.h>
 #include <asm/arch-atxx/adc.h>
+#include <asm/arch-atxx/pmu.h>
 #include <asm/arch-atxx/delay.h>
 #include <asm/arch-atxx/cache.h>
 #include <asm/arch-atxx/memory_map.h>
@@ -451,7 +452,11 @@ static int battery_test(int argc, char *argv[])
 	}
 	action = argv[2];
 	if (!strcmp(action, "read")) {
+#if defined(CONFIG_PMU_ADC)
+		adc_value = adc_get_pmu();
+#else
 		adc_value = adc_get_aux(TSC_ADC_AUX1);
+#endif
 		printf("adc value: %d\n", adc_value);
 		ret = 0;
 	} else if (!strcmp(action, "write")){
@@ -485,7 +490,11 @@ static int battery_test(int argc, char *argv[])
 		printf("\n");
 		ret = 0;
 	} else if (!strcmp(action, "check")){
+#if defined(CONFIG_PMU_ADC)
+		adc_value = adc_get_pmu();
+#else
 		adc_value = adc_get_aux(TSC_ADC_AUX1);
+#endif
 		data = factory_data_get(FD_BATTERY);
 		if (data == NULL) {
 			printf("read factory data failed!\n");

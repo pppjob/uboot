@@ -339,6 +339,34 @@ power_off:
 	while (1);
 }
 
+uint32_t adc_get_pmu(void)
+{
+        uint16_t        adc_result = 0;   
+        uint8_t         adcc1, adcs1, adcs3, reg_val;
+
+
+        adcc1 = 0x8 | (0x1 << 4);
+        pcf50626_write_reg(ADCC1, adcc1);
+
+        pcf50626_read_reg(ADCC1, &adcc1);
+
+        /* set start adc command by writing 1 to bit[0] of ADCC1 */
+        adcc1 = (adcc1 & 0xFE) | 1;
+        pcf50626_write_reg(ADCC1, adcc1);
+
+        do {
+                pcf50626_read_reg(INT3, &reg_val);
+        } while ((reg_val & PCF50626_INT3_ADCRDY) == 0);
+
+        pcf50626_read_reg(ADCS1, &adcs1);
+        adc_result = adcs1 << 2;
+
+        pcf50626_read_reg(ADCS3, &adcs3);
+        adc_result |= (adcs3 & 0x3);
+	
+        return adc_result;
+}
+
 int pmu_init(void)
 {
 	u8 buf;

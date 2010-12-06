@@ -69,3 +69,4 @@ void pmu_power_show(void);
 
 void set_backlight(u8 dimfreq, u8 ledman);
 
+uint32_t adc_get_pmu(void);
