@@ -38,9 +38,9 @@
 #define LCD_HFP		7
 #define LCD_HBP		4
 #define LCD_HSYNC	4
-#define LCD_VFP		60
-#define LCD_VBP		20
-#define LCD_VSYNC	5
+#define LCD_VFP		16
+#define LCD_VBP		16
+#define LCD_VSYNC	2
 
 /* spi timing info*/
 #define TCHW_TIMING		60	/* XCS signal "H" pulse width */
@@ -76,10 +76,11 @@ static void spi_write(struct atxxfb *atfb, uint8_t index, uint16_t value)
 	atfb->spi_8bits_cmd(atfb, cmd_data, sizeof(cmd_data));
 }
 
+static void lms350df04display_off(struct atxxfb *atfb);
+
 static void lms350df04init(struct atxxfb *atfb)
 {
-	uint16_t val;
-	printf("lms350df04init\n");
+	lms350df04display_off(atfb);
 
 	mdelay(50);
 	spi_write(atfb, 0x07, 0x0000);
@@ -98,7 +99,7 @@ static void lms350df04init(struct atxxfb *atfb)
 	spi_write(atfb, 0x01, 0x0B3B);
 	spi_write(atfb, 0x02, 0x0300);
 	spi_write(atfb, 0x03, 0x3000);//F000
-	spi_write(atfb, 0x08, 0x0002);
+	spi_write(atfb, 0x08, 0x000F);
 	spi_write(atfb, 0x09, 0x000B);
 	spi_write(atfb, 0x76, 0x2213);
 	spi_write(atfb, 0x0B, 0x3340);
