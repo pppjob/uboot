@@ -116,6 +116,8 @@ int pannel_set_power(int on_off)
 {
 	int err;
 
+	set_backlight(1, 0);
+
 	err = atxx_request_gpio(GPIO_LCD_PWEN_AVDD);
 	if (err) {
 		printf("Failed to request gpio pmu_pwren1 %d!\n", err);

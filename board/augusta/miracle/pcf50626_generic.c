@@ -405,17 +405,21 @@ void pmu_power_show()
 	printf("******* pcf50626 power array end*******\n");
 }
 
+#define	GPIOx_PWM1_OUTPUT	0x3
+#define	GPIOx_HIGH_IMPEDANCE		0x7
+#define	PWMx_SELECT			0x1
+
 void set_backlight(u8 dimfreq, u8 ledman)
 {
+	uint8_t	reg;
 	int ret = 0;
-	ret = atxx_request_gpio(GPIO_LCD_BL_DIM);
-	if (ret) {
-		printf("Failed to request gpio LCD backlight %d!\n", ret);
-		return;
-	}
 
-	atxx_set_gpio_direction(GPIO_LCD_BL_DIM, 0);
-	atxx_gpio_set(GPIO_LCD_BL_DIM, 1);
+	pcf50626_read_reg(PWM1S, &reg);
+	reg = ((reg & 0x1E) | PWMx_SELECT) | ((dimfreq & 0x7) << 5);
+	pcf50626_write_reg(PWM1S, reg);
+	pcf50626_write_reg(PWM1D, ((0x7f - ledman) << 1) & 0xff);
 
-	atxx_free_gpio(GPIO_LCD_BL_DIM);
+	/* power on */
+	pcf50626_write_reg(GPIO1C1, ledman == 0 ? 0 : GPIOx_PWM1_OUTPUT);
+	pcf50626_write_reg(GPIO2C1, GPIOx_HIGH_IMPEDANCE);
 }
