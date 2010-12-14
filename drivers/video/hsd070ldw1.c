@@ -115,6 +115,8 @@ int pannel_set_power(int on_off)
 {
 	int err;
 
+	set_backlight(1, 0);
+
 	err = atxx_request_gpio(GPIO_LCD_PWEN_AVDD);
 	if (err) {
 		printf("Failed to request gpio pmu_pwren1 %d!\n", err);
@@ -130,15 +132,14 @@ int pannel_set_power(int on_off)
 	if(on_off > 0){
 		pmu_power_control(PPS_LCD, PS_ON);
 		mdelay(20);
-		atxx_set_gpio_direction(GPIO_LCD_PWEN_AVDD, 1);
+		atxx_set_gpio_direction(GPIO_LCD_PWEN_AVDD, 0);
 		atxx_gpio_set(GPIO_LCD_PWEN_AVDD, 0);
 
 		atxx_set_gpio_direction(GPIO_LCD_STBYB, 0);
 		atxx_gpio_set(GPIO_LCD_STBYB, 1);
 
 	}else{
-		atxx_set_gpio_direction(GPIO_LCD_PWEN_AVDD, 0);
-		atxx_gpio_set(GPIO_LCD_PWEN_AVDD, 1);
+		atxx_set_gpio_direction(GPIO_LCD_PWEN_AVDD, 1);
 
 		atxx_set_gpio_direction(GPIO_LCD_STBYB, 1);
 		atxx_gpio_set(GPIO_LCD_STBYB, 0);
