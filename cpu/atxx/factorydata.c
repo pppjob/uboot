@@ -143,15 +143,14 @@ static int fd_clear_page(nand_info_t *nand, int fd_index, size_t offset)
 		op_size = page_size;
 		fd_debug_print("read nand offset 0x%x ", (uint)cur_offset);
 		fd_debug_print("size 0x%x\n", (uint)op_size);
-		if (nand_read(nand, cur_offset, &op_size, (u_char *)cur_page) < 0) {
-			fd_err_print("failed to read NAND offset: 0x%x ", (uint)offset);
-			reval = -ENOMEM;
-			goto EXIT;
-		}
-
-		if (strncmp(cur_page->magic, MAGIC_STRING, MAGIC_LENGTH) == 0) {
-			pages[i] = cur_page;
-			cur_page = NULL;
+		if ((reval = nand_read(nand, cur_offset, &op_size, (u_char *)cur_page)) < 0) {
+			fd_err_print("failed to read NAND offset: 0x%x, size: %d(%d)\n",
+					(uint)cur_offset, op_size, reval);
+		} else {
+			if (strncmp(cur_page->magic, MAGIC_STRING, MAGIC_LENGTH) == 0) {
+				pages[i] = cur_page;
+				cur_page = NULL;
+			}
 		}
 
 		cur_offset += page_size;
@@ -167,7 +166,7 @@ static int fd_clear_page(nand_info_t *nand, int fd_index, size_t offset)
 	fd_debug_print("size 0x%x\n", (uint)block_size);
 	if ((reval = nand_erase_opts(nand, &erase_options)) < 0) {
 		/* erase failed, will be marked bad */
-		fd_err_print("failed to erase nand offset 0x%x", (uint)block_offset);
+		fd_err_print("failed to erase nand offset 0x%x(%d)", (uint)block_offset, reval);
 		goto EXIT;
 	}
 
@@ -179,7 +178,7 @@ static int fd_clear_page(nand_info_t *nand, int fd_index, size_t offset)
 			fd_debug_print("write nand offset 0x%x ", (uint)cur_offset);
 			fd_debug_print("size 0x%x\n", (uint)op_size);
 			if ((reval = nand_write(nand, cur_offset, &op_size, (u_char *)pages[i])) < 0) {
-				fd_err_print("failed to write to nand offset 0x%x", (uint)offset);
+				fd_err_print("failed to write to nand offset 0x%x(%d)", (uint)offset, reval);
 				goto EXIT;
 			}
 		}
