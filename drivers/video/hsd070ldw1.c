@@ -156,7 +156,7 @@ int pannel_set_power(int on_off)
 
 void pannel_set_refresh_rate(struct clk *lcd_clk)
 {
-	clk_set_parent(lcd_clk, clk_get("pll1"));
-	clk_set_rate(lcd_clk, 34000000);
+	clk_set_parent(lcd_clk, clk_get("pll2"));
+	clk_set_rate(lcd_clk, 30600000);
 }
 
