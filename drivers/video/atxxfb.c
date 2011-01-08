@@ -761,7 +761,7 @@ ulong calc_fbsize(void)
 	return fbinfo.screen_size;
 }
 
-extern const unsigned short augusta_hvga_logo[];
+extern const unsigned short logo_data[];
 extern const int logo_width;
 extern const int logo_height;
 
@@ -769,19 +769,22 @@ static void lcd_paint_logo()
 {
 	int x, y;
 	int x0, y0;
-	unsigned short c;
+	unsigned short count = 0, color;
 	unsigned short *lcd_buf = atfb.smem_addr;
-	unsigned short *bmp = augusta_hvga_logo;
+	unsigned short *data = logo_data;
 
 	x0 = (lcd_xres - logo_width) / 2;
 	y0 = (lcd_yres - logo_height) / 2;
 
     for( y = y0 ; y < y0 + logo_height ; y++ ) {
     	for( x = x0 ; x < x0 + logo_width ; x++ ) {
-    		c = *bmp++;
-            if (x < lcd_xres && y < lcd_yres)
-            	lcd_buf[lcd_xres * y + x] = c;
-
+    		if (count <= 0) {
+    			count = *data++;
+    			color = *data++;
+    		}
+            if (x > 0 && x < lcd_xres && y > 0 && y < lcd_yres)
+            	lcd_buf[lcd_xres * y + x] = color;
+            count--;
     	}
     }
 }
