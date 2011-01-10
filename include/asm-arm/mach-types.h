@@ -2405,7 +2405,8 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_G20                  8001
 #define MACH_TYPE_MIRACLE              8002
 #define MACH_TYPE_T3C                  8003
-#define MACH_TYPE_W002		       8004
+#define MACH_TYPE_W002                 8004
+#define MACH_TYPE_AD8071               8005
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type

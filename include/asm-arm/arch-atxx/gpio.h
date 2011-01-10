@@ -34,6 +34,8 @@
 #include "t3c_gpio.h"
 #elif	defined(CONFIG_BOARD_W002)
 #include "w002_gpio.h"
+#elif	defined(CONFIG_BOARD_AD8071)
+#include "ad8071_gpio.h"
 #else
 #error   "<board>_gpio.h is missing!"
 #endif
