@@ -380,6 +380,11 @@ static int wifi_test(int argc, char *argv[])
 
 }
 
+static int ethernet_test(int argc, char *argv[])
+{
+	return string_data_test(argc, argv, FD_ETHERNET, "ethernet");
+}
+
 static int bt_test(int argc, char *argv[])
 {
 	return string_data_test(argc, argv, FD_BLUETOOTH, "bt");
@@ -670,6 +675,8 @@ int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		ret = auto_test(argc, argv);
 	} else if (!strcmp(subcmd, "gsm")) {
 		ret = gsm_test(argc, argv);
+	} else if (!strcmp(subcmd, "ethernet")) {
+		ret = ethernet_test(argc, argv);
 	}
 
 	if (ret == 0)
@@ -684,7 +691,7 @@ U_BOOT_CMD(
 	atest,   8,   0,	do_atest,
 	"do factory related test.",
 	"usage:\n"
-	"atest sn|imei|wifi|bt|mask|battery read|write [data]\n"
+	"atest sn|imei|wifi|bt|mask|battery|ethernet read|write [data]\n"
 	"atest autotest --- do factory autotest\n"
 	"atest gsm download|bridge --- connect gsm uart to uart0\n"
 );

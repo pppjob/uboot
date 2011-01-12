@@ -37,6 +37,7 @@ enum factory_data_index {
 	FD_SN,
 	FD_IMEI,
 	FD_MASK,
+	FD_ETHERNET,
 	FD_MAX
 };
 
