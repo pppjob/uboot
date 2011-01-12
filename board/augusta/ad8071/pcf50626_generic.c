@@ -420,6 +420,7 @@ void set_backlight(u8 dimfreq, u8 ledman)
 	pcf50626_write_reg(PWM1D, ((0x7f - ledman) << 1) & 0xff);
 
 	/* power on */
-	pcf50626_write_reg(GPIO1C1, ledman == 0 ? 0 : GPIOx_PWM1_OUTPUT);
-	pcf50626_write_reg(GPIO2C1, GPIOx_HIGH_IMPEDANCE);
+	pcf50626_write_reg(GPIO2C1, 0); /*LCD_PWEN_PMU = OUTPUT LOW*/
+	pcf50626_write_reg(GPO3C1, ledman == 0 ? 0 : GPIOx_PWM1_OUTPUT);/*LCD_BL_DIM*/
+
 }
