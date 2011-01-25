@@ -47,6 +47,8 @@
 #define GPIO_TD_RESETn		32
 #define GPIO_TD_ON		    33
 
+#define GPIO_TD_COM_SEL1	29
+
 #define GPIO_PROXIMITY_OUT	11
 #define GPIO_LCD_BL_EN		13
 #define GPIO_GPS_RXEN		14
