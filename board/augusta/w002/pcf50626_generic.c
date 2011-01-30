@@ -411,7 +411,6 @@ int pmu_init(void)
 
 	if (buf != PCF50626_ID){
 		printf ("\nPMU read ID failed, wrong id value = 0x%x", buf);
-		return -1;
 	}
 
 	printf ("\nPMU read ID ok, id value = 0x%x", buf);
