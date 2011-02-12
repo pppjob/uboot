@@ -93,23 +93,104 @@ static size_t fd_get_off_incl_bad(nand_info_t *nand, int fd_index)
 	return offset;
 }
 
-/* clear one data page */
-static int fd_clear_page(nand_info_t *nand, int fd_index, size_t offset)
+/*---------------------------------------------------------------------------------------
+ * Factory Interfaces
+ *-------------------------------------------------------------------------------------*/
+
+/* interfaces to get factory data */
+factory_data_t *factory_data_get(int fd_index)
 {
-	/* back up all the factory data, erase block and write back */
-	factory_data_page_t **pages, *cur_page;
+	factory_data_page_t *page;
+	nand_info_t *nand = &nand_info[nand_curr_device];
+	size_t page_size, offset, op_size;
+	int reval;
+
+	if ((unsigned)fd_index >= FD_MAX) {
+		fd_err_print("fd_index is bad\n");
+		return NULL;
+	}
+
+	/* seek the non-bad block */
+	offset = fd_get_off_incl_bad(nand, fd_index);
+	if (offset >= FD_MTD_OFFSET + FD_MTD_BADB_SIZE) {
+		fd_err_print("too much bad blocks\n");
+		return NULL;
+	}
+
+	page_size = FD_PAGE_SIZE(nand);
+
+	/* allocate factory data page */
+	page = (factory_data_page_t *)malloc(page_size);
+	if (page == NULL) {
+		fd_err_print("failed to allocate memory!\n");
+		return NULL;
+	}
+
+	/* read the nand */
+	op_size = page_size;
+	fd_debug_print("read nand offset 0x%x ", (uint)offset);
+	fd_debug_print("size 0x%x\n", (uint)op_size);
+	if ((reval = nand_read(nand, offset, &op_size, (u_char *)page)) < 0) {
+		fd_err_print("failed to read nand offset: 0x%x (%d)", (uint)offset, reval);
+		free(page);
+		return NULL;
+	}
+
+	/* check magic string */
+	if (strncmp(page->magic, MAGIC_STRING, MAGIC_LENGTH) != 0) {
+		/* un-initialized page */
+		memset(page, -1, page_size);
+	}
+
+	return &(page->fd_user);
+}
+
+
+/* interfaces to release factory data */
+void factory_data_put(factory_data_t *fd)
+{
+	factory_data_page_t *page;
+	page = container_of(fd, factory_data_page_t, fd_user);
+	free(page);
+}
+
+/* this function is for calibration tool to store the data */
+int factory_data_store(factory_data_t *fd)
+{
+	nand_info_t *nand = &nand_info[nand_curr_device];
 	nand_erase_options_t erase_options;
-	size_t block_size, page_size, op_size;
+	factory_data_page_t *page, *cur_page, **pages;
+	size_t block_size, page_size, offset, op_size;
 	size_t block_offset, cur_offset;
 	int i, index_begin, index_count;
 	int reval;
 
+	if (fd == NULL) {
+		fd_err_print("fd is bad\n");
+		return -EINVAL;
+	}
+	if ((unsigned)fd->fd_index >= FD_MAX) {
+		fd_err_print("fd_index is bad\n");
+		return -EINVAL;
+	}
+
+	/* seek the non-bad block */
+	offset = fd_get_off_incl_bad(nand, fd->fd_index);
+	if (offset >= FD_MTD_OFFSET + FD_MTD_BADB_SIZE) {
+		fd_err_print("too much bad blocks\n");
+		return -ENOSPC;
+	}
+
 	block_size = FD_BLOCK_SIZE(nand);
 	page_size = FD_PAGE_SIZE(nand);
-	block_offset = offset & ~(block_size - 1);
+	page = container_of(fd, factory_data_page_t, fd_user);
+
+	/* label the magic */
+	strncpy(page->magic, MAGIC_STRING, MAGIC_LENGTH);
 
 	/* calculate page count */
-	index_begin = fd_index - (offset - block_offset) / page_size;
+	block_offset = offset & ~(block_size - 1);
+	index_begin = fd->fd_index - (offset - block_offset) / page_size;
 	index_count = min(block_size / page_size, FD_MAX - index_begin);
 
 	/* allocate page array */
@@ -124,7 +205,8 @@ static int fd_clear_page(nand_info_t *nand, int fd_index, size_t offset)
 	cur_offset = block_offset;
 	for (i = 0; i < index_count; i++) {
 		/* skip page to be erased */
-		if (i == fd_index - index_begin) {
+		if (i == fd->fd_index - index_begin) {
+			pages[i] = page;
 			cur_offset += page_size;
 			continue;
 		}
@@ -191,122 +273,10 @@ EXIT:
 		free(cur_page);
 	if (pages != NULL) {
 		for (i = 0; i < index_count; i++) {
-			if (pages[i] != NULL)
+			if (i != fd->fd_index && pages[i] != NULL)
 				free(pages[i]);
 		}
 		free(pages);
-	}
-
-	return reval;
-}
-
-/*---------------------------------------------------------------------------------------
- * Factory Interfaces
- *-------------------------------------------------------------------------------------*/
-
-/* interfaces to get factory data */
-factory_data_t *factory_data_get(int fd_index)
-{
-	factory_data_page_t *page;
-	nand_info_t *nand = &nand_info[nand_curr_device];
-	size_t page_size, offset, op_size;
-
-	if ((unsigned)fd_index >= FD_MAX) {
-		fd_err_print("fd_index is bad\n");
-		return NULL;
-	}
-
-	/* seek the non-bad block */
-	offset = fd_get_off_incl_bad(nand, fd_index);
-	if (offset >= FD_MTD_OFFSET + FD_MTD_BADB_SIZE) {
-		fd_err_print("too much bad blocks\n");
-		return NULL;
-	}
-
-	page_size = FD_PAGE_SIZE(nand);
-
-	/* allocate factory data page */
-	page = (factory_data_page_t *)malloc(page_size);
-	if (page == NULL) {
-		fd_err_print("failed to allocate memory!\n");
-		return NULL;
-	}
-
-	/* read the nand */
-	op_size = page_size;
-	fd_debug_print("read nand offset 0x%x ", (uint)offset);
-	fd_debug_print("size 0x%x\n", (uint)op_size);
-	if (nand_read(nand, offset, &op_size, (u_char *)page) < 0) {
-		fd_err_print("failed to read nand offset: 0x%x ", (uint)offset);
-		free(page);
-
-		return NULL;
-	}
-
-	/* check magic string */
-	if (strncmp(page->magic, MAGIC_STRING, MAGIC_LENGTH) != 0) {
-		/* un-initialized page */
-		memset(page, -1, page_size);
-	}
-
-	return &(page->fd_user);
-}
-
-
-/* interfaces to release factory data */
-void factory_data_put(factory_data_t *fd)
-{
-	factory_data_page_t *page;
-	page = container_of(fd, factory_data_page_t, fd_user);
-	free(page);
-}
-
-/* this function is for calibration tool to store the data */
-int factory_data_store(factory_data_t *fd)
-{
-	nand_info_t *nand = &nand_info[nand_curr_device];
-	factory_data_page_t *page;
-	size_t block_size, page_size, offset, op_size;
-	int reval;
-
-	if (fd == NULL) {
-		fd_err_print("fd is bad\n");
-		return -EINVAL;
-	}
-	if ((unsigned)fd->fd_index >= FD_MAX) {
-		fd_err_print("fd_index is bad\n");
-		return -EINVAL;
-	}
-
-	/* seek the non-bad block */
-	offset = fd_get_off_incl_bad(nand, fd->fd_index);
-	if (offset >= FD_MTD_OFFSET + FD_MTD_BADB_SIZE) {
-		fd_err_print("too much bad blocks\n");
-		return -ENOSPC;
-	}
-
-	block_size = FD_BLOCK_SIZE(nand);
-	page_size = FD_PAGE_SIZE(nand);
-	page = container_of(fd, factory_data_page_t, fd_user);
-
-	/* clear nand if it's re-written */
-	if (strncmp(page->magic, MAGIC_STRING, MAGIC_LENGTH) == 0) {
-		if ((reval = fd_clear_page(nand, fd->fd_index, offset)) < 0) {
-			fd_err_print("failed to clear factory data: %d\n", fd->fd_index);
-			return reval;
-		}
-	}
-
-	/* label the magic */
-	strncpy(page->magic, MAGIC_STRING, MAGIC_LENGTH);
-
-	/* write factory data to nand */
-	op_size = page_size;
-	fd_debug_print("write nand offset 0x%x ", (uint)offset);
-	fd_debug_print("size 0x%x\n", (uint)op_size);
-	if ((reval = nand_write(nand, offset, &op_size, (u_char *)page)) < 0) {
-		fd_err_print("failed to write to nand offset 0x%x", (uint)offset);
-		return reval;
 	}
 
 	return 0;
