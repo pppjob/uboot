@@ -158,13 +158,13 @@
 #define	CONFIG_KERNEL_MSIZE		0x00200000
 
 /* clock env */
-#define	CONFIG_CLK_ARM			702000000
-#define	CONFIG_CLK_AXI			312000000
-#define	CONFIG_CLK_APP			104000000
-#define	CONFIG_CLK_MDDR			175500000
-#define	CONFIG_CLK_GCLK			312000000
-#define	CONFIG_CLK_VPCLK		312000000
-#define	CONFIG_CLK_VSCLK		312000000
+#define CONFIG_CLK_ARM                  702000000
+#define CONFIG_CLK_AXI                  312000000
+#define CONFIG_CLK_APP                  104000000
+#define CONFIG_CLK_MDDR                 208000000
+#define CONFIG_CLK_GCLK                 312000000
+#define CONFIG_CLK_VPCLK                312000000
+#define CONFIG_CLK_VSCLK                312000000
 
 /* SD/fat */
 #define CONFIG_ATXX_MMC
