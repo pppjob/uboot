@@ -52,6 +52,11 @@ int board_init(void)
 	val = topctl_read_reg(TOPCTL1);
 	val |= (1 << 13);
 	topctl_write_reg(TOPCTL1, val);
+	/*set GPIO24,26 as nand function*/
+	val = topctl_read_reg(TOPCTL1);
+	val |= (1 << 11);
+	topctl_write_reg(TOPCTL1, val);
+
 	atxx_request_gpio(GPIO_GATE_DISB);
 	atxx_set_gpio_direction(GPIO_GATE_DISB, 0);
 	atxx_gpio_set(GPIO_GATE_DISB, 1);

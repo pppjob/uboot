@@ -72,8 +72,8 @@ static inline int nand_erase(nand_info_t *info, loff_t off, size_t size)
 
 struct nand_write_options {
 	u_char *buffer;		/* memory block containing image to write */
-	ulong length;		/* number of bytes to write */
-	ulong offset;		/* start address in NAND */
+	size_t length;		/* number of bytes to write */
+	loff_t offset;		/* start address in NAND */
 	int quiet;		/* don't display progress messages */
 	int autoplace;		/* if true use auto oob layout */
 	int forcejffs2;		/* force jffs2 oob layout */
@@ -90,8 +90,8 @@ typedef struct mtd_oob_ops mtd_oob_ops_t;
 
 struct nand_read_options {
 	u_char *buffer;		/* memory block in which read image is written*/
-	ulong length;		/* number of bytes to read */
-	ulong offset;		/* start address in NAND */
+	size_t length;		/* number of bytes to read */
+	loff_t offset;		/* start address in NAND */
 	int quiet;		/* don't display progress messages */
 	int readoob;		/* put oob data in image */
 };
@@ -99,8 +99,8 @@ struct nand_read_options {
 typedef struct nand_read_options nand_read_options_t;
 
 struct nand_erase_options {
-	ulong length;		/* number of bytes to erase */
-	ulong offset;		/* first address in NAND to erase */
+	loff_t length;		/* number of bytes to erase */
+	loff_t offset;		/* first address in NAND to erase */
 	int quiet;		/* don't display progress messages */
 	int jffs2;		/* if true: format for jffs2 usage
 				 * (write appropriate cleanmarker blocks) */
@@ -121,7 +121,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 #define NAND_LOCK_STATUS_UNLOCK 0x04
 
 int nand_lock( nand_info_t *meminfo, int tight );
-int nand_unlock( nand_info_t *meminfo, ulong start, ulong length );
+int nand_unlock( nand_info_t *meminfo, loff_t start, loff_t length );
 int nand_get_lock_status(nand_info_t *meminfo, loff_t offset);
 
 #ifdef CONFIG_SYS_NAND_SELECT_DEVICE

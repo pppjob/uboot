@@ -29,6 +29,7 @@
 #define CONFIG_IDENT_STRING 		"\n== ATXX-AD8071 ==\n"
 #define CONFIG_DISPLAY_CPUINFO
 
+#define CONFIG_SYS_64BIT_VSPRINTF
 /* LCD Setting */
 #define CONFIG_LCD
 #define CONFIG_ATXX_LCD

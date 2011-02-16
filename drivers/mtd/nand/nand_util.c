@@ -73,7 +73,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 {
 	struct jffs2_unknown_node cleanmarker;
 	erase_info_t erase;
-	ulong erase_length;
+	loff_t erase_length;
 	int bbtest = 1;
 	int result;
 	int percent_complete = -1;
@@ -113,8 +113,13 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 	}
 
 	if (erase_length < meminfo->erasesize) {
-		printf("Warning: Erase size 0x%08lx smaller than one "	\
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+		printf("Warning: Erase size 0x%08llx smaller than one "	\
 		       "erase block 0x%08x\n",erase_length, meminfo->erasesize);
+#else
+		printf("Warning: Erase size 0x%08lx smaller than one "	\
+		       "erase block 0x%08x\n",(ulong)erase_length, meminfo->erasesize);
+#endif
 		printf("         Erasing 0x%08x instead\n", meminfo->erasesize);
 		erase_length = meminfo->erasesize;
 	}
@@ -129,10 +134,17 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 			int ret = meminfo->block_isbad(meminfo, erase.addr);
 			if (ret > 0) {
 				if (!opts->quiet)
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
 					printf("\rSkipping bad block at  "
 					       "0x%08llx                 "
 					       "                         \n",
 					       erase.addr);
+#else
+					printf("\rSkipping bad block at  "
+						   "0x%08lx                 "
+						   "                         \n",
+						   (ulong)erase.addr);
+#endif
 				continue;
 
 			} else if (ret < 0) {
@@ -184,8 +196,13 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 			if (percent != percent_complete) {
 				percent_complete = percent;
 
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
 				printf("\rErasing at 0x%llx -- %3d%% complete.",
 				       erase.addr, percent);
+#else
+				printf("\rErasing at 0x%lx -- %3d%% complete.",
+				       (ulong)erase.addr, percent);
+#endif
 
 				if (opts->jffs2 && result == 0)
 					printf(" Cleanmarker written at 0x%llx.",
@@ -360,16 +377,20 @@ int nand_get_lock_status(struct mtd_info *mtd, loff_t offset)
  *
  * @return		0 on success, -1 in case of error
  */
-int nand_unlock(struct mtd_info *mtd, ulong start, ulong length)
+int nand_unlock(struct mtd_info *mtd, loff_t start, loff_t length)
 {
 	int ret = 0;
 	int chipnr;
 	int status;
 	int page;
 	struct nand_chip *chip = mtd->priv;
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+	printf ("nand_unlock: start: %08llx, length: %lld!\n",
+		start, length);
+#else
 	printf ("nand_unlock: start: %08x, length: %d!\n",
 		(int)start, (int)length);
-
+#endif
 	/* select the NAND device */
 	chipnr = (int)(start >> chip->chip_shift);
 	chip->select_chip(mtd, chipnr);
@@ -498,8 +519,13 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 	if (len_incl_bad == *length) {
 		rval = nand_write (nand, offset, length, buffer);
 		if (rval != 0)
-			printf ("NAND write to offset %llx failed %d\n",
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+			printf ("NAND write to offset 0x%llx failed %d\n",
 				offset, rval);
+#else
+		printf ("NAND write to offset 0x%lx failed %d\n",
+			(ulong)offset, rval);
+#endif
 
 		return rval;
 	}
@@ -571,8 +597,13 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		rval = nand_read (nand, offset, length, buffer);
 		if (!rval || rval == -EUCLEAN)
 			return 0;
-		printf ("NAND read from offset %llx failed %d\n",
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+		printf ("NAND read from offset 0x%llx failed %d\n",
 			offset, rval);
+#else
+		printf ("NAND read from offset 0x%lx failed %d\n",
+			(ulong)offset, rval);
+#endif
 		return rval;
 	}
 
@@ -596,8 +627,13 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 
 		rval = nand_read (nand, offset, &read_length, p_buffer);
 		if (rval && rval != -EUCLEAN) {
-			printf ("NAND read from offset %llx failed %d\n",
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+			printf ("NAND read from offset 0x%llx failed %d\n",
 				offset, rval);
+#else
+			printf ("NAND read from offset 0x%lx failed %d\n",
+				(ulong)offset, rval);
+#endif
 			*length -= left_to_read;
 			return rval;
 		}

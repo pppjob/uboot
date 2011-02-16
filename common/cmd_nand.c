@@ -29,7 +29,6 @@
 #include <nand.h>
 
 #if defined(CONFIG_CMD_MTDPARTS)
-
 /* parition handling routines */
 int mtdparts_init(void);
 int id_parse(const char *id, const char **ret_id, u8 *dev_type, u8 *dev_num);
@@ -37,7 +36,7 @@ int find_dev_and_part(const char *id, struct mtd_device **dev,
 		      u8 *part_num, struct part_info **part);
 #endif
 
-static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
+static int nand_dump(nand_info_t *nand, loff_t off, int only_oob)
 {
 	int i;
 	u_char *datbuf, *oobbuf, *p;
@@ -64,7 +63,11 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
 		free(oobbuf);
 		return 1;
 	}
-	printf("Page %08lx dump:\n", off);
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+	printf("Page %08llx dump:\n", off);
+#else
+	printf("Page %08lx dump:\n", (ulong)off);
+#endif
 	i = nand->writesize >> 4;
 	p = datbuf;
 
@@ -91,7 +94,13 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
 }
 
 /* ------------------------------------------------------------------------- */
+static inline int str2llong(char *p, loff_t *num)
+{
+	char *endptr;
 
+	*num = simple_strtoull(p, &endptr, 16);
+	return (*p != '\0' && *endptr == '\0') ? 1 : 0;
+}
 static inline int str2long(char *p, ulong *num)
 {
 	char *endptr;
@@ -101,7 +110,7 @@ static inline int str2long(char *p, ulong *num)
 }
 
 static int
-arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, size_t *size)
+arg_off_size(int argc, char *argv[], nand_info_t *nand, loff_t *off, loff_t *size)
 {
 	int idx = nand_curr_device;
 #if defined(CONFIG_CMD_MTDPARTS)
@@ -109,7 +118,7 @@ arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, size_t *size
 	struct part_info *part;
 	u8 pnum;
 
-	if (argc >= 1 && !(str2long(argv[0], off))) {
+	if (argc >= 1 && !(str2llong(argv[0], off))) {
 		if ((mtdparts_init() == 0) &&
 		    (find_dev_and_part(argv[0], &dev, &pnum, &part) == 0)) {
 			if (dev->id->type != MTD_DEV_TYPE_NAND) {
@@ -118,7 +127,7 @@ arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, size_t *size
 			}
 			*off = part->offset;
 			if (argc >= 2) {
-				if (!(str2long(argv[1], (ulong *)size))) {
+				if (!(str2llong(argv[1], size))) {
 					printf("'%s' is not a number\n", argv[1]);
 					return -1;
 				}
@@ -135,7 +144,7 @@ arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, size_t *size
 #endif
 
 	if (argc >= 1) {
-		if (!(str2long(argv[0], off))) {
+		if (!(str2llong(argv[0], off))) {
 			printf("'%s' is not a number\n", argv[0]);
 			return -1;
 		}
@@ -144,7 +153,7 @@ arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, size_t *size
 	}
 
 	if (argc >= 2) {
-		if (!(str2long(argv[1], (ulong *)size))) {
+		if (!(str2llong(argv[1], size))) {
 			printf("'%s' is not a number\n", argv[1]);
 			return -1;
 		}
@@ -159,7 +168,11 @@ out:
 	if (*size == nand->size)
 		puts("whole chip\n");
 	else
-		printf("offset 0x%lx, size 0x%zx\n", *off, *size);
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+		printf("offset 0x%08llx, size 0x%08llx\n", *off, *size);
+#else
+		printf("offset 0x%lx, size 0x%zx\n", *(ulong*)off, *(size_t*)size);
+#endif
 	return 0;
 }
 
@@ -178,7 +191,7 @@ static void print_status(ulong start, ulong end, ulong erasesize, int status)
 static void do_nand_status(nand_info_t *nand)
 {
 	ulong block_start = 0;
-	ulong off;
+	loff_t off;
 	int last_status = -1;
 
 	struct nand_chip *nand_chip = nand->priv;
@@ -218,8 +231,9 @@ static void nand_print_info(int idx)
 int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	int i, dev, ret = 0;
-	ulong addr, off;
-	size_t size;
+	ulong addr;
+	loff_t off;
+	loff_t size;
 	char *cmd, *s;
 	nand_info_t *nand;
 #ifdef CONFIG_SYS_NAND_QUIET
@@ -298,7 +312,11 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		printf("\nDevice %d bad blocks:\n", nand_curr_device);
 		for (off = 0; off < nand->size; off += nand->erasesize)
 			if (nand_block_isbad(nand, off))
-				printf("  %08lx\n", off);
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+				printf("  %08llx\n", off);
+#else
+		 	 	printf("  %08lx\n", (ulong)off);
+#endif
 		return 0;
 	}
 
@@ -356,7 +374,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			goto usage;
 
 		s = strchr(cmd, '.');
-		off = (int)simple_strtoul(argv[2], NULL, 16);
+		off = simple_strtoull(argv[2], NULL, 16);
 
 		if (s != NULL && strcmp(s, ".oob") == 0)
 			ret = nand_dump(nand, off, 1);
@@ -369,7 +387,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 	if (strncmp(cmd, "read", 4) == 0 || strncmp(cmd, "write", 5) == 0) {
 		int read;
-
+		size_t len;
 		if (argc < 4)
 			goto usage;
 
@@ -380,20 +398,27 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		if (arg_off_size(argc - 3, argv + 3, nand, &off, &size) != 0)
 			return 1;
 
+		if(size & (0xffffffff << 32))
+		{
+			printf("\nNAND %s to ram more than 4G\n ", read ? "read" : "write");
+			return 1;
+		}
+
+		len = (size_t)size;
 		s = strchr(cmd, '.');
 		if (!s || !strcmp(s, ".jffs2") ||
 		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
 			if (read)
-				ret = nand_read_skip_bad(nand, off, &size,
+				ret = nand_read_skip_bad(nand, off, &len,
 							 (u_char *)addr);
 			else
-				ret = nand_write_skip_bad(nand, off, &size,
+				ret = nand_write_skip_bad(nand, off, &len,
 							  (u_char *)addr);
 		} else if (!strcmp(s, ".oob")) {
 			/* out-of-band data */
 			mtd_oob_ops_t ops = {
 				.oobbuf = (u8 *)addr,
-				.ooblen = size,
+				.ooblen = (size_t)size,
 				.mode = MTD_OOB_RAW
 			};
 
@@ -406,7 +431,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			return 1;
 		}
 
-		printf(" %zu bytes %s: %s\n", size,
+		printf(" %zu bytes %s: %s\n", (size_t)size,
 		       read ? "read" : "written", ret ? "ERROR" : "OK");
 
 		return ret == 0 ? 0 : 1;
@@ -420,17 +445,29 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			goto usage;
 
 		while (argc > 0) {
-			addr = simple_strtoul(*argv, NULL, 16);
+			off = simple_strtoull(*argv, NULL, 16);
 
-			if (nand->block_markbad(nand, addr)) {
+			if (nand->block_markbad(nand, off)) {
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
+				printf("block 0x%08llx NOT marked "
+					"as bad! ERROR %d\n",
+					off, ret);
+#else
 				printf("block 0x%08lx NOT marked "
 					"as bad! ERROR %d\n",
-					addr, ret);
+					(ulong)off, ret);
+#endif
 				ret = 1;
 			} else {
+#ifdef CONFIG_SYS_64BIT_VSPRINTF
 				printf("block 0x%08lx successfully "
 					"marked as bad\n",
-					addr);
+					off);
+#else
+				printf("block 0x%08lx successfully "
+					"marked as bad\n",
+					(ulong)off);
+#endif
 			}
 			--argc;
 			++argv;

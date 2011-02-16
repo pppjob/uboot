@@ -478,6 +478,31 @@ static void atxx_nd_select_chip(struct mtd_info *mtd, int chip)
 	int para0;
 
 	switch (chip) {
+#if (BOARD == ad8071)
+	case 0:
+		/* select bank 0 chip */
+		para0 = atxx_nd_read_reg(REG_NFC_PARA0);
+		para0 &= ~(NFC_PARA0_BANK_CE1 |
+			       NFC_PARA0_BANK_CE2 | NFC_PARA0_BANK_CE3);
+		para0 |= NFC_PARA0_BANK_CE0;
+		atxx_nd_write_reg(REG_NFC_PARA0, para0);
+		break;
+	case 1:
+		/* select bank 1 chip */
+		para0 = atxx_nd_read_reg(REG_NFC_PARA0);
+		para0 &= ~(NFC_PARA0_BANK_CE0 |
+			       NFC_PARA0_BANK_CE1 | NFC_PARA0_BANK_CE3);
+		para0 |= NFC_PARA0_BANK_CE2;
+		atxx_nd_write_reg(REG_NFC_PARA0, para0);
+		break;
+	default:
+		/* de-select all */
+		para0 = atxx_nd_read_reg(REG_NFC_PARA0);
+		para0 &= ~(NFC_PARA0_BANK_CE0 | NFC_PARA0_BANK_CE1
+			       | NFC_PARA0_BANK_CE2 | NFC_PARA0_BANK_CE3);
+		atxx_nd_write_reg(REG_NFC_PARA0, para0);
+		break;
+#else
 	case 0:
 		/* select bank 0 chip */
 		para0 = atxx_nd_read_reg(REG_NFC_PARA0);
@@ -517,6 +542,7 @@ static void atxx_nd_select_chip(struct mtd_info *mtd, int chip)
 			       | NFC_PARA0_BANK_CE2 | NFC_PARA0_BANK_CE3);
 		atxx_nd_write_reg(REG_NFC_PARA0, para0);
 		break;
+#endif
 	}
 }
 
@@ -1939,6 +1965,14 @@ int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
 	
 	/* Set the default functions */
 	nand_set_defaults(chip, 0);
+
+	/*reset all the nand chip*/
+	for (i = 0; i < maxchips; i++) {
+		chip->select_chip(mtd, i);
+		nfc_send_reset_cmd();
+		mdelay(100);
+	}
+	chip->select_chip(mtd, -1);
 
 	/* Read the flash type */
 	type = atxx_nd_get_flash_type(mtd, chip, &nand_maf_id);
