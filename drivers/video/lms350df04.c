@@ -87,14 +87,14 @@ static void lms350df04init(struct atxxfb *atfb)
 	mdelay(30);
 	spi_write(atfb, 0x11, 0x222F);
 	spi_write(atfb, 0x12, 0x0C00);
-	spi_write(atfb, 0x13, 0x7FD9);
+	spi_write(atfb, 0x13, 0x7290);
 	spi_write(atfb, 0x76, 0x2213);
 	spi_write(atfb, 0x74, 0x0001);
 	spi_write(atfb, 0x76, 0x0000);
 	spi_write(atfb, 0x10, 0x5604);
 	mdelay(30);
 
-	spi_write(atfb, 0x12, 0x0C63);
+	spi_write(atfb, 0x12, 0x0C67);
 	mdelay(30);
 	spi_write(atfb, 0x01, 0x0B3B);
 	spi_write(atfb, 0x02, 0x0300);
@@ -192,5 +192,5 @@ int pannel_set_power(int on_off)
 void pannel_set_refresh_rate(struct clk *lcd_clk)
 {
 	/* set pclk to 13MHz using default XO */
-	clk_set_rate(lcd_clk, 8670000);
+	clk_set_rate(lcd_clk, DEFAULT_PCLK);
 }
