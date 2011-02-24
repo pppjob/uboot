@@ -228,6 +228,55 @@ int do_i2c(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 
+
+int atxx_do_gpio(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+{
+	int gpio;
+	int value;
+
+	
+	argc--;
+	argv++;
+
+	if (argc < 2) {
+		cmd_usage(cmdtp);
+		return -1;
+	}
+
+	gpio = simple_strtoul(argv[0], NULL, 10);
+	if (atxx_request_gpio(gpio) < 0) {
+		printf("Wrong gpio request!\n");
+		return -1;
+	}
+	
+	if (!strncmp(argv[1], "input", 5)) {
+		atxx_set_gpio_direction(gpio, 1);
+		value = atxx_gpio_get(gpio);
+		printf("gpio %d: %d\n", gpio, value);
+
+		return 0;
+	}
+	if (!strncmp(argv[1], "output", 6)) {
+		if (argc < 3) {
+			cmd_usage(cmdtp);
+			return -1;
+		}
+		
+		value = simple_strtoul(argv[2], NULL, 10);
+		if (value)
+			value = 1;
+	
+		atxx_set_gpio_direction(gpio, 0);
+		atxx_gpio_set(gpio, value);
+		
+		return 0;
+	}
+
+	cmd_usage(cmdtp);
+	return 0;
+}
+
+
 int set_clock (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	char *name;
@@ -323,6 +372,11 @@ int do_test(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			argv++;
 			do_i2c(cmdtp, flag, argc, argv);
 			ret = 0;
+	}else if (!strcmp(subcmd, "gpio")) {
+			argc--;
+			argv++;
+			atxx_do_gpio(cmdtp, flag, argc, argv);
+			ret = 0;
 	}
 done:
 	if (ret < 0)		
@@ -332,7 +386,7 @@ done:
 
 U_BOOT_CMD(
 	stest,   7,   1,	do_test,
-	"self test for: cache, clkd, i2c",
+	"self test for: cache, clkd, i2c, gpio",
 	"stest cache on|off\n"
 	"stest clkd - clock dump\n"
 	"stest clks [name] [rate] - clock set\n"
@@ -342,5 +396,7 @@ U_BOOT_CMD(
 	"stest i2c write chip address value [count] - write to I2C device (fill)\n"
 	"stest i2c reset - re-init the I2C Controller\n"
 	"stest i2c showreg - dump PMU register\n"
+	"stest gpio number input\n"
+	"stest gpio number output value\n"
 );
 

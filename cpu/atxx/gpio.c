@@ -94,7 +94,7 @@ static inline void atxx_gpio_clear_bit(struct atxx_gpio_bank *bk,
 
 static int check_gpio(int gpio)
 {
-	if ((gpio > 0) && (gpio < 64)) {
+	if ((gpio >= 0) && (gpio < 64)) {
 		return 0;
 	}
 
