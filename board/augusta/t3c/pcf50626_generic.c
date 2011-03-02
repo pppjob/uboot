@@ -402,6 +402,10 @@ uint32_t adc_get_pmu(void)
 }
 
 
+void battery_check(void)
+{
+}
+
 int pmu_init(void)
 {
 	u8 buf;

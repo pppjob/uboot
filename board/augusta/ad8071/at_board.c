@@ -109,8 +109,8 @@ int misc_init_r(void)
 	}
 
 	factory_data_put(fd);
-	return 0;
 
+	return 0;
 }
 
 int dram_init (void)
@@ -122,6 +122,8 @@ int do_abortboot(void)
 {
 	enum boot_mode mode;
 	int ret;
+
+	battery_check();
 
 	run_command("mmc init", 0);
 

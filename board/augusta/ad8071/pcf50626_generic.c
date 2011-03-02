@@ -27,6 +27,8 @@
 #include <asm/arch-atxx/pm.h>
 #include <asm/arch-atxx/aboot.h>
 #include <asm/arch-atxx/gpio.h>
+#include <asm/arch-atxx/delay.h>
+#include <asm/arch-atxx/factorydata.h>
 #include <i2c.h>
 #include "pcf50626_regs.h"
 #include "power_table.c"
@@ -282,7 +284,7 @@ void power_on_detect (void)
 		return;
 	}
 
-	/* power on if ac charger is connected */
+	/* power on if ac charger is connected and battery is not too low */
 	pcf50626_read_reg (OOCS, &reg_val);
 	if (reg_val & 0x10) {
 		reg_val = CURRAT2_255;
@@ -367,6 +369,61 @@ uint32_t adc_get_pmu(void)
         return adc_result;
 }
 
+static int get_battery_voltage(void)
+{
+	int adc_value, voltage = 0, calibration_k, calibration_b;
+	factory_data_t *data;
+
+#if defined(CONFIG_PMU_ADC)
+	adc_value = adc_get_pmu();
+#else
+	adc_value = adc_get_aux(TSC_ADC_AUX1);
+#endif
+	data = factory_data_get(FD_BATTERY);
+	if (data == NULL) {
+		printf("read factory data failed!\n");
+		voltage = -1;
+	} else if (data->fd_index != FD_BATTERY){
+		printf("battery factory data unavailable!\n");
+		voltage = -1;
+	} else {
+		calibration_k = *(uint32_t *)&data->fd_buf[0];
+		calibration_b = *(uint32_t *)&data->fd_buf[4];
+		voltage = (calibration_k * adc_value + calibration_b) / 1000;
+		printf("Battery voltage: %d\n", voltage);
+	}
+
+	if (data != NULL)
+		factory_data_put(data);
+
+	return voltage;
+}
+
+void battery_check(void)
+{
+	int voltage;
+	u8 reg_val;
+
+	pcf50626_read_reg (OOCS, &reg_val);
+	if (reg_val & 0x10) {
+
+		/* power off backlight */
+		pcf50626_write_reg(GPIO2C1, 1);
+		pcf50626_write_reg(GPO3C1, 0);
+
+		/* make sure battery have enough power */
+		voltage = get_battery_voltage();
+		while ((voltage > 0) && (voltage < 3750)) {
+			printf("Charging-----> %d\n", voltage);
+			mdelay(5000);
+			voltage = get_battery_voltage();
+		}
+	}
+
+	return;
+}
+
+
 int pmu_init(void)
 {
 	u8 buf;
@@ -411,7 +468,6 @@ void pmu_power_show()
 void set_backlight(u8 dimfreq, u8 ledman)
 {
 	uint8_t	reg;
-	int ret = 0;
 
 	pcf50626_read_reg(PWM1S, &reg);
 	reg = ((reg & 0x1E) | PWMx_SELECT) | ((dimfreq & 0x7) << 5);
