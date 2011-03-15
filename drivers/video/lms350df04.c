@@ -87,7 +87,7 @@ static void lms350df04init(struct atxxfb *atfb)
 	mdelay(30);
 	spi_write(atfb, 0x11, 0x222F);
 	spi_write(atfb, 0x12, 0x0C00);
-	spi_write(atfb, 0x13, 0x7290);
+	spi_write(atfb, 0x13, 0x6DC9);
 	spi_write(atfb, 0x76, 0x2213);
 	spi_write(atfb, 0x74, 0x0001);
 	spi_write(atfb, 0x76, 0x0000);

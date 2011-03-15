@@ -530,12 +530,21 @@ static int atxxfb_set_par(struct fb_info *fbinfo)
 
 	if ((var->xres == lcd_xres) && (var->yres == lcd_yres)) {
 		mlcd_on_off(MLCD_OFF);
+#ifdef CONFIG_BOARD_T3C
+		mdelay(10);/*at least 10ms,  tPOT */
+		lcd_ctl_init(fbinfo, var->xres, mode);
+		mlcd_on_off(MLCD_ON);
+		mdelay(10);
+		/* configure VGA LCD pannel */
+		atfb->pannel_ops->initialize(atfb);
+#else
 		/* configure VGA LCD pannel */
 		atfb->pannel_ops->initialize(atfb);
 		mdelay(10);/*at least 10ms,  tPOT */
 		/* configure LCD controller */
 		lcd_ctl_init(fbinfo, var->xres, mode);
 		mlcd_on_off(MLCD_ON);
+#endif
 	} else {
 		/*
 		 * since we have check resolution in function
