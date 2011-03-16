@@ -70,18 +70,6 @@ int board_init(void)
 
 	keypad_init();
 
-	/* t3c td module power on and reset gpio must be pull up before kernel up*/
-	/*td power on*/
-	atxx_request_gpio(GPIO_TD_ON);
-	atxx_set_gpio_direction(GPIO_TD_ON, 0);
-	atxx_gpio_set(GPIO_TD_ON, 1);
-
-	/*td reset pull up*/
-	atxx_request_gpio(GPIO_TD_RESETn);
-	atxx_set_gpio_direction(GPIO_TD_RESETn, 0);
-	atxx_gpio_set(GPIO_TD_RESETn, 1);
-
-
 	/* arch number of board */
 	gd->bd->bi_arch_number = MACH_TYPE_T3C;
 	/* adress of boot parameters */

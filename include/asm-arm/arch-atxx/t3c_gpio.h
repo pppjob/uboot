@@ -40,7 +40,7 @@
 
 #define GPIO_USB_OFFVBUSn	17
 
-#define GPIO_TD_USB_EN		18
+#define GPIO_TD_USB_EN		34
 #define GPIO_TD_BOOT1		21
 #define GPIO_AP_WAKEUP_TD		25
 #define GPIO_TD_WAKEUP_AP		28
