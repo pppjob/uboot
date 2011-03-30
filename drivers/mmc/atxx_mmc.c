@@ -520,8 +520,13 @@ int sd_set_clock(int card,uint32_t clock)
 	uint32_t command = 0,ret;
 	uint32_t timeout = 10000;
 	uint32_t timeouttop = 10000;
+        struct clk *clk_sd;
+        unsigned long rate;
 
-	clkdiv = (int)(STORAGE_CLOCK_IN / (2 * clock));
+        clk_sd = clk_get("sd");
+        rate = clk_get_rate(clk_sd);
+
+	clkdiv = (int)(rate / (2 * clock));
 
 	/*rSTORAGE_CLKENA = 0x00000000;*/
 	atxx_sd_write_reg(STORAGE_CLKENA, 0x00000000);
@@ -703,7 +708,10 @@ int sd_set_clock(int card,uint32_t clock)
 		udelay(1);
 	}
 
-	ATXX_MMC_DEBUG("left set clock():\n");
+	if (ret)
+		ATXX_MMC_DEBUG("set clock success.\n");
+	else
+		ATXX_MMC_DEBUG("set clock fail.\n");
 
 	return 1;
 }
@@ -797,6 +805,7 @@ int sd_init_card(uint32_t card)
 	ATXX_MMC_DEBUG("sd write protect 0x%x\n", atxx_sd_read_reg(STORAGE_WRTPRT));
 
 	sd_set_clock(0, (400 * KHZ));
+
 	/*send  CMD0*/
 	ATXX_MMC_DEBUG("send command 0\n");
 	sd_base_command(card,CMD0,0,resp);
@@ -931,7 +940,7 @@ int sd_init_card(uint32_t card)
 
 	/*ATXX_MMC_DEBUG("get status regster\n");*/
 	/*sd_get_status_register();*/
-	sd_set_clock(0, (25 * MHZ));
+	sd_set_clock(0, 26 * MHZ);
 
 	return 0;
 }
@@ -1998,5 +2007,4 @@ int mmc_legacy_init(int verbose)
         }
 
 }
-
 

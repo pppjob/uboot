@@ -342,7 +342,7 @@ enum storage_card_type
 
 #define KHZ                     		(1000)
 #define MHZ                     		(1000 * 1000)
-#define STORAGE_CLOCK_IN        		(25 * MHZ)/*25MHZ*/
+#define STORAGE_CLOCK_IN        		(26 * MHZ)/*25MHZ*/
 
 #define storage_set_card_number(cmd,num)	((cmd) = ((cmd) | (num << 16)))
 #define storage_get_card_number(cmd)		(((cmd) & (0x1f << 16)) >> 16)
