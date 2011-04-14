@@ -796,7 +796,7 @@ int sd_init_card(uint32_t card)
 	uint8_t c_size_mult=0;
 	uint8_t read_bl_len=0;
 	uint8_t read_bl_len_per_sector=0;
-	uint32_t timeout = 1000000;
+	uint32_t timeout = 5000;   /*1000000 too long time when meet bad card*/
 
 	ATXX_MMC_DEBUG("sd_controller_init **augusta**\n");
 	sd_controller_init();
