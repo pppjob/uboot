@@ -72,8 +72,8 @@ int keypad_init(void)
 	/* init keypad hardware */
 	writel(KP_SET_DIVIDER | KP_SET_DEBOUNCE, KP_SET2_WR);
 
-	/* config gpio/keypad pin mux, G20: GPIO 2,3 ; GPIO 8-10 */
-	writel(0x070c, KP_SELECT_WR);
+	/* config gpio/keypad pin mux, G20: GPIO 2,3 ; GPIO 9-10 */
+	writel(0x060c, KP_SELECT_WR);
 
 	/* enable keypad */
 	writel(KP_SET_MASK | KP_SET_ENABLE, KP_SET1_WR); 
