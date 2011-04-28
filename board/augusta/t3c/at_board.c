@@ -35,6 +35,7 @@
 #include <asm/arch-atxx/gpio.h>
 #include <asm/arch-atxx/map_table.h>
 #include <asm/arch-atxx/aboot.h>
+#include <asm/arch-atxx/factorydata.h>
 
 #include "keypad.h"
 
@@ -78,9 +79,46 @@ int board_init(void)
 	return 0;
 }
 
+#define abs(value) (((value) < 0) ? ((value)*-1) : (value))
 int misc_init_r(void)
 {
-	return 1;
+	factory_data_t *fd = NULL;
+	int i;
+	struct boot_parameter *b_param = (struct boot_parameter *)MDDR_BASE_ADDR;
+
+	if (!b_param->mddr_data_send) {
+		return 0;
+	}
+
+	fd = factory_data_get(FD_MDDR);
+	if (fd == NULL) {
+		return -1;
+	}
+	fd->fd_index = FD_MDDR;
+	fd->fd_length = 9;
+
+	/* only write if calibration data have big change.*/
+	for (i = 1; i < 9; i++) {
+		if (abs(fd->fd_buf[i] - b_param->f_mddr.mddr_cal_data[i - 1]) > 2)
+			break;
+	}
+	if (i == 9)
+		return 0;
+
+	memcpy(fd->fd_buf, (uint8_t *)&b_param->f_mddr, 9);
+
+	if (factory_data_store(fd)) {
+		printf("MDDR Factory results save failed\n");
+	} else {
+		printf("MDDR Factory results save OK\n");
+		printf("MDDR size: %dM\n", ((1 << fd->fd_buf[0]) * 64));
+		for (i = 1; i < 9; i++)
+			printf("data[%d] = 0x%02x\n", i, (fd->fd_buf[i]&0xff));
+
+	}
+
+	factory_data_put(fd);
+	return 0;
 }
 
 int dram_init (void)
@@ -100,14 +138,13 @@ int do_abortboot(void)
 		goto non_nand_boot;
 	}
 
-	mode = mmc_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
-	}
-
+	/* Only support mmc detect if key already pressed to speed up the bootup for T3C*/
 	mode = keypad_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
+	if (mode == SD_PHONETEST) {
+		mode = mmc_detect();
+		if (mode != NAND_BOOT) {
+			goto non_nand_boot;
+		}
 	}
 
 	mode = serial_detect(0);

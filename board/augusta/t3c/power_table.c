@@ -32,6 +32,7 @@ typedef struct ps_setting {
 	power_supply_mode	cur_mode;
 } ps_setting_t;
 
+#if 0
 /* array order is same as struct div_name */
 static ps_setting_t ps_setting_default[] = {
 	{D1REGC1,    "VCAMERA_1V8",       PPS_CAMERA, 1800, PS_OFF, PS_OFF},
@@ -53,6 +54,20 @@ static ps_setting_t ps_setting_default[] = {
 	{DCD2C1,     "VMEM_1V8",          PPS_COMMON, 1800, PS_ON,  PS_ON},
 	{DCUDC1,     "VBUS",              PPS_VBUS,   5000, PS_OFF, PS_OFF},
 };
+#else
+static ps_setting_t ps_setting_default[] = {
+	{D2REGC1,    "VBBIO_3V0",         PPS_COMMON, 3000, PS_ON,  PS_ON},
+	{D3REGC1,    "VBBA_2V5",          PPS_COMMON, 2500, PS_ON,  PS_ON},
+	{D4REGC1,    "VLCDVIO_3V3",       PPS_LCD,    3300, PS_ON,  PS_ON},
+	{D6REGC1,    "VSD_3V0",           PPS_SD,     3000, PS_ON,  PS_ON},
+	{RF2REGC1,   "VCTP_1V8",          PPS_TP,     1800, PS_ON, PS_ON},
+	{IOREGC1,    "IOVDD_3V0",         PPS_COMMON, 3000, PS_ON,  PS_ON},
+	{USBREGC1,   "VUSB_VDD3V3",       PPS_USB,    3300, PS_ON,  PS_ON},
+	{LCREGC1,    "VDD_CRYSTAL_1V8",   PPS_COMMON, 1800, PS_ON,  PS_ON},
+	{DCD1C1,     "VDD1V3",            PPS_COMMON, 1300, PS_ON,  PS_ON},
+	{DCD2C1,     "VMEM_1V8",          PPS_COMMON, 1800, PS_ON,  PS_ON},
+};
+#endif
 
 #define	PS_SETTING_COUNT		ARRAY_SIZE(ps_setting_default)
 

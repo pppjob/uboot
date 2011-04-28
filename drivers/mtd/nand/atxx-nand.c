@@ -1970,7 +1970,7 @@ int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
 	for (i = 0; i < maxchips; i++) {
 		chip->select_chip(mtd, i);
 		nfc_send_reset_cmd();
-		mdelay(100);
+		mdelay(10);
 	}
 	chip->select_chip(mtd, -1);
 
@@ -2114,7 +2114,7 @@ static void atxx_nd_controller_init(void)
 
 	/* reset nand flash */
 	nfc_send_reset_cmd();
-	mdelay(100);		/*reset time, max 100ms */
+	mdelay(10);		/*reset time, max 10ms */
 }
 
 /*******************************************************************************
