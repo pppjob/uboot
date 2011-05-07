@@ -45,6 +45,10 @@ typedef enum {
 	PPS_ETH,
 	PPS_SDIO,
 	PPS_LSENSOR,
+	PPS_DTV,
+	PPS_UNUSED,
+	PPS_EDGE,
+	PPS_SIM,
 
 	PPS_COMMON = 255,
 } power_supply_component;

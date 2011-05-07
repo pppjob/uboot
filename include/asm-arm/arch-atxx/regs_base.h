@@ -22,7 +22,17 @@
 #ifndef __ASM_ARCH_REGS_BASE_H
 #define __ASM_ARCH_REGS_BASE_H
 #include <config.h>
+
 #ifdef CONFIG_AT6600 
 #include "at6600_regs_base.h"
 #endif
+
+#ifdef CONFIG_AT7700A0 
+#include "at7700a0_regs_base.h"
+#endif
+
+#ifdef CONFIG_AT7700B0 
+#include "at7700b0_regs_base.h"
+#endif
+
 #endif /*__ASM_ARCH_REGS_BASE_H*/

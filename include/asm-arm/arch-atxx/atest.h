@@ -29,6 +29,12 @@ typedef struct atest_i2c_setting {
 #include "atest_w002.h"
 #elif	defined(CONFIG_BOARD_AD8071)
 #include "atest_ad8071.h"
+#elif	defined(CONFIG_BOARD_ATB9004)
+#include "atest_atb9004.h"
+#elif	defined(CONFIG_BOARD_FPGA7700B0)
+#include "atest_fpga7700b0.h"
+#elif	defined(CONFIG_BOARD_ATB1004)
+#include "atest_atb1004.h"
 #else
 #error   "atest_<board>.h is missing!"
 #endif

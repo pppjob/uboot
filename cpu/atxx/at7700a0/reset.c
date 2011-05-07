@@ -19,30 +19,20 @@
 * without the prior written permission of the copyright owner.
 *
 ------------------------------------------------------------------------------*/
-
+#include <asm/io.h>
 #include <common.h>
-#include <asm/arch-atxx/clock.h>
+#include <asm/arch-atxx/regs_base.h>
+#include <asm/arch-atxx/pm.h>
 
-int print_cpuinfo(void)
+void reset_cpu (ulong addr)
 {
-	
-	printf("\rAT6600: ARM %luMHz ",  clk_get_rate(clk_get("arm")) / MHZ);
-	printf("AXI %luMHz MDDR %luMHz \n",
-	       clk_get_rate(clk_get("axi")) / MHZ, clk_get_rate(clk_get("mddr")) / MHZ);
+	uint8_t swcfg;
 
-#ifdef DEBUG_BSP
-	dump_clock();
-	printf("udelay start\n");
-	udelay(1000);
-	printf("udelay 1000 end\n");
-	udelay(10000);
-	printf("udelay 10000 end\n");
-	mdelay(100000);
-	printf("mdelay 100000 end\n");
-	
-	printf("get_timer(0)=%lx\n",get_timer(0));
-	mdelay(100);
-	printf("get_timer(0)=%lx\n",get_timer(0));
-#endif	
-	return 0;
+	swcfg = pm_read_reg(SWCFGR);
+	swcfg |= SWCFGR_REBOOT_NORMAL;
+	pm_write_reg(SWCFGR, swcfg);
+
+	/* trigger software reset */
+	pm_write_reg(SWRSTR, SWRSTR_SOFT_RESET);
 }
+

@@ -82,6 +82,9 @@ static void i2c_ctl_init(u8 init_convalue, u32 speedmode)
 	reg_mid &= ~0x06;
 	reg_mid |= (speedmode << 1);
 	writel(reg_mid, rI2C_CON);     /*1: standard; 2: fast; 3: high*/
+#ifdef CONFIG_PM_AT2600
+        writel(0x63, rI2C_CON);
+#endif
 	i2c_tx_rx_byte_max = i2c_tf_tl < i2c_rf_tl ? i2c_tf_tl : i2c_rf_tl;
 	DPRINTF("i2c_tx_rx_byte_max is %d\n", i2c_tx_rx_byte_max);
 }
@@ -271,9 +274,11 @@ static int i2c_transfer(u8 cmd_type, uchar *buf, int len)
 		break;
 	case I2C_M_RD:	
 		DPRINTF("I2C_M_RD P1 %s\n", __FUNCTION__);
+#ifndef CONFIG_PM_AT2600
 		for(i = 0; i < len; i++){
 			writel(0x100, rI2C_DATA_CMD);
 		}
+#endif
 		i = 0;
 		buf_to_read = len;
 		do {
@@ -355,16 +360,22 @@ int i2c_read(uchar chip, uint addr, int alen, uchar * buffer, int len)
 	}
 
 	writel(chip, rI2C_TAR);
+#ifdef CONFIG_PM_AT2600
+        writel(xaddr[0], rI2C_DATA_CMD);
+        writel(0x100, rI2C_DATA_CMD);
+#else
 	ret = i2c_transfer(I2C_M_WR, xaddr, alen);
 	if(ret!= alen){
 		DPRINTF("\n%s, Start not acked\n", __FUNCTION__);
 		return -1;
 	}
+#endif
 	ret = i2c_transfer(I2C_M_RD, buffer, len);
 	if(ret!= len){
 		DPRINTF("\n%s, Read not finished yet\n", __FUNCTION__);
 		return -1;
 	}
+
 	return 0;
 }
 

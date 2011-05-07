@@ -485,7 +485,7 @@ void set_board_default_clock(struct clock_default_setting *pll,
 	}
 }
 
-void at6600_clock_init(void)
+void atxx_clock_init(void)
 {
 	int i;
 

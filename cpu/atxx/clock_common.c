@@ -187,7 +187,7 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 
 	if (IS_ERR(clk) || clk == NULL)
 		return -EINVAL;
-
+printf("set rate: %ld\n", rate);
 	WARN_ON(clk->set_rate == NULL);
 
 	if (clk->set_rate == NULL)

@@ -191,6 +191,7 @@ int pannel_set_power(int on_off)
 
 void pannel_set_refresh_rate(struct clk *lcd_clk)
 {
+printf("set lcd clk.\n");
 	/* set pclk to 13MHz using default XO */
 	clk_set_rate(lcd_clk, DEFAULT_PCLK);
 }

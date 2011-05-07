@@ -728,9 +728,10 @@ void lcd_ctrl_init(void *lcdbase)
 			lcd_xres = LCD_XRES_480;
 			lcd_yres = LCD_YRES_640;
 			break;
+		/*FIXME: 800*480*/
 		case ATXX_WVGA:
-			lcd_xres = LCD_XRES_800;
-			lcd_yres = LCD_YRES_480;
+			lcd_xres = LCD_XRES_480;
+			lcd_yres = LCD_YRES_800;
 			break;
 		case ATXX_HVGA:
 			lcd_xres = LCD_XRES_320;

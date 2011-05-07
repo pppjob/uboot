@@ -3730,6 +3730,15 @@ miracle_a08_config: unconfig
 ad8071_config: unconfig
 	@$(MKCONFIG) $(@:_config=) arm atxx ad8071 augusta at6600
 
+atb9004_config : unconfig
+	@$(MKCONFIG) $(@:_config=) arm atxx atb9004 augusta at7700a0
+
+fpga7700b0_config : unconfig
+	@$(MKCONFIG) $(@:_config=) arm atxx fpga7700b0 augusta at7700b0
+
+atb1004_config : unconfig
+	@$(MKCONFIG) $(@:_config=) arm atxx atb1004 augusta at7700b0
+
 #########################################################################
 #########################################################################
 #########################################################################

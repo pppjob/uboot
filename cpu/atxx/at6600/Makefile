@@ -28,9 +28,6 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).a
 
-SOBJS	= delay.o
-
-COBJS-$(CONFIG_AT6600)	+=  speed.o
 COBJS-$(CONFIG_AT6600)	+= timer.o reset.o adc.o clock.o mmu.o
 
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))

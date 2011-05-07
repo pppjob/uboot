@@ -36,6 +36,12 @@
 #include "w002_gpio.h"
 #elif	defined(CONFIG_BOARD_AD8071)
 #include "ad8071_gpio.h"
+#elif	defined(CONFIG_BOARD_ATB9004)
+#include "atb9004_gpio.h"
+#elif	defined(CONFIG_BOARD_FPGA7700B0)
+#include "fpga7700b0_gpio.h"
+#elif	defined(CONFIG_BOARD_ATB1004)
+#include "atb1004_gpio.h"
 #else
 #error   "<board>_gpio.h is missing!"
 #endif

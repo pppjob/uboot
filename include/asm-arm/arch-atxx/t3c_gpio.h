@@ -28,19 +28,14 @@
 #define GPIO_KEYPAD_ROW2	2
 #define GPIO_KEYPAD_ROW3	3
 
-#define GPIO_CAM_RESETn		6
-#define GPIO_WIFI_RESETn	7
-
-#define GPIO_LSENSOR_I2CCLK	4
-#define GPIO_LSENSOR_I2CDAT	8
-
+#define GPIO_KEYPAD_COL0	8
 #define GPIO_KEYPAD_COL1	9
 #define GPIO_KEYPAD_COL2	10
 
 #define GPIO_PMU_PWREN1		5
+#define GPI0_PMU_SCUSB		16
 #define GPIO_PMU_PWREN2		19
 #define GPIO_PMU_WAKEUP		27
-#define GPI0_PMU_SCUSB		16
 #define GPIO_PMU_IRQ		31
 
 #define GPIO_USB_OFFVBUSn	17
@@ -51,28 +46,24 @@
 #define GPIO_TD_WAKEUP_AP		28
 #define GPIO_TD_RESETn		32
 #define GPIO_TD_ON		    33
-#define GPIO_TD_DBB_EXCEPT		    36
+
+#define GPIO_TD_COM_SEL1	29
 
 #define GPIO_PROXIMITY_OUT	11
-#define GPIO_MEM_1V8_EN	  	12
 #define GPIO_LCD_BL_EN		13
-#define GPIO_LCD_DEC		23
-#define GPIO_USB_INS		24
 #define GPIO_GPS_RXEN		14
 
 #define GPIO_HP_INS		15
-#define GPIO_MIC_DET		46
 
-#define GPIO_WIFI_PWEN		22
+#define GPIO_WIFI_WAKE_HOST	22
 #define GPIO_WIFI_VREG_EN	35
 
+#define GPIO_MEM_1V8_EN	  23
 
 #define GPIO_USB_INS		24
 
 #define GPIO_BT_WAKE_HOST	26
 #define GPIO_BT_RESET		39
-
-#define GPIO_TD_COM_SEL1	29
 
 #define GPIO_CAM_PDN		30
 #define GPIO_CAM_SHUTTER		37

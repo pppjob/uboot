@@ -43,7 +43,7 @@ int board_init(void)
 	uint32_t val;
 
 	mmu_cache_on(memory_map);
-	at6600_clock_init();
+	atxx_clock_init();
 
 	calibrate_delay();
 

@@ -2401,12 +2401,20 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_MULTIBUS_MASTER      2416
 #define MACH_TYPE_MULTIBUS_PBK         2417
 #define MACH_TYPE_TNETV107X            2418
+
+/* at6600 mach types */
 #define MACH_TYPE_CAYMAN20             8000
 #define MACH_TYPE_G20                  8001
 #define MACH_TYPE_MIRACLE              8002
 #define MACH_TYPE_T3C                  8003
 #define MACH_TYPE_W002                 8004
 #define MACH_TYPE_AD8071               8005
+
+/* at7700 mach types */
+#define MACH_TYPE_ATB1003              8100
+#define MACH_TYPE_ATB9004              8101
+#define MACH_TYPE_FPGA7700B0           8102
+#define MACH_TYPE_ATB1004              8103
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type

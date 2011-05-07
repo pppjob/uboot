@@ -198,7 +198,7 @@ int factory_data_store(factory_data_t *fd)
 	if (pages == NULL) {
 		fd_err_print("failed to allocate memory!\n");
 		return -ENOMEM;
-	}
+		}
 	memset(pages, 0, index_count * sizeof(factory_data_page_t *));
 
 	cur_page = NULL;
@@ -209,7 +209,7 @@ int factory_data_store(factory_data_t *fd)
 			pages[i] = page;
 			cur_offset += page_size;
 			continue;
-		}
+	}
 
 		/* allocate page space */
 		if (cur_page == NULL) {
@@ -256,9 +256,9 @@ int factory_data_store(factory_data_t *fd)
 	cur_offset = block_offset;
 	for (i = 0; i < index_count; i++) {
 		if (pages[i] != NULL) {
-			op_size = page_size;
+	op_size = page_size;
 			fd_debug_print("write nand offset 0x%x ", (uint)cur_offset);
-			fd_debug_print("size 0x%x\n", (uint)op_size);
+	fd_debug_print("size 0x%x\n", (uint)op_size);
 			if ((reval = nand_write(nand, cur_offset, &op_size, (u_char *)pages[i])) < 0) {
 				fd_err_print("failed to write to nand offset 0x%x(%d)", (uint)offset, reval);
 				goto EXIT;

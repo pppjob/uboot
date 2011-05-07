@@ -22,7 +22,17 @@
 #ifndef __ASM_ARCH_PM_H
 #define __ASM_ARCH_PM_H
 #include <config.h>
+
 #ifdef CONFIG_AT6600 
 #include "at6600_pm.h"
 #endif
+
+#ifdef CONFIG_AT7700A0 
+#include "at7700a0_pm.h"
+#endif
+
+#ifdef CONFIG_AT7700B0 
+#include "at7700b0_pm.h"
+#endif
+
 #endif /*__ASM_ARCH_PM_H*/

@@ -24,9 +24,19 @@
 
 #include <config.h>
 #include <asm/bitops.h>
+
 #ifdef CONFIG_AT6600
 #include "at6600_topctl.h"
 #endif
+
+#ifdef CONFIG_AT7700A0
+#include "at7700a0_topctl.h"
+#endif
+
+#ifdef CONFIG_AT7700B0
+#include "at7700b0_topctl.h"
+#endif
+
 static inline void topctl_write_reg(uint32_t reg, uint32_t val)
 {
 	writel(val, ATXX_TOPCTL_BASE + reg);

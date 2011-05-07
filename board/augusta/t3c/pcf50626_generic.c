@@ -333,11 +333,11 @@ void power_on_detect (void)
 	{
 		goto power_off;
 	}
-#if 0	/* it's more than 1s from bootrom to here, */
+
 	t1 = get_timer (0);
 	do {
 		t2 = get_timer (0);
-		if ((t2 - t1) >= 300)
+		if ((t2 - t1) >= 1000)
 			break;
 	} while (1);
 
@@ -346,7 +346,7 @@ void power_on_detect (void)
 	{
 		goto power_off;
 	}
-#endif
+	
 	pcf50626_vibrator_motor_power_on_off(PS_ON);
 	t1 = get_timer (0);
 	do {
@@ -419,8 +419,8 @@ int pmu_init(void)
 
 	printf ("\nPMU read ID ok, id value = 0x%x", buf);
 
-	default_power_supply();
 	power_on_detect ();
+	default_power_supply();
 
 	return 0;
 }

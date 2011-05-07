@@ -95,7 +95,19 @@
 #define REG_NFC_RSD_MSK7        (0x60bc)
 #define REG_NFC_RSE_MSK8        (0x60C8)
 #define REG_NFC_RSD_MSK8        (0x60D0)
+#define REG_NFC_RSD_MSK9        (0x60D4)
+#define REG_NFC_RSD_MSK10       (0x60D8)
+#define REG_NFC_RSD_MSK11       (0x60DC)
+#define REG_NFC_RSD_MSK12       (0x60E0)
+#define REG_NFC_RSD_MSK13       (0x60E4)
+#define REG_NFC_RSD_MSK14       (0x60E8)
 
+#define REG_NFC_RSE_MSK9        (0x60CC)
+#define REG_NFC_RSE_MSK10       (0x60F0)
+#define REG_NFC_RSE_MSK11       (0x60F4)
+#define REG_NFC_RSE_MSK12       (0x60F8)
+#define REG_NFC_RSE_MSK13       (0x60FC)
+#define REG_NFC_RSE_MSK14       (0x6110)
 
 /* NFC params register */
 #define NFC_PARA0_DEVICE_BUS    	(1<<8)
