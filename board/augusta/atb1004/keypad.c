@@ -59,7 +59,7 @@
 #define REP_PERIOD_VAL	150	
 
 #define KP_VOL_UP	(1 << 16)
-#define KP_VOL_DOWN	(1 << 24)
+#define KP_VOL_DOWN	(1 << 17)
 #define KP_HOME		(1 << 25)
 #define KP_HOME_VOL_UP_DOWN		(0x3030000)
 
@@ -73,7 +73,7 @@ int keypad_init(void)
 	writel(KP_SET_DIVIDER | KP_SET_DEBOUNCE, KP_SET2_WR);
 
 	/* config gpio/keypad pin mux, CAYMAN2: GPIO 2-3, GPIO 8-10 */
-	writel(0x070c, KP_SELECT_WR);
+	writel(0x072c, KP_SELECT_WR);
 
 	/* enable keypad */
 	writel(KP_SET_MASK | KP_SET_ENABLE, KP_SET1_WR); 
