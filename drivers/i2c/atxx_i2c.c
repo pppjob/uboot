@@ -405,7 +405,7 @@ int i2c_write(uchar chip, uint addr, int alen, uchar * buffer, int len)
 
 void at6600_i2c_init()
 {
-	i2c_ctl_init(1, 0x61);	
+	i2c_ctl_init(0x61, 1);	
     	/* PMU only response at delay some flip-flops;*/
 	writel(0x7, I2CCTL);
 	i2c_enable();
