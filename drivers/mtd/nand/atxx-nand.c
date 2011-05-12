@@ -1743,8 +1743,8 @@ static int atxx_nd_config_init(struct mtd_info *mtd)
 	chip->ecc.steps = mtd->writesize / chip->ecc.size;
 	chip->ecc.total = chip->ecc.steps * chip->ecc.bytes;
 
-	/*we need 3 bytes for badblock in the beginning of oob*/
-	if ((chip->ecc.bytes + 3) > mtd->oobsize/chip->ecc.steps) {
+	/*we need 1 bytes for badblock in the beginning of oob*/
+	if ((chip->ecc.bytes + 1) > mtd->oobsize/chip->ecc.steps) {
 		printf("Not enough oob space for ecc!!!\n");
 		chip->select_chip(mtd, -1);
 		return ENOSPC;
@@ -1776,9 +1776,9 @@ static int atxx_nd_config_init(struct mtd_info *mtd)
 		hw->atxx_ecclayout.oobfree[0].offset = 0;
 		hw->atxx_ecclayout.oobfree[0].length = 5;
 	} else {
-		hw->atxx_ecclayout.oobfree[0].offset = 3;
+		hw->atxx_ecclayout.oobfree[0].offset = 1;
 		hw->atxx_ecclayout.oobfree[0].length =
-			mtd->oobsize/chip->ecc.steps - chip->ecc.bytes - 3;
+			mtd->oobsize/chip->ecc.steps - chip->ecc.bytes - 1;
 	}
 
 	for (i = 1; i < chip->ecc.steps; i++) {
@@ -1996,13 +1996,13 @@ static void atxx_nd_set_timing(void)
 		write_hold_time = write_setup_time = 4;
 	} else if ((rate < 156 * 1024 * 1024)
 		   && (rate >= 104 * 1000 * 1000)) {
-		read_hold_time = 3;
-		read_setup_time = 3;
-		write_hold_time = 4;
-		write_setup_time = 4;
+		read_hold_time = 0;
+		read_setup_time = 2;
+		write_hold_time = 3;
+		write_setup_time = 3;
 	} else {
-		read_hold_time = read_setup_time = 3;
-		write_hold_time = write_setup_time = 4;
+		read_hold_time = read_setup_time = 1;
+		write_hold_time = write_setup_time = 1;
 	}
 
 	reg_data = (0xff << 16) | (read_hold_time << NFC_READ_HOLD_TIME_SHIFT)
