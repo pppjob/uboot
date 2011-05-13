@@ -58,7 +58,7 @@
 /* default load address for reading (i.e. kernel zImage with header) */
 #define CONFIG_SYS_LOAD_ADDR		(MDDR_BASE_ADDR + 0x00807e00)
 #define CONFIG_SYS_KERN_ADDR		(MDDR_BASE_ADDR + 0x00808000)
-#define CONFIG_ATAG_ADDR		(MDDR_BASE_ADDR + 0x00800100)
+#define CONFIG_ATAG_ADDR		(MDDR_BASE_ADDR + 0x01800100)
 
 /* enable passing of ATAGs  */
 #define CONFIG_CMDLINE_TAG		1
@@ -124,11 +124,11 @@
 
 #define CONFIG_BOOTARGS			\
 		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs ro"
-#define CONFIG_BOOTCOMMAND	 	"nand read 88807e00 600000 200000; hdcvt 88807e00; bootm 88807fc0"
+#define CONFIG_BOOTCOMMAND	 	"nand read 89807e00 600000 200000; hdcvt 89807e00; bootm 89807fc0"
 
 #define CONFIG_BOOTARGS_SD		\
 		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) quiet"
-#define CONFIG_BOOTCOMMAND_SD		"fatload mmc 1 0x88807e00 kboot.img; hdcvt 88807e00; bootm 88807fc0"
+#define CONFIG_BOOTCOMMAND_SD		"fatload mmc 1 0x89807e00 kboot.img; hdcvt 89807e00; bootm 89807fc0"
 
 /* nand */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
@@ -157,13 +157,13 @@
 #define	CONFIG_KERNEL_MSIZE		0x00200000
 
 /* clock env */
-#define CONFIG_CLK_ARM                  702000000
+#define CONFIG_CLK_ARM                  806000000
 #define CONFIG_CLK_AXI                  312000000
 #define CONFIG_CLK_APP                  104000000
-#define CONFIG_CLK_MDDR                 312000000
+#define CONFIG_CLK_MDDR                 198000000
 #define CONFIG_CLK_GCLK                 312000000
-#define CONFIG_CLK_VPCLK                312000000
-#define CONFIG_CLK_VSCLK                312000000
+#define CONFIG_CLK_VPCLK                156000000
+#define CONFIG_CLK_VSCLK                403000000
 
 /* SD/fat */
 #define CONFIG_ATXX_MMC

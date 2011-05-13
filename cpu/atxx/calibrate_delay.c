@@ -10,6 +10,9 @@ static struct loop_item loop_table[] = {
 	{312 * MHZ, 1560000},
 	{624 * MHZ, 3112960},
 	{702 * MHZ, 3510000},
+	{806 * MHZ, 4020000},
+	{988 * MHZ, 5000000},
+	{1014 * MHZ, 5070000},
 };
 
 #define LOOP_TABLE_SIZE		ARRAY_SIZE(loop_table)

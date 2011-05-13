@@ -230,7 +230,7 @@ void power_on_detect (void)
 {
 	u8 reg_val;
 	u32 t1, t2, swcfg;
-    u8 int1_mask_reg;
+	u8 int1_mask_reg;
 
 	int1_mask_reg = 0;
 	if (hwcfg_detect() != NAND_BOOT) {
@@ -243,7 +243,7 @@ void power_on_detect (void)
 		pm_write_reg(SWCFGR, swcfg);
 		return;
 	}
-#if 1
+
 	/* power on if usb charger is connected */
 	at2600_pm_read_reg (AT2600_PM_REG_OOCS, &reg_val);
 	if (reg_val & 0x20) {
@@ -252,51 +252,43 @@ void power_on_detect (void)
 		printf("usb charger connected.\n");
 		return;
 	}
-#endif
+
+	swcfg = pm_read_reg(SWCFGR);
+	if (swcfg & SWCFGR_REBOOT_MASK) {
+		return;
+	}
+
 #if 0
-	at2600_pm_read_reg (AT2600_PM_REG_INT1, &reg_val);
-      if ((reg_val & AT2600_PM_INT1_ONKEYR) != 0)
-        {
-                goto power_off;
-        }
+	t1 = get_timer (0);
+	do {
+		t2 = get_timer (0);
+		if ((t2 - t1) >= 1000)
+			break;
+	} while (1);
 
-        t1 = get_timer (0);
-        do {
-                t2 = get_timer (0);
-                if ((t2 - t1) >= 1000)
-                        break;
-        } while (1);
-
-        at2600_pm_read_reg (AT2600_PM_REG_INT1, &reg_val);
-	
-	printf("reg_val = 0x%x\n", reg_val);  
-        if ((reg_val &  AT2600_PM_INT1_ONKEYR) != 0)
-        {
-                goto power_off;
-        }
 #endif
-        /*unmask onkey  rising */
-        at2600_pm_read_reg (AT2600_PM_REG_M_INT1, &int1_mask_reg);
-        int1_mask_reg &= ~AT2600_PM_INT1_ONKEYR;
-        at2600_pm_write_reg(AT2600_PM_REG_M_INT1,int1_mask_reg);
+	/*unmask onkey  rising */
+	at2600_pm_read_reg (AT2600_PM_REG_M_INT1, &int1_mask_reg);
+	int1_mask_reg &= ~AT2600_PM_INT1_ONKEYR;
+	at2600_pm_write_reg(AT2600_PM_REG_M_INT1,int1_mask_reg);
 
-        at2600_pm_read_reg (AT2600_PM_REG_INT1, &reg_val);
+	at2600_pm_read_reg (AT2600_PM_REG_INT1, &reg_val);
 
-        if ((reg_val & AT2600_PM_INT1_ONKEYR) != 0)
-        {
-                goto power_off;
-        }
+	if ((reg_val & AT2600_PM_INT1_ONKEYR) != 0)
+	{
+		goto power_off;
+	}
 
-        t1 = get_timer (0);
-        do {
-                t2 = get_timer (0);
-                if ((t2 - t1) >= 1000)
-                        break;
-        } while (1);
+	t1 = get_timer (0);
+	do {
+		t2 = get_timer (0);
+		if ((t2 - t1) >= 1000)
+			break;
+	} while (1);
 
-        return;
+	return;
 
-        return;
+	return;
 
 power_off:
 	printf ("\n\rMiss power on,you must press power key more than 1s, turn off!\n");
@@ -306,30 +298,30 @@ power_off:
 
 uint32_t adc_get_pmu(void)
 {
-        uint16_t        adc_result = 0;
-        uint8_t         adcc1, adcs1, adcs3, reg_val;
+	uint16_t        adc_result = 0;
+	uint8_t         adcc1, adcs1, adcs3, reg_val;
 
 #if 0
-        adcc1 = 0x8 | (0x1 << 4);
-        pcf50626_write_reg(ADCC1, adcc1);
+	adcc1 = 0x8 | (0x1 << 4);
+	pcf50626_write_reg(ADCC1, adcc1);
 
-        pcf50626_read_reg(ADCC1, &adcc1);
+	pcf50626_read_reg(ADCC1, &adcc1);
 
-        /* set start adc command by writing 1 to bit[0] of ADCC1 */
-        adcc1 = (adcc1 & 0xFE) | 1;
-        pcf50626_write_reg(ADCC1, adcc1);
+	/* set start adc command by writing 1 to bit[0] of ADCC1 */
+	adcc1 = (adcc1 & 0xFE) | 1;
+	pcf50626_write_reg(ADCC1, adcc1);
 
-        do {
-                pcf50626_read_reg(INT3, &reg_val);
-        } while ((reg_val & PCF50626_INT3_ADCRDY) == 0);
+	do {
+		pcf50626_read_reg(INT3, &reg_val);
+	} while ((reg_val & PCF50626_INT3_ADCRDY) == 0);
 
-        pcf50626_read_reg(ADCS1, &adcs1);
-        adc_result = adcs1 << 2;
+	pcf50626_read_reg(ADCS1, &adcs1);
+	adc_result = adcs1 << 2;
 
-        pcf50626_read_reg(ADCS3, &adcs3);
-        adc_result |= (adcs3 & 0x3);
+	pcf50626_read_reg(ADCS3, &adcs3);
+	adc_result |= (adcs3 & 0x3);
 #endif        
-        return adc_result;
+	return adc_result;
 }
 
 
@@ -361,28 +353,28 @@ void pmu_power_show()
 	for (i = 0; i < PS_SETTING_COUNT; i++){
 		ps = &ps_setting_default[i];
 		printf("pn = %s; module = %d;"
-			"reg = 0x%02x; v = %04d; regout =0x%02x, mode = %s\n",
-			ps->ps_name, ps->module, ps->reg_idx, ps->voltage,
-			at2600_pm_read_reg(ps->reg_idx, &reg1),
-			(at2600_pm_read_reg(ps->reg_idx+1, &reg2)>>5) ? "on":"off");
+				"reg = 0x%02x; v = %04d; regout =0x%02x, mode = %s\n",
+				ps->ps_name, ps->module, ps->reg_idx, ps->voltage,
+				at2600_pm_read_reg(ps->reg_idx, &reg1),
+				(at2600_pm_read_reg(ps->reg_idx+1, &reg2)>>5) ? "on":"off");
 	}
 }
 
 void set_backlight(u8 dimfreq, u8 ledman)
 {
 
-    uint8_t 	dculedc1;
-    uint8_t 	dculedc2;
+	uint8_t 	dculedc1;
+	uint8_t 	dculedc2;
 
 	dculedc1 = 0;
 	dculedc2 = 0;
 
 
-    dculedc1 |= DCDLED_POWER_ON << DCDLED_POWER_SHIFT;
+	dculedc1 |= DCDLED_POWER_ON << DCDLED_POWER_SHIFT;
 	dculedc1 |= 0x0f;
 	dculedc2 |= DCDLED_LED_STEP << DCDLED_VOL_MODE_SHIFT;
 	dculedc2 |= DCDLED_LED_STEP_244_0US << DCDLED_STEP_COUNT_SHIFT;
-	
+
 	at2600_pm_write_reg(AT2600_PM_REG_DCDLEDC1,dculedc1);
 	at2600_pm_write_reg(AT2600_PM_REG_DCDLEDC2,dculedc2);
 
