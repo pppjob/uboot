@@ -2142,7 +2142,7 @@ int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
 	for (i = 0; i < maxchips; i++) {
 		chip->select_chip(mtd, i);
 		nfc_send_reset_cmd();
-		mdelay(100);
+		mdelay(10);
 	}
 	chip->select_chip(mtd, -1);
 
@@ -2238,13 +2238,13 @@ static void atxx_nd_set_timing(void)
 		write_hold_time = write_setup_time = 4;
 	} else if ((rate < 156 * 1024 * 1024)
 		   && (rate >= 104 * 1000 * 1000)) {
-		read_hold_time = 0;
-		read_setup_time = 2;
+		read_hold_time = 2;
+		read_setup_time = 3;
 		write_hold_time = 3;
 		write_setup_time = 3;
 	} else {
-		read_hold_time = read_setup_time = 1;
-		write_hold_time = write_setup_time = 1;
+		read_hold_time = read_setup_time = 3;
+		write_hold_time = write_setup_time = 4;
 	}
 
 	reg_data = (0xff << 16) | (read_hold_time << NFC_READ_HOLD_TIME_SHIFT)
@@ -2286,7 +2286,7 @@ static void atxx_nd_controller_init(void)
 
 	/* reset nand flash */
 	nfc_send_reset_cmd();
-	mdelay(100);		/*reset time, max 100ms */
+	mdelay(10);		/*reset time, max 10ms */
 }
 
 /*******************************************************************************

@@ -83,6 +83,7 @@ int board_init(void)
 	return 0;
 }
 
+#define abs(value) (((value) < 0) ? ((value)*-1) : (value))
 int misc_init_r(void)
 {
 	factory_data_t *fd = NULL;
@@ -99,6 +100,15 @@ int misc_init_r(void)
 	}
 	fd->fd_index = FD_MDDR;
 	fd->fd_length = 9;
+
+	/* only write if calibration data have big change.*/
+	for (i = 1; i < 9; i++) {
+		if (abs(fd->fd_buf[i] - b_param->f_mddr.mddr_cal_data[i - 1]) > 2)
+			break;
+	}
+	if (i == 9)
+		return 0;
+
 	memcpy(fd->fd_buf, (uint8_t *)&b_param->f_mddr, 9);
 
 	if (factory_data_store(fd)) {
@@ -133,14 +143,13 @@ int do_abortboot(void)
 		goto non_nand_boot;
 	}
 
-	mode = mmc_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
-	}
-
+	/* Only support mmc detect if key already pressed to speed up the bootup for T3C*/
 	mode = keypad_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
+	if (mode == SD_PHONETEST) {
+		mode = mmc_detect();
+		if (mode != NAND_BOOT) {
+			goto non_nand_boot;
+		}
 	}
 
 	mode = serial_detect(0);

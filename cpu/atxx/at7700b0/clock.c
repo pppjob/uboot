@@ -390,7 +390,6 @@ static int atxx_div_set_rate(struct clk *clk, unsigned long rate)
 	div = (div < DIV_MAX) ? div : DIV_MAX;
 	divreg = readl(DIVCTLR(clk->index));
 
-printf("rate: %ld, div:%d, div value: %d\n", rate, div, divreg);
 	if (div == 1) {
 		divreg &= ~(DIV_N_MASK << DIV_N);
 		divreg |= 1 << DIV_1;
@@ -399,7 +398,6 @@ printf("rate: %ld, div:%d, div value: %d\n", rate, div, divreg);
 		divreg &= ~(DIV_N_MASK << DIV_N);
 		divreg |= (div - 2) << DIV_N;
 	}
-printf("clk-index:%d, div value: %d\n", clk->index, divreg);
 	writel(divreg, DIVCTLR(clk->index));
 
 	return 0;

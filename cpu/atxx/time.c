@@ -1,4 +1,5 @@
 #include <asm/arch-atxx/delay.h>
+#include <common.h>
 
 void udelay(unsigned long n)
 {
@@ -18,7 +19,15 @@ void udelay(unsigned long n)
 
 void mdelay(unsigned long n)
 {
-	udelay(n * 1000);
+	u32 t1, t2;
+
+	t1 = get_timer (0);
+	do {
+		t2 = get_timer (0);
+		if ((t2 - t1) >= n)
+			break;
+	} while (1);
+
 	return;
 }
 

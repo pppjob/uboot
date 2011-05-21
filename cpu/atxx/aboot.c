@@ -27,6 +27,7 @@
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/arch-atxx/pm.h>
 #include <asm/arch-atxx/aboot.h>
+#include <asm/arch-atxx/factorydata.h>
 
 enum boot_mode hwcfg_detect(void)
 {
@@ -85,18 +86,36 @@ enum boot_mode serial_detect(int num)
 	return mode;
 }
 
+#define DEFAULT_SN	"ATK0000"
+static void get_serial_no(char *string)
+{
+	int i;
+	factory_data_t *data = NULL;
+
+	data = factory_data_get(FD_SN);
+	if ((data == NULL) || (data->fd_index != FD_SN)) {
+		printf("read sn failed! use default: %s\n", DEFAULT_SN);
+		strcpy(string, DEFAULT_SN);
+		return 0;
+	}
+
+	for (i = 0; i < data->fd_length; i++)
+		string[i] = data->fd_buf[i];
+	string[i] = '\0';
+
+	if (data != NULL)
+		factory_data_put(data);
+
+	return 0;
+}
+
+
 /* Modify bootargs and bootcmd*/
 static int boot_from_sd(char * bootstr, char *fstype)
 {
 	int ret = -ENODATA;
 	char *cmd, *args;
 	char buffer[CONFIG_SYS_CBSIZE];
-
-	cmd = getenv("bootcmd_sd");
-	if (!cmd) {
-		printf("get bootcmd_sd failed!\n");
-		return ret;
-	}
 
 	args = getenv("bootargs_sd");
 	if (!args) {
@@ -121,6 +140,12 @@ static int boot_from_sd(char * bootstr, char *fstype)
 		return ret;
 	}
 
+	cmd = getenv("bootcmd_sd");
+	if (!cmd) {
+		printf("get bootcmd_sd failed!\n");
+		return ret;
+	}
+
 	ret = run_command(cmd, 0);
 
 	return ret;
@@ -130,7 +155,22 @@ static int boot_from_sd(char * bootstr, char *fstype)
 int boot_from_nand(void)
 {
 	int ret = -ENODATA;
-	char *cmd;
+	char *cmd, *args;
+	char buffer[CONFIG_SYS_CBSIZE];
+	char str[32];
+
+	args = getenv("bootargs");
+	if (!args) {
+		printf("get bootargs failed!\n");
+		return ret;
+	}
+
+	get_serial_no(str);
+
+	sprintf(buffer, "%s androidboot.serialno=%s",
+			args, str);
+
+	ret = setenv("bootargs", buffer);
 
 	cmd = getenv("bootcmd");
 	if (!cmd) {
