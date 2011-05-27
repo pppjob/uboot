@@ -38,6 +38,23 @@ enum factory_data_index {
 	FD_IMEI,
 	FD_MASK,
 	FD_ETHERNET,
+	FD_CAMERA,
+	FD_GSM_0,
+	FD_GSM_1,
+	FD_GSM_2,
+	FD_GSM_3,
+	FD_GSM_4,
+	FD_GSM_5,
+	FD_GSM_6,
+	FD_GSM_7,
+	FD_GSM_8,
+	FD_GSM_9,
+	FD_GSM_10,
+	FD_GSM_11,
+	FD_GSM_12,
+	FD_GSM_13,
+	FD_GSM_14,
+	FD_GSM_15,
 	FD_MAX
 };
 
