@@ -44,6 +44,8 @@
 #include "atb1004_gpio.h"
 #elif   defined(CONFIG_BOARD_ATB1005)
 #include "atb1005_gpio.h"
+#elif   defined(CONFIG_BOARD_G01)
+#include "g01_gpio.h"
 #else
 #error   "<board>_gpio.h is missing!"
 #endif

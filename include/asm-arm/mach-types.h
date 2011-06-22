@@ -2416,6 +2416,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_FPGA7700B0           8102
 #define MACH_TYPE_ATB1004              8103
 #define MACH_TYPE_ATB1005              8104
+#define MACH_TYPE_G01                  8105
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
