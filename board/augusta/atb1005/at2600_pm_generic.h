@@ -301,6 +301,8 @@ enum at2600_pm_reg_dcdledc1{
 #define	PWMx_SELECT			0x1
 #define	PWMx_STEP			0x2
 
+#define	PWMx_POLARITY			0x10
+
 #define	DCULED_ON_OPMOD			(0x7 << 5)	/* 111'b3 */
 #define	DCULED_OFF_OPMOD		(0x0 << 5)	/* 000'b3 */
 

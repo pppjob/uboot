@@ -26,6 +26,7 @@
 #include <asm/arch-atxx/pmu.h>
 #include <asm/arch-atxx/pm.h>
 #include <asm/arch-atxx/aboot.h>
+#include <asm/arch-atxx/gpio.h>
 #include <i2c.h>
 #include "at2600_pm_regs.h"
 #include "at2600_pm_generic.h"
@@ -362,22 +363,30 @@ void pmu_power_show()
 
 void set_backlight(u8 dimfreq, u8 ledman)
 {
+        uint8_t reg;
+        int ret = 0;
+        dimfreq = 0x4;	/* 78.1kHz */
 
-	uint8_t 	dculedc1;
-	uint8_t 	dculedc2;
+        at2600_pm_read_reg(AT2600_PM_REG_PWM1S, &reg);
+        reg = (reg | PWMx_SELECT) | (dimfreq << 5)| PWMx_POLARITY;
+        at2600_pm_write_reg(AT2600_PM_REG_PWM1S, reg);
 
-	dculedc1 = 0;
-	dculedc2 = 0;
+        /* power on */
+        at2600_pm_write_reg(AT2600_PM_REG_GPIO1C1, GPIOx_PWM1_OUTPUT);
+        at2600_pm_write_reg(AT2600_PM_REG_GPIO2C1, GPIOx_PWM1_OUTPUT);
+        at2600_pm_write_reg(AT2600_PM_REG_GPIO3C1, GPIOx_PWM1_OUTPUT);
+        at2600_pm_write_reg(AT2600_PM_REG_GPIO4C1, GPIOx_PWM1_OUTPUT);
+        at2600_pm_write_reg(AT2600_PM_REG_GPIO5C1, GPIOx_PWM1_OUTPUT);
+        at2600_pm_write_reg(AT2600_PM_REG_GPIO6C1, GPIOx_PWM1_OUTPUT);
 
-
-	dculedc1 |= DCDLED_POWER_ON << DCDLED_POWER_SHIFT;
-	dculedc1 |= 0x0f;
-	dculedc2 |= DCDLED_LED_STEP << DCDLED_VOL_MODE_SHIFT;
-	dculedc2 |= DCDLED_LED_STEP_244_0US << DCDLED_STEP_COUNT_SHIFT;
-
-	at2600_pm_write_reg(AT2600_PM_REG_DCDLEDC1,dculedc1);
-	at2600_pm_write_reg(AT2600_PM_REG_DCDLEDC2,dculedc2);
-
+        ret = atxx_request_gpio(GPIO_LCD_BL_EN);
+        if (ret) {
+                printf("Failed to request gpio LCD backlight %d!\n", ret);
+                return;
+        }
+        atxx_set_gpio_direction(GPIO_LCD_BL_EN, 0);
+        atxx_gpio_set(GPIO_LCD_BL_EN, 1);
+        atxx_free_gpio(GPIO_LCD_BL_EN);
 }
 
 /* put whole system to shutdown  */
