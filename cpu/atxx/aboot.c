@@ -128,7 +128,7 @@ static int boot_from_sd(char * bootstr, char *fstype)
 	}
 
 	if (bootstr) {
-		sprintf(buffer, "%s liveboot=%s livefs=%s",
+		sprintf(buffer, "%s liveboot=%s livefs=%s uart_enable=1",
 				args, bootstr, fstype);
 	} else {
 		sprintf(buffer, "%s", args);
