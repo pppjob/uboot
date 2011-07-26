@@ -709,6 +709,7 @@ static int atxx_nd_read_page_hwecc(struct mtd_info *mtd, struct
 	uint8_t *oob;
 	int i;
 #endif
+	int ecc_corrected = 0;
 
 	atxx_nd_debug("atxx_nd_read_page_hwecc - page:%08x,buf:%08x\n", 
 				page, (int)buf);
@@ -839,8 +840,8 @@ static int atxx_nd_read_page_hwecc(struct mtd_info *mtd, struct
 					"ecc status2:%08x\n",
 					page, status1, status2);
 			mtd->ecc_stats.failed++;
-		} else
-			mtd->ecc_stats.corrected +=
+		} else {
+			ecc_corrected =
 				((status1 & NFC_ECC_CORRECTED_MASK1)
 				 >> NFC_ECC_CORRECTED_SHIFT1) +
 				((status1 & NFC_ECC_CORRECTED_MASK2)
@@ -857,6 +858,26 @@ static int atxx_nd_read_page_hwecc(struct mtd_info *mtd, struct
 				 >> NFC_ECC_CORRECTED_SHIFT3) +
 				((status2 & NFC_ECC_CORRECTED_MASK4)
 				 >> NFC_ECC_CORRECTED_SHIFT4);
+			if(((status1 & NFC_ECC_CORRECTED_MASK1)
+				>> NFC_ECC_CORRECTED_SHIFT1) >= (ecc_number * 2 / 3) ||
+				((status1 & NFC_ECC_CORRECTED_MASK2)
+				>> NFC_ECC_CORRECTED_SHIFT2) >= (ecc_number * 2 / 3) ||
+				((status1 & NFC_ECC_CORRECTED_MASK3)
+				>> NFC_ECC_CORRECTED_SHIFT3) >= (ecc_number * 2 / 3) ||
+				((status1 & NFC_ECC_CORRECTED_MASK4)
+				>> NFC_ECC_CORRECTED_SHIFT4) >= (ecc_number * 2 / 3) ||
+				((status2 & NFC_ECC_CORRECTED_MASK1)
+				>> NFC_ECC_CORRECTED_SHIFT1) >= (ecc_number * 2 / 3) ||
+				((status2 & NFC_ECC_CORRECTED_MASK2)
+				>> NFC_ECC_CORRECTED_SHIFT2) >= (ecc_number * 2 / 3) ||
+				((status2 & NFC_ECC_CORRECTED_MASK3)
+				>> NFC_ECC_CORRECTED_SHIFT3) >= (ecc_number * 2 / 3) ||
+				((status2 & NFC_ECC_CORRECTED_MASK4)
+				>> NFC_ECC_CORRECTED_SHIFT4) >= (ecc_number * 2 / 3)) {
+				mtd->ecc_stats.corrected += ecc_corrected;
+				printf("ecc_correct more then  2 / 3 of ecc_number\n");
+			 }
+		}
 	} else if (mtd->writesize == 2048) {	
 		/* ecc status */
 		if (status1 & (NFC_ECC_UNCORRECT1 | NFC_ECC_UNCORRECT2 |
@@ -864,8 +885,8 @@ static int atxx_nd_read_page_hwecc(struct mtd_info *mtd, struct
 			atxx_nd_err("nand ecc error, page:%08x, ecc status:%08x\n",
 					page, status1);
 			mtd->ecc_stats.failed++;
-		} else
-			mtd->ecc_stats.corrected +=
+		} else {
+			ecc_corrected +=
 				((status1 & NFC_ECC_CORRECTED_MASK1)
 				 >> NFC_ECC_CORRECTED_SHIFT1) +
 				((status1 & NFC_ECC_CORRECTED_MASK2)
@@ -874,15 +895,32 @@ static int atxx_nd_read_page_hwecc(struct mtd_info *mtd, struct
 				 >> NFC_ECC_CORRECTED_SHIFT3) +
 				((status1 & NFC_ECC_CORRECTED_MASK4)
 				 >> NFC_ECC_CORRECTED_SHIFT4);
+			if(((status1 & NFC_ECC_CORRECTED_MASK1)
+					>> NFC_ECC_CORRECTED_SHIFT1) >= (ecc_number * 2 / 3) ||
+					((status1 & NFC_ECC_CORRECTED_MASK2)
+					>> NFC_ECC_CORRECTED_SHIFT2) >= (ecc_number * 2 / 3) ||
+					((status1 & NFC_ECC_CORRECTED_MASK3)
+					>> NFC_ECC_CORRECTED_SHIFT3) >= (ecc_number * 2 / 3) ||
+					((status1 & NFC_ECC_CORRECTED_MASK4)
+					>> NFC_ECC_CORRECTED_SHIFT4) >= (ecc_number * 2 / 3)) {
+					mtd->ecc_stats.corrected += ecc_corrected;
+					printk("ecc_correct more then  2 /3 of ecc_number\n");
+				}
+		}
 	} else {
 		if (status1 & NFC_ECC_UNCORRECT1) {
 			atxx_nd_err("nand ecc error, page:%08x, ecc status:%08x\n",
 					page, status1);
 			mtd->ecc_stats.failed++;
 		} else
-			mtd->ecc_stats.corrected +=
+			ecc_corrected +=
 				((status1 & NFC_ECC_CORRECTED_MASK1)
 				 >> NFC_ECC_CORRECTED_SHIFT1);
+			if(((status1 & NFC_ECC_CORRECTED_MASK1)
+				>> NFC_ECC_CORRECTED_SHIFT1) >= (ecc_number * 2 / 3)) {
+				mtd->ecc_stats.corrected += ecc_corrected;
+				printk("ecc_correct more then  2 /3 of ecc_number\n");
+			}
 	}
 
 	return 0;
@@ -2238,10 +2276,17 @@ static void atxx_nd_set_timing(void)
 		write_hold_time = write_setup_time = 4;
 	} else if ((rate < 156 * 1024 * 1024)
 		   && (rate >= 104 * 1000 * 1000)) {
-		read_hold_time = 2;
-		read_setup_time = 3;
+#if defined(CONFIG_BOARD_ATB1005)
+		read_hold_time = 0;
+		read_setup_time = 2;
+		write_hold_time = 4;
+		write_setup_time = 3;
+#else
+		read_hold_time = 0;
+		read_setup_time = 2;
 		write_hold_time = 3;
 		write_setup_time = 3;
+#endif
 	} else {
 		read_hold_time = read_setup_time = 3;
 		write_hold_time = write_setup_time = 4;

@@ -323,11 +323,9 @@ static int scan_block_full(struct mtd_info *mtd, struct nand_bbt_descr *bd,
 	int ret, j;
 
 	ret = scan_read_raw(mtd, buf, offs, readlen);
-	if (ret)
-		return ret;
 
 	for (j = 0; j < len; j++, buf += scanlen) {
-		if (check_pattern(buf, scanlen, mtd->writesize, bd))
+		if (check_pattern(buf, scanlen, mtd->writesize, bd) == 0)
 			return 1;
 	}
 	return 0;
@@ -1083,6 +1081,7 @@ int nand_update_bbt(struct mtd_info *mtd, loff_t offs)
 /* Define some generic bad / good block scan pattern which are used
  * while scanning a device for factory marked good / bad blocks. */
 static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
+static uint8_t scan_00_pattern[] = { 0x00, 0x00 };
 
 static struct nand_bbt_descr smallpage_memorybased = {
 	.options = NAND_BBT_SCAN2NDPAGE,
@@ -1095,11 +1094,11 @@ static struct nand_bbt_descr largepage_memorybased = {
 #if 0
 	.options = 0,
 #else
-	.options = NAND_BBT_SCAN2NDPAGE,
+	.options = NAND_BBT_SCANALLPAGES,
 #endif
 	.offs = 0,
 	.len = 1,
-	.pattern = scan_ff_pattern
+	.pattern = scan_00_pattern
 };
 
 static struct nand_bbt_descr smallpage_flashbased = {

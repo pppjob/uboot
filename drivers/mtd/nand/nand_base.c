@@ -401,10 +401,12 @@ static int nand_block_bad(struct mtd_info *mtd, loff_t ofs, int getchip)
 			res = 1;
 	}
 #else
-	/* read oob and compare with 0xff */
-	for (i = 0; i < 2; i++) {
+
+	/* read oob and compare with 0x00 */
+	for (i = 0; i < mtd->erasesize / mtd->writesize; i++) {
 		chip->ecc.read_oob(mtd, chip, page + i, 0);
-		if ((chip->oob_poi[chip->badblockpos] & 0xff) != 0xff) {
+		if (((chip->oob_poi[chip->badblockpos] & 0xff) == 0x00) &&
+			((chip->oob_poi[chip->badblockpos + 1] & 0xff) == 0x00)) {
 			res = 1;
 			break;
 		}
@@ -429,6 +431,7 @@ static int nand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	struct nand_chip *chip = mtd->priv;
 	uint8_t buf[2] = { 0, 0 };
 	int block, ret;
+	int mark_err = 0;
 #ifdef CONFIG_NAND_FULL_HW
 	int chipnr, page, i;
 #endif
@@ -462,19 +465,26 @@ static int nand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	
 		/* Shift to get page */
 		page = (int)(ofs >> chip->page_shift);
-	
-		for (i = 0; i < 2; i++) {
+
+		/*before to mark this block bad, erase the block*/
+
+		chip->erase_cmd(mtd, page & chip->pagemask);
+
+		for (i = 0; i < mtd->erasesize / mtd->writesize; i++) {
+			chip->ecc.read_oob(mtd, chip, page + i, 0);
+
 			chip->oob_poi[chip->badblockpos] = 0;
+
 			chip->ecc.write_oob(mtd, chip, page + i);
 	
 			chip->ecc.read_oob(mtd, chip, page + i, 0);
 			/* FIXME */
-			buf[i] = chip->oob_poi[chip->badblockpos];
-			if (buf[i] != 0xff) {
-				ret = -EINVAL;
-				break;
-			}
+			if (chip->oob_poi[chip->badblockpos] == 0xff)
+				mark_err ++;
 		}
+
+		if(mark_err == (mtd->erasesize / mtd->writesize))
+			ret = -EINVAL;
 #endif
 		nand_release_device(mtd);
 	}
