@@ -113,7 +113,9 @@
 #define ATXX_TSC_SWMEAZ2	0x54 /* Software control measure Z2 state */
 #define ATXX_TSC_SWMEAA0	0x58 /* Software control measure Aux0 state */
 #define ATXX_TSC_SWMEAA1	0x5C /* Software control measure Aux1 state */
-#define ATXX_TSC_SWMEAA2	0x60 /* Software control measure Aux1 state */
+#define ATXX_TSC_SWMEAA2	0x60 /* Software control measure Aux2 state */
+#define ATXX_TSC_SWMEAA3        0x64 /* Software control measure Aux3 state */
+#define ATXX_TSC_SWMEAA4        0x68 /* Software control measure Aux4 state */
 #define TSC_SWCS_XPP		0x01 /* Control TSC ADC's Xppsw */
 #define TSC_SWCS_XNN		(0x1 << 1) /* Control TSC ADC's Xnnsw*/
 #define TSC_SWCS_YPP		(0x1 << 2) /* Control TSC ADC's Yppsw */
@@ -146,10 +148,97 @@ static void tsc_write_reg(uint32_t addr, uint32_t val)
  */
 int adc_get_aux(int aux)
 {
-	return 0;
+	int retvalue = 0;
+	int value = 0;
+	unsigned old_adc;
+
+	if (aux < 0 || aux > 2)
+		return -1;
+
+	value = tsc_read_reg(ATXX_TSC_CTRL);
+	value &= ~TSC_CTRL_OPTADCEN;
+	tsc_write_reg(ATXX_TSC_CTRL, value);
+
+	value = tsc_read_reg(ATXX_TSC_ADC);
+	value |= TSC_ADC_STS;
+	tsc_write_reg(ATXX_TSC_ADC, value);
+
+	mdelay(1);
+
+	value = tsc_read_reg(ATXX_TSC_CTRL);
+	value |= TSC_CTRL_OPTADCEN;
+	tsc_write_reg(ATXX_TSC_CTRL, value);
+
+	value = tsc_read_reg(ATXX_TSC_ADC);
+	old_adc = value;
+	value &= ~TSC_ADC_STS;
+	value |= TSC_ADC_PSM;
+	value &= ~TSC_ADC_AD;
+	value |= (aux+6) << 10;
+	value &= 0xFFFFFF00;
+	tsc_write_reg(ATXX_TSC_ADC, value);
+
+	value = tsc_read_reg(ATXX_TSC_CTRL);
+	value |= TSC_CTRL_MEASURE_AUX;
+	tsc_write_reg(ATXX_TSC_CTRL, value);
+
+	mdelay(5);
+	switch(aux) {
+		case 0:
+			retvalue = TSC_AUX_AUX0 & tsc_read_reg(ATXX_TSC_AUX);
+			break;
+		case 1:
+			retvalue = (TSC_AUX_AUX1 & tsc_read_reg(ATXX_TSC_AUX)) >> 16;
+			break;
+		case 2:
+			retvalue = (TSC_ST_AUX2 & tsc_read_reg(ATXX_TSC_ST));
+			break;
+		default:
+			retvalue = -1;
+			break;
+	}
+
+	value = tsc_read_reg(ATXX_TSC_CTRL);
+	value &= ~TSC_CTRL_OPTADCEN;
+	tsc_write_reg(ATXX_TSC_CTRL, value);
+
+	tsc_write_reg(ATXX_TSC_ADC, TSC_ADC_STS
+			| tsc_read_reg(ATXX_TSC_ADC));
+	mdelay(1);
+
+	value = tsc_read_reg(ATXX_TSC_CTRL);
+	value |= TSC_CTRL_OPTADCEN;
+	tsc_write_reg(ATXX_TSC_CTRL, value);
+
+	return retvalue;
 }
 
 int adc_init(void)
 {
+	int i;
+
+	for (i=4; i < 25; i++)
+		tsc_write_reg(i*4, 0x00);
+
+	tsc_write_reg(ATXX_TSC_CONFIG, 0xBBFF);	/* reset TSC */
+
+	/* enable H/W control to TSC,disable ADC, measure AUX0/1/2
+	   AV 8 data average,PV 5ms */
+	tsc_write_reg(ATXX_TSC_ADC, 0x0ECC8);
+	tsc_write_reg(ATXX_TSC_SWMEAA0, 0x49002);	/* AUX0 signal select */
+	tsc_write_reg(ATXX_TSC_SWMEAA1, 0x4A002);	/* AUX1 signal select */
+	tsc_write_reg(ATXX_TSC_SWMEAA2, 0x4B002);	/* AUX2 signal select */
+
+	tsc_write_reg(ATXX_TSC_SWCTRL, 0);
+	tsc_write_reg(ATXX_TSC_CONFIG, (0x7 << 0x19) | (0x7 << 0x16));
+	tsc_write_reg(ATXX_TSC_SWPREC, 0x4050A);
+
+	tsc_write_reg(ATXX_TSC_DETCT, TSC_DETCT_PC_DET_EN| tsc_read_reg(ATXX_TSC_DETCT));
+
+	/* TSC clock rate 52MHz,internal ref,4-wire mode,S/W configure
+	   parameters ADC power saving,disable panel IRQ when touch release,
+	   enable AUX */
+	tsc_write_reg(ATXX_TSC_REF, 0x100000);
+	tsc_write_reg(ATXX_TSC_CTRL, 0x00d00481);
 	return 0;
 }
