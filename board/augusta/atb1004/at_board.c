@@ -60,11 +60,11 @@ int board_init(void)
 
 	/*enable at2600 power */
 	atxx_request_gpio(GPIO_PMU_WAKEUP);
-	atxx_set_gpio_direction(GPIO_PMU_WAKEUP, 1);
+	atxx_set_gpio_direction(GPIO_PMU_WAKEUP, 0);
 	atxx_gpio_set(GPIO_PMU_WAKEUP,0);
 
 	atxx_request_gpio(GPIO_PMU_MODE);
-	atxx_set_gpio_direction(GPIO_PMU_MODE, 1);
+	atxx_set_gpio_direction(GPIO_PMU_MODE, 0);
 	atxx_gpio_set(GPIO_PMU_MODE,0);
 
 	at6600_i2c_init();
