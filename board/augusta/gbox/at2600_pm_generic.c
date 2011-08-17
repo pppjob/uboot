@@ -415,7 +415,7 @@ void set_backlight(u8 dimfreq, u8 ledman)
 	val = (val >> 8) / 78100;
 	set_backlight_freq(val);
 
-	val= (ledman * 0xff / 0x3f);
+	val= (ledman * 0xff / 0x3f) / 2;
 
 	set_backlight_dc(ledman);
 

@@ -227,7 +227,8 @@ int pannel_set_ops(struct atxxfb *atfb)
 	atfb->fb->var.hsync_len = LCD_HSYNC;
 
 	atfb->format = RGB16;
-	atfb->resolution = ATXX_HVGA;
+	atfb->xres = panel_info.vl_col;
+	atfb->yres = panel_info.vl_row;
 
 	return 0;
 }
