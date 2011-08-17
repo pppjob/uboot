@@ -2417,6 +2417,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_ATB1004              8103
 #define MACH_TYPE_ATB1005              8104
 #define MACH_TYPE_G01                  8105
+#define MACH_TYPE_GAMEBOX              8106
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type

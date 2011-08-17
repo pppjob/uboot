@@ -107,7 +107,8 @@ int pannel_set_ops(struct atxxfb *atfb)
 	atfb->fb->var.hsync_len = LCD_HSYNC;
 
 	atfb->format = RGB16;
-	atfb->resolution = ATXX_SVGA;
+	atfb->xres = panel_info.vl_col;
+	atfb->yres = panel_info.vl_row;
 	
 	return 0;
 }
@@ -142,7 +143,6 @@ int pannel_set_power(int on_off)
 
 void pannel_set_refresh_rate(struct clk *lcd_clk)
 {
-	clk_set_parent(lcd_clk, clk_get("pll1"));
 	clk_set_rate(lcd_clk, 39000000);
 }
 

@@ -107,8 +107,9 @@ int pannel_set_ops(struct atxxfb *atfb)
 	atfb->fb->var.hsync_len = LCD_HSYNC;
 
 	atfb->format = RGB16;
-	atfb->resolution = ATXX_WVGA;
-	
+	atfb->xres = panel_info.vl_col;
+	atfb->yres = panel_info.vl_row;
+
 	return 0;
 }
 
@@ -118,6 +119,7 @@ int pannel_set_power(int on_off)
 
 	set_backlight(1, 0);
 
+#if !defined(CONFIG_BOARD_GAMEBOX)
 	err = atxx_request_gpio(GPIO_LCD_PWEN_AVDD);
 	if (err) {
 		printf("Failed to request gpio pmu_pwren1 %d!\n", err);
@@ -129,20 +131,20 @@ int pannel_set_power(int on_off)
 		mdelay(20);
 		atxx_set_gpio_direction(GPIO_LCD_PWEN_AVDD, 0);
 		atxx_gpio_set(GPIO_LCD_PWEN_AVDD, 0);
-	}else{
+	} else {
 		atxx_set_gpio_direction(GPIO_LCD_PWEN_AVDD, 1);
 		mdelay(20);
 		pmu_power_control(PPS_LCD, PS_OFF);
 	}
 
 	atxx_free_gpio(GPIO_LCD_PWEN_AVDD);
+#endif
 
 	return err;
 }
 
 void pannel_set_refresh_rate(struct clk *lcd_clk)
 {
-	clk_set_parent(lcd_clk, clk_get("pll1"));
 	clk_set_rate(lcd_clk, 34000000);
 }
 

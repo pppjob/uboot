@@ -1384,7 +1384,7 @@ void atxx_nd_read_ids(int * first_id_byte,
 static uint32_t atxx_nd_identify(struct mtd_info *mtd)
 {  
 	uint32_t io_data, value, rt = 0;
-	 
+
 	io_data = atxx_nd_read_reg(REG_NFC_SOFT_PIN2);
 	printf("nand io-data: 0x%08x\n", io_data);
 
@@ -1486,17 +1486,17 @@ static uint32_t atxx_nd_identify(struct mtd_info *mtd)
 		case 3:
 			ecc_number = 24;
 			size_per_sector = 1024;
-			mtd->oobsize = 24 * (mtd->writesize / size_per_sector);
+			mtd->oobsize = 64 * (mtd->writesize / size_per_sector);
 			break;
 		case 4:
-			ecc_number = 15;
+			ecc_number = 12;
 			size_per_sector = 1024;
-			mtd->oobsize = 36 * (mtd->writesize / size_per_sector);
+			mtd->oobsize = 30 * (mtd->writesize / size_per_sector);
 			break;
 		case 5:
-			ecc_number = 6;
+			ecc_number = 20;
 			size_per_sector = 1024;
-			mtd->oobsize = 16 * (mtd->writesize / size_per_sector);
+			mtd->oobsize = 52 * (mtd->writesize / size_per_sector);
 			break;
 		case 6:
 			ecc_number = 0;
@@ -1504,9 +1504,9 @@ static uint32_t atxx_nd_identify(struct mtd_info *mtd)
 			mtd->oobsize = 16 * (mtd->writesize / size_per_sector);
 			break;
 		case 7:
-			ecc_number = 1;
+			ecc_number = 22;
 			size_per_sector = 1024;
-			mtd->oobsize = 16 * (mtd->writesize / size_per_sector);
+			mtd->oobsize = 56 * (mtd->writesize / size_per_sector);
 			break;
 		default:
 			break;
@@ -1885,7 +1885,7 @@ static struct nand_flash_dev *atxx_nd_get_flash_type(struct mtd_info *mtd,
 	atxx_nd_select_chip(mtd, 0);
 	atxx_nd_read_ids(maf_id, &dev_id, &ext_id);
 	ext_id_bak = ext_id;
-
+	chip->select_chip(mtd, -1);
 	printf("maf_id 0x%x, dev_id 0x%x, ext_id 0x%x\n", *maf_id, dev_id, ext_id);
 	/* Lookup the flash id */
 	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
@@ -2015,8 +2015,7 @@ static int atxx_nd_config_init(struct mtd_info *mtd)
 #else
 		chip->ecc.bytes = ((ecc_number * 10) + 3)/4;
 #endif
-	}
-	else {
+	} else {
 		chip->ecc.bytes  = 0x08;
 	}
 
@@ -2198,11 +2197,12 @@ int atxx_nd_scan(struct mtd_info *mtd, int maxchips)
 		int first_id, second_id, fourth_id;
 		chip->select_chip(mtd, i);
 		atxx_nd_read_ids(&first_id, &second_id, &fourth_id);
-
 		/* Read manufacturer and device IDs */
 		if (nand_maf_id != first_id || type->id != second_id)
 			break;
 	}
+	chip->select_chip(mtd, -1);
+
 	if (i > 1)
 		printf("%d NAND chips detected\n", i);
 

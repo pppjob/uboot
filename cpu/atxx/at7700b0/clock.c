@@ -376,6 +376,43 @@ static int atxx_div_is_enable(struct clk *clk)
 	return (divreg & (1 << DIV_EN));
 }
 
+static unsigned long get_div_round_rate(unsigned long parent, unsigned long rate)
+{
+	uint32_t div;
+	div = (parent + rate - 1) / rate;
+	div = (div < DIV_MAX) ? div : DIV_MAX;
+	return parent / div;
+}
+
+static int atxx_auto_set_parent(struct clk *clk, unsigned long rate)
+{
+	int i,index = 0;
+	unsigned long cal[4], small = 0xffffffff;
+	if (0 == rate) {
+		return -1;
+	}
+	cal[0] = rate - get_div_round_rate(clk_xtal.rate, rate);
+	cal[1] = rate - get_div_round_rate(atxx_pll_get_rate(&clk_pll[0]), rate);
+	cal[2] = rate - get_div_round_rate(atxx_pll_get_rate(&clk_pll[1]), rate);
+	cal[3] = rate - get_div_round_rate(atxx_pll_get_rate(&clk_pll[2]), rate);
+	for(i = 0; i < 4; i++) {
+		if(small > cal[i]) {
+			small = cal[i];
+			index = i;
+		}
+	}
+	if (0 == index) {
+		clk_set_parent(clk, &clk_xtal);
+	} else if (1 == index) {
+		clk_set_parent(clk, &clk_pll[0]);
+	} else if (2 == index) {
+		clk_set_parent(clk, &clk_pll[1]);
+	} else {
+		clk_set_parent(clk, &clk_pll[2]);
+	}
+	return 0;
+}
+
 static int atxx_div_set_rate(struct clk *clk, unsigned long rate)
 {
 	volatile uint32_t divreg;
@@ -385,6 +422,7 @@ static int atxx_div_set_rate(struct clk *clk, unsigned long rate)
 		return -EINVAL;
 	}
 
+	atxx_auto_set_parent(clk, rate);
 	/* use floor rate */
 	div = (clk_get_rate(clk->parent) + rate - 1) / rate;
 	div = (div < DIV_MAX) ? div : DIV_MAX;

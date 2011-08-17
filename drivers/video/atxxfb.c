@@ -522,12 +522,6 @@ static int atxxfb_set_par(struct fb_info *fbinfo)
 		return -EINVAL;
 	}
 
-	/* avoid unnecessary initialize since upper layer call fb_set_var everytime*/
-	if ((var->xres == atfb->xres) &&  (var->yres == atfb->yres)) {
-		/* not changed setting, just return */
-		return 0;
-	}
-
 	if ((var->xres == lcd_xres) && (var->yres == lcd_yres)) {
 		mlcd_on_off(MLCD_OFF);
 #ifdef CONFIG_BOARD_T3C
@@ -719,31 +713,9 @@ void lcd_ctrl_init(void *lcdbase)
 
 	bpp = bytes_per_pixel[atfb.format];
 
-	switch ( atfb.resolution  ) {
-		case ATXX_QVGA:
-			lcd_xres = LCD_XRES_240;
-			lcd_yres = LCD_YRES_320;
-			break;
-		case ATXX_VGA:
-			lcd_xres = LCD_XRES_480;
-			lcd_yres = LCD_YRES_640;
-			break;
-		/*FIXME: 800*480*/
-		case ATXX_WVGA:
-			lcd_xres = LCD_XRES_480;
-			lcd_yres = LCD_YRES_800;
-			break;
-		case ATXX_HVGA:
-			lcd_xres = LCD_XRES_320;
-			lcd_yres = LCD_YRES_480;
-			break;
-		case ATXX_SVGA:
-			lcd_xres = LCD_XRES_800;
-			lcd_yres = LCD_YRES_600;
-			break;
-		default:
-			break;
-	}
+	lcd_xres = atfb.xres;
+	lcd_yres = atfb.yres;
+
 
 	psize = lcd_yres * lcd_xres * bpp;
 
