@@ -119,7 +119,11 @@ int pannel_set_power(int on_off)
 
 	set_backlight(1, 0);
 
-#if !defined(CONFIG_BOARD_GAMEBOX)
+#if defined(CONFIG_BOARD_GAMEBOX)
+	atxx_set_gpio_direction(GPIO_LCD_BL_EN, 0);
+	atxx_gpio_set(GPIO_LCD_BL_EN, 0);
+	atxx_free_gpio(GPIO_LCD_BL_EN);
+#else
 	err = atxx_request_gpio(GPIO_LCD_PWEN_AVDD);
 	if (err) {
 		printf("Failed to request gpio pmu_pwren1 %d!\n", err);

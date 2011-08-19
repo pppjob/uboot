@@ -320,7 +320,7 @@ void power_on_detect (void)
 	t1 = get_timer (0);
 	do {
 		t2 = get_timer (0);
-		if ((t2 - t1) >= 1000)
+		if ((t2 - t1) >= 100)
 			break;
 	} while (1);
 
@@ -403,10 +403,6 @@ void set_backlight(u8 dimfreq, u8 ledman)
 {
 	uint32_t val;
 
-	atxx_set_gpio_direction(GPIO_LCD_BL_EN, 0);
-	atxx_gpio_set(GPIO_LCD_BL_EN, 0);
-	atxx_free_gpio(GPIO_LCD_BL_EN);
-
 	val = topctl_read_reg(TOPCTL1);
 	val |= (1 << 4);
 	topctl_write_reg(TOPCTL1, val);
@@ -417,10 +413,15 @@ void set_backlight(u8 dimfreq, u8 ledman)
 
 	val= (ledman * 0xff / 0x3f) / 2;
 
-	set_backlight_dc(ledman);
+	set_backlight_dc(val);
 
-	mdelay(40);
-	set_backlight_onoff(1);
+	if(ledman == 0)
+		set_backlight_onoff(0);
+	else {
+		mdelay(50);
+		set_backlight_onoff(1);
+	}
+
 }
 
 /* put whole system to shutdown  */
