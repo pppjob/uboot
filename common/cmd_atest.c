@@ -649,6 +649,28 @@ static int gsm_test(int argc, char *argv[])
 }
 #endif
 
+static int lcdbl_test(int argc, char *argv[])
+{
+	char *action;
+	int num;
+	int ret = -1;
+
+	if (argc < 2){
+		return ret;
+	}
+	action = argv[2];
+	num = simple_strtoul(argv[3], NULL, 10);
+
+	if (!strcmp(action, "on")) {
+		set_backlight(1,num);
+		ret = 0;
+	} else if (!strcmp(action, "off")){
+		set_backlight(1,0);
+		ret = 0;
+	}
+	return ret;
+}
+
 int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int ret = -1;
@@ -677,6 +699,8 @@ int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		ret = gsm_test(argc, argv);
 	} else if (!strcmp(subcmd, "ethernet")) {
 		ret = ethernet_test(argc, argv);
+	} else if (!strcmp(subcmd, "lcdbl")) {
+		ret = lcdbl_test(argc, argv);
 	}
 
 	if (ret == 0)
@@ -694,5 +718,6 @@ U_BOOT_CMD(
 	"atest sn|imei|wifi|bt|mask|battery|ethernet read|write [data]\n"
 	"atest autotest --- do factory autotest\n"
 	"atest gsm download|bridge --- connect gsm uart to uart0\n"
+	"atest lcdbl [on/off] --- set lcdbacklight on/off\n"
 );
 

@@ -72,7 +72,7 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode);
 void pmu_power_show(void);
 
 void set_backlight(u8 dimfreq, u8 ledman);
-
+void set_lcd_backlight(u8 dimfreq, u8 ledman);
 uint32_t adc_get_pmu(void);
 
 void battery_check(void);
