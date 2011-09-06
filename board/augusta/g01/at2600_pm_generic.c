@@ -186,9 +186,9 @@ static int at2600_pm_set_power_supply(ps_setting_t ps, power_supply_mode mode)
 }
 
 /**
-  * set_default_power_supply - Change power supply to default
-  *
-  */
+ * set_default_power_supply - Change power supply to default
+ *
+ */
 int default_power_supply(void)
 {
 	power_supply_mode	mode;
@@ -202,7 +202,7 @@ int default_power_supply(void)
 		ret |= at2600_pm_set_power_supply(ps_setting_default[i], mode);
 		udelay(1000);
 	}
-    DPRINTF("\nret=%x\n",ret);
+	DPRINTF("\nret=%x\n",ret);
 	return ret;
 }
 
@@ -223,8 +223,38 @@ int pmu_power_control(power_supply_component module, power_supply_mode mode)
 			udelay(1000);
 		}
 	}
-	
+
 	return ret;
+}
+
+void at2600_vibrator_motor_power_on_off(power_supply_mode mode)
+{
+	uint8_t gpioxc1 = 0;
+
+	DPRINTF("function:%s,line:%d invalid mode =0x%x\n",
+			__FUNCTION__,__LINE__,mode);
+
+	at2600_pm_read_reg(AT2600_PM_REG_VIBRC1, &gpioxc1);
+	switch (mode) {
+		case PS_ON:
+			gpioxc1 &= SINK_VIBR_POWER_SWITCH_MASK;
+			gpioxc1 &= SINK_VIBR_DOUT_MASK;
+			gpioxc1 |= SINK_VIBR_POWER_ON << SINK_VIBR_POWER_SHIFT;
+			gpioxc1 |= SINK_VIBR_DOUT_MAX << SINK_VIBR_DOUT_SHIFT;
+
+			break;
+		case PS_OFF:
+			gpioxc1 &= SINK_VIBR_POWER_SWITCH_MASK;
+			gpioxc1 |= SINK_VIBR_POWER_DOWN << SINK_VIBR_POWER_SHIFT;
+
+			break;
+		default:
+			DPRINTF("wrong mode for vibrator motor\n");
+			return;
+	}
+	at2600_pm_write_reg(AT2600_PM_REG_VIBRC1, gpioxc1);
+
+	return;
 }
 
 void power_on_detect (void)
@@ -287,7 +317,14 @@ void power_on_detect (void)
 			break;
 	} while (1);
 
-	return;
+	at2600_vibrator_motor_power_on_off(PS_ON);
+	t1 = get_timer (0);
+	do {
+		t2 = get_timer (0);
+		if ((t2 - t1) >= 100)
+			break;
+	} while (1);
+	at2600_vibrator_motor_power_on_off(PS_OFF);
 
 	return;
 
@@ -300,28 +337,7 @@ power_off:
 uint32_t adc_get_pmu(void)
 {
 	uint16_t        adc_result = 0;
-	uint8_t         adcc1, adcs1, adcs3, reg_val;
 
-#if 0
-	adcc1 = 0x8 | (0x1 << 4);
-	pcf50626_write_reg(ADCC1, adcc1);
-
-	pcf50626_read_reg(ADCC1, &adcc1);
-
-	/* set start adc command by writing 1 to bit[0] of ADCC1 */
-	adcc1 = (adcc1 & 0xFE) | 1;
-	pcf50626_write_reg(ADCC1, adcc1);
-
-	do {
-		pcf50626_read_reg(INT3, &reg_val);
-	} while ((reg_val & PCF50626_INT3_ADCRDY) == 0);
-
-	pcf50626_read_reg(ADCS1, &adcs1);
-	adc_result = adcs1 << 2;
-
-	pcf50626_read_reg(ADCS3, &adcs3);
-	adc_result |= (adcs3 & 0x3);
-#endif        
 	return adc_result;
 }
 
@@ -397,6 +413,16 @@ void set_backlight(u8 dimfreq, u8 ledman)
 	atxx_free_gpio(GPIO_LCD_BL_EN);
 }
 
+int pmu_charger_exist(void)
+{
+	uint8_t oocs = 0;
+
+	at2600_pm_read_reg(AT2600_PM_REG_OOCS, &oocs);
+	if (oocs & AT2600_PM_OOCS_UCHG)
+		return 1;
+	else
+		return 0;
+}
 /* put whole system to shutdown  */
 int at2600_pm_shutdown_system(void)
 {

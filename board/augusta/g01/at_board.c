@@ -153,9 +153,12 @@ int do_abortboot(void)
 		goto non_nand_boot;
 	}
 
-	mode = serial_detect(0);
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
+	/* disable uart0 detection if charger exists */
+	if (pmu_charger_exist() == 0) {
+		mode = serial_detect(0);
+		if (mode != NAND_BOOT) {
+			goto non_nand_boot;
+		}
 	}
 
 	mode = swcfg_detect();

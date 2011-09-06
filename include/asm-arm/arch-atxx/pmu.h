@@ -76,4 +76,4 @@ void set_lcd_backlight(u8 dimfreq, u8 ledman);
 uint32_t adc_get_pmu(void);
 
 void battery_check(void);
-
+int pmu_charger_exist(void);

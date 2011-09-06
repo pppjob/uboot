@@ -44,6 +44,14 @@
 #define DCDLED_STEP_COUNT_SHIFT          0x0
 #define DCDLED_POWER_SHIFT               0x7
 
+/*vibr mode*/
+#define SINK_VIBR_POWER_SHIFT             0x7
+#define SINK_VIBR_POWER_SWITCH_MASK       (~(0x1 << SINK_VIBR_POWER_SHIFT))
+
+#define SINK_VIBR_DOUT_SHIFT              0x0
+#define SINK_VIBR_DOUT_MASK               (~(0x0f << SINK_VIBR_DOUT_SHIFT))
+#define SINK_VIBR_DOUT_MAX                0x0f
+
 enum ldo_power_switch{
 	 LDO_POWER_ON,
 	 LDO_POWER_DOWN,	
@@ -336,6 +344,11 @@ enum at2600_pm_dcdled_power_mask{
 
 };
 
+enum at2600_pm_sink_vibr_power_status{
+     SINK_VIBR_POWER_ON,
+     SINK_VIBR_POWER_DOWN,
+
+};
 
 
 #endif /* ___AT2600_PM_GENERIC_H_______ */
