@@ -159,7 +159,7 @@
 #define CONFIG_CLK_ARM                  806000000
 #define CONFIG_CLK_AXI                  312000000
 #define CONFIG_CLK_APP                  104000000
-#define CONFIG_CLK_MDDR                 201000000
+#define CONFIG_CLK_MDDR                 312000000
 #define CONFIG_CLK_GCLK                 312000000
 #define CONFIG_CLK_VPCLK                156000000
 #define CONFIG_CLK_VSCLK                403000000
