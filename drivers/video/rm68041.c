@@ -38,8 +38,8 @@
 #define LCD_HFP		3
 #define LCD_HBP		3
 #define LCD_HSYNC	2
-#define LCD_VFP		2
-#define LCD_VBP		2
+#define LCD_VFP		6
+#define LCD_VBP		10
 #define LCD_VSYNC	2
 
 /* spi timing info*/

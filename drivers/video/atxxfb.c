@@ -779,7 +779,7 @@ void lcd_enable(void)
 
 	/*hvga logo*/
 	lcd_paint_logo();
-	mdelay(40); /* wait for next vsync */
+	mdelay(100); /* wait for next vsync */
 
 	set_backlight(1, 0x3f);
 }
