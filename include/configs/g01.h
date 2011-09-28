@@ -26,7 +26,6 @@
 #define CONFIG_ATXX
 #define CONFIG_AT7700B0
 #define CONFIG_BOARD_G01
-#define CONFIG_IDENT_STRING 		"\n== AT7700B0-G01 ==\n"
 #define CONFIG_DISPLAY_CPUINFO
 
 /* LCD Setting */
