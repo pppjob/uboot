@@ -50,6 +50,7 @@ COBJS-$(CONFIG_VIDEO_SHARP035) += sharp_ls035.o
 COBJS-y += videomodes.o
 
 COBJS-$(CONFIG_LOGO_AUGUSTA) += logo_augusta.o
+COBJS-$(CONFIG_LOGO_DIANYI) += logo_dianyi.o
 COBJS-$(CONFIG_LOGO_DREAM) += logo_dream.o
 COBJS-$(CONFIG_LOGO_DONGXING) += logo_dongxing.o
 
