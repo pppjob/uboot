@@ -143,14 +143,13 @@ int do_abortboot(void)
 		goto non_nand_boot;
 	}
 
+	/* Only support mmc detect if key already pressed to speed up the bootup for G01*/
 	mode = keypad_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
-	}
-
-	mode = mmc_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
+	if (mode == SD_PHONETEST) {
+		mode = mmc_detect();
+		if (mode != NAND_BOOT) {
+			goto non_nand_boot;
+		}
 	}
 
 	/* disable uart0 detection if charger exists */
