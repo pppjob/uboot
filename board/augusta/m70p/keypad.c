@@ -58,10 +58,11 @@
 /* delay ms after the second key event */
 #define REP_PERIOD_VAL	150	
 
-#define KP_VOL_UP	(1 << 16)
-#define KP_VOL_DOWN	(1 << 17)
+#define KP_VOL_UP	(1 << 24)
+#define KP_VOL_DOWN	(1 << 16)
 #define KP_HOME		(1 << 25)
-#define KP_HOME_VOL_UP_DOWN		(0x3030000)
+#define KP_VOL_UP_DOWN		(0x1010000)
+
 
 int keypad_init(void)
 {
@@ -96,25 +97,11 @@ enum boot_mode keypad_detect(void)
 	printf("keystate_l=%x\n", keystate_l);
 	printf("keystate_h=%x\n", keystate_h);
 
-	/* 2 volume + home key */
-	if (~keystate_l == KP_HOME_VOL_UP_DOWN) {
-		return SD_BOARDTEST;
+	/* 2 volume */
+	if (~keystate_l == KP_VOL_UP_DOWN) {
+		return SD_PHONETEST;
 	}
-	/* 2 volume key */
-	if (~keystate_l == 
-		(KP_VOL_UP|KP_VOL_DOWN)) {
-		return CMD_MODE;
-	}
-	/* volume up + home key */	
-	if (~keystate_l == 
-		(KP_VOL_UP|KP_HOME)) {
-		return SD_RECOVERY;
-	}
-	/* volume down + home key */	
-	if (~keystate_l == 
-		(KP_VOL_DOWN|KP_HOME)) {
-		return SD_INSTALL;
-	}
+
 	/* not all of above */
 	return NAND_BOOT;
 }

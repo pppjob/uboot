@@ -148,15 +148,14 @@ int do_abortboot(void)
 	if (mode != NAND_BOOT) {
 		goto non_nand_boot;
 	}
-	
-	mode = keypad_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
-	}
 
-	mode = mmc_detect();
-	if (mode != NAND_BOOT) {
-		goto non_nand_boot;
+	/* Only support mmc detect if key already pressed to speed up the bootup for M70P*/
+	mode = keypad_detect();
+	if (mode == SD_PHONETEST) {
+		mode = mmc_detect();
+		if (mode != NAND_BOOT) {
+			goto non_nand_boot;
+		}
 	}
 
 	mode = serial_detect(0);

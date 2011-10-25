@@ -60,6 +60,7 @@
 
 #define KP_VOL_UP	(1 << 16)
 #define KP_VOL_DOWN	(1 << 24)
+#define KP_VOL_UP_DOWN		(0x1010000)
 
 int keypad_init(void)
 {
@@ -94,19 +95,11 @@ enum boot_mode keypad_detect(void)
 	printf("keystate_l=%x\n", keystate_l);
 	printf("keystate_h=%x\n", keystate_h);
 
-	/* 2 volume key */
-	if (~keystate_l == 
-		(KP_VOL_UP|KP_VOL_DOWN)) {
-		return CMD_MODE;
+	/* 2 volume */
+	if (~keystate_l == KP_VOL_UP_DOWN) {
+		return SD_PHONETEST;
 	}
-	/* volume up */
-	if (~keystate_l == KP_VOL_UP) {
-		return SD_RECOVERY;
-	}
-	/* volume down */
-	if (~keystate_l == KP_VOL_DOWN) {
-		return SD_INSTALL;
-	}
+
 	/* not all of above */
 	return NAND_BOOT;
 }
