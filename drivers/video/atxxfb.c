@@ -771,6 +771,35 @@ static void lcd_paint_logo()
     }
 }
 
+void lcd_show_logo(int logo_width, int logo_height, unsigned short *logo_data)
+{
+	int x, y;
+	int x0, y0;
+	unsigned short count = 0, color;
+	unsigned short *lcd_buf = atfb.smem_addr;
+	unsigned short *data = logo_data;
+
+	if(logo_data == NULL)
+		return ;
+
+	x0 = (lcd_xres - logo_width) / 2;
+	y0 = (lcd_yres - logo_height) / 2;
+
+    for( y = y0 ; y < y0 + logo_height ; y++ ) {
+    	for( x = x0 ; x < x0 + logo_width ; x++ ) {
+    		if (count <= 0) {
+    			count = *data++;
+    			color = *data++;
+    		}
+            if (x > 0 && x < lcd_xres && y > 0 && y < lcd_yres)
+            	lcd_buf[lcd_xres * y + x] = color;
+            count--;
+    	}
+    }
+
+	return ;
+}
+
 extern char lcd_is_enabled;
 void lcd_enable(void)
 {

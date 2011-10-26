@@ -90,6 +90,8 @@ int misc_init_r(void)
 	int i;
 	struct boot_parameter *b_param = (struct boot_parameter *)MDDR_BASE_ADDR;
 
+	battery_check();
+
 	if (!b_param->mddr_data_send) {
 		return 0;
 	}

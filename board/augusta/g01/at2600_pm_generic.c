@@ -27,10 +27,13 @@
 #include <asm/arch-atxx/pm.h>
 #include <asm/arch-atxx/aboot.h>
 #include <asm/arch-atxx/gpio.h>
+#include <asm/arch-atxx/factorydata.h>
+#include <asm/arch-atxx/adc.h>
 #include <i2c.h>
 #include "at2600_pm_regs.h"
 #include "at2600_pm_generic.h"
 #include "power_table.c"
+#include "clock_table.c"
 
 #define AT2600_PM_ID		0x1
 #define AT2600_PM_ADDR		0x70
@@ -280,6 +283,11 @@ void power_on_detect (void)
 	if (reg_val & 0x20) {
 		reg_val = 0x07;
 		at2600_pm_write_reg (AT2600_PM_REG_CBCC3, reg_val);
+
+		/* constant current 1000mA */
+		reg_val = 0x78;
+		at2600_pm_write_reg (AT2600_PM_REG_CBCC1, reg_val);
+
 		printf("usb charger connected.\n");
 		return;
 	}
@@ -341,6 +349,129 @@ uint32_t adc_get_pmu(void)
 	return adc_result;
 }
 
+static int get_battery_voltage(void)
+{
+	int adc_value, voltage = 0, calibration_k, calibration_b;
+	factory_data_t *data;
+
+#if defined(CONFIG_PMU_ADC)
+	adc_value = adc_get_pmu();
+#else
+	adc_value = adc_get_aux(TSC_ADC_AUX1);
+#endif
+	data = factory_data_get(FD_BATTERY);
+	if (data == NULL) {
+		voltage = -1;
+	} else if (data->fd_index != FD_BATTERY){
+		voltage = -1;
+	} else {
+		calibration_k = *(uint32_t *)&data->fd_buf[0];
+		calibration_b = *(uint32_t *)&data->fd_buf[4];
+		voltage = (calibration_k * adc_value + calibration_b) / 1000;
+	}
+
+	if (data != NULL)
+		factory_data_put(data);
+
+	return voltage;
+}
+
+extern const unsigned short logo_data_chager[];
+extern const int logo_width;
+extern const int logo_height;
+
+void battery_check(void)
+{
+	int voltage;
+	u8 reg_val;
+
+	/* usb charger is connected */
+	at2600_pm_read_reg (AT2600_PM_REG_OOCS, &reg_val);
+	if (reg_val & 0x20) {
+		printf("usb charger connected.\n");
+
+		/* constant current 1000mA */
+		reg_val = 0x78;
+		at2600_pm_write_reg (AT2600_PM_REG_CBCC1, reg_val);
+
+		/* make sure battery have enough power */
+		voltage = get_battery_voltage();
+		printf ("Battery voltage: %d.\n", voltage);
+
+		/* 3500 + 500mA*0.2(inner resistance) */
+		if(voltage < 3600) {
+			lcd_show_logo(logo_width, logo_height, logo_data_chager);
+			mdelay(100);
+			
+			set_board_default_clock(pll_setting, div_setting_low, PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
+			mdelay(10);
+
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V3, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V2, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V1, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V0, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+
+			while(voltage < 3680) {
+				mdelay(5000);
+				voltage = get_battery_voltage();
+				printf ("Battery voltage: %d.\n", voltage);
+
+				at2600_pm_read_reg (AT2600_PM_REG_OOCS, &reg_val);
+				if (!(reg_val & 0x20)) {
+					printf ("Battery too low, power off!\n");
+					
+					at2600_pm_read_reg (AT2600_PM_REG_OOCC1, &reg_val);
+					reg_val &= ~AT2600_PM_OOCC1_RTC_WAK;
+					reg_val |= AT2600_PM_OOCC1_GO_OFF;
+					at2600_pm_write_reg (AT2600_PM_REG_OOCC1, reg_val);
+
+					while (1);
+				}
+
+				at2600_pm_read_reg (AT2600_PM_REG_OOCS, &reg_val);
+				if(reg_val != 0x78) {
+					/* constant current 1000mA */
+					reg_val = 0x78;
+					at2600_pm_write_reg (AT2600_PM_REG_CBCC1, reg_val);
+				}
+			}
+
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V1, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V2, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V3, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V35, PS_ON, AT2600_PM_REG_S1V2C1);
+			mdelay(10);
+
+			do_reset (NULL, 0, 0, NULL);
+		}
+		
+		return;
+	} else {
+		/* make sure battery have enough power */
+		voltage = get_battery_voltage();
+		DPRINTF ("Battery voltage: %d.\n", voltage);
+
+		if ((voltage != -1) && (voltage < 3660)) {
+			printf ("Battery too low, power off!\n");
+
+			at2600_pm_read_reg (AT2600_PM_REG_OOCC1, &reg_val);
+			reg_val &= ~AT2600_PM_OOCC1_RTC_WAK;
+			reg_val |= AT2600_PM_OOCC1_GO_OFF;
+			at2600_pm_write_reg (AT2600_PM_REG_OOCC1, reg_val);
+
+			while (1);
+		}
+	}
+
+	return;
+}
 
 int pmu_init(void)
 {

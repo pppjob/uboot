@@ -289,5 +289,6 @@ struct atxxfb {
 extern int pannel_set_ops(struct atxxfb *dev);
 extern int pannel_set_power(int on_off);
 extern void pannel_set_refresh_rate(struct clk *lcd_clk);
+extern void lcd_show_logo(int logo_width, int logo_height, unsigned short *logo_data);
 
 #endif /* ATXXFB_H_ */
