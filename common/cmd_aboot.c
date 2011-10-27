@@ -51,6 +51,8 @@ int do_aboot(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			build_boot_cmd(SD_BOARDTEST, fstype);
 		} else if (strcmp(argv[2], "recovery") == 0) {
 			build_boot_cmd(SD_RECOVERY, fstype);
+		} else if (strcmp(argv[2], "phonetest") == 0) {
+			build_boot_cmd(SD_PHONETEST, fstype);
 		} else {
 			goto failed;
 		}
@@ -71,5 +73,5 @@ U_BOOT_CMD(
 	"atxx boot command",
 	"usage:\n"
 	"aboot nand [ubifs|yaffs]\n"
-	"aboot sd [install|boardtest|recovery [ubifs|yaffs]]\n"
+	"aboot sd [install|boardtest|phonetest|recovery [ubifs|yaffs]]\n"
 );
