@@ -54,6 +54,10 @@ int board_init(void)
 
 	calibrate_delay();
 
+	val = topctl_read_reg(TOPCTL0);
+	val |= (1 << 20);		/*enable gpio 63*/
+	topctl_write_reg(TOPCTL0, val);
+
 	/* at7700b0 need to set lcd red bit pin mux */
 	val = topctl_read_reg(TOPCTL8);
 	val |= (1 << 15);
@@ -95,6 +99,8 @@ int misc_init_r(void)
 	factory_data_t *fd = NULL;
 	int i;
 	struct boot_parameter *b_param = (struct boot_parameter *)MDDR_BASE_ADDR;
+
+	battery_check();
 
 	if (!b_param->mddr_data_send) {
 		return 0;

@@ -384,7 +384,7 @@ void battery_check(void)
 		printf ("Battery voltage: %d.\n", voltage);
 
 		/* 3500 + 500mA*0.2(inner resistance) */
-		if(voltage < 3600) {
+		if((voltage != -1) && (voltage < 3600)) {
 			lcd_show_logo(logo_width, logo_height, logo_data_chager);
 			mdelay(100);
 			
@@ -397,11 +397,9 @@ void battery_check(void)
 			mdelay(10);
 			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V1, PS_ON, AT2600_PM_REG_S1V2C1);
 			mdelay(10);
-			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V0, PS_ON, AT2600_PM_REG_S1V2C1);
-			mdelay(10);
 
 			while(voltage < 3680) {
-				mdelay(5000);
+				mdelay(2000);
 				voltage = get_battery_voltage();
 				printf ("Battery voltage: %d.\n", voltage);
 
@@ -425,8 +423,6 @@ void battery_check(void)
 				}
 			}
 
-			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V1, PS_ON, AT2600_PM_REG_S1V2C1);
-			mdelay(10);
 			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V2, PS_ON, AT2600_PM_REG_S1V2C1);
 			mdelay(10);
 			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V3, PS_ON, AT2600_PM_REG_S1V2C1);

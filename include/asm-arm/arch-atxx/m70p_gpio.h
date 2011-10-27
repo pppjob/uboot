@@ -72,5 +72,6 @@
 #define GPIO_TP_IRQ				45
 #define GPIO_BTCLKREQ			46
 #define	GPIO_WIFICLKREQ			47
+#define GPIO_VCHG_DET			63
 
 #endif /* _M70P_GPIO_H */

@@ -28,6 +28,8 @@
 #include <asm/arch-atxx/aboot.h>
 #include <asm/arch-atxx/gpio.h>
 #include <asm/arch-atxx/topctl.h>
+#include <asm/arch-atxx/factorydata.h>
+#include <asm/arch-atxx/adc.h>
 #include <i2c.h>
 #include "at2600_pm_regs.h"
 #include "at2600_pm_generic.h"
@@ -337,31 +339,64 @@ power_off:
 uint32_t adc_get_pmu(void)
 {
 	uint16_t        adc_result = 0;
-	uint8_t         adcc1, adcs1, adcs3, reg_val;
-
-#if 0
-	adcc1 = 0x8 | (0x1 << 4);
-	pcf50626_write_reg(ADCC1, adcc1);
-
-	pcf50626_read_reg(ADCC1, &adcc1);
-
-	/* set start adc command by writing 1 to bit[0] of ADCC1 */
-	adcc1 = (adcc1 & 0xFE) | 1;
-	pcf50626_write_reg(ADCC1, adcc1);
-
-	do {
-		pcf50626_read_reg(INT3, &reg_val);
-	} while ((reg_val & PCF50626_INT3_ADCRDY) == 0);
-
-	pcf50626_read_reg(ADCS1, &adcs1);
-	adc_result = adcs1 << 2;
-
-	pcf50626_read_reg(ADCS3, &adcs3);
-	adc_result |= (adcs3 & 0x3);
-#endif        
+    
 	return adc_result;
 }
 
+static int get_battery_voltage(void)
+{
+	int adc_value, voltage = 0, calibration_k, calibration_b;
+	factory_data_t *data;
+
+#if defined(CONFIG_PMU_ADC)
+	adc_value = adc_get_pmu();
+#else
+	adc_value = adc_get_aux(TSC_ADC_AUX1);
+#endif
+	data = factory_data_get(FD_BATTERY);
+	if (data == NULL) {
+		voltage = -1;
+	} else if (data->fd_index != FD_BATTERY){
+		voltage = -1;
+	} else {
+		calibration_k = *(uint32_t *)&data->fd_buf[0];
+		calibration_b = *(uint32_t *)&data->fd_buf[4];
+		voltage = (calibration_k * adc_value + calibration_b) / 1000;
+	}
+
+	if (data != NULL)
+		factory_data_put(data);
+
+	return voltage;
+}
+
+void battery_check(void)
+{
+	int voltage;
+	u8 reg_val;
+
+	atxx_request_gpio(GPIO_VCHG_DET);
+	atxx_set_gpio_direction(GPIO_VCHG_DET, 1);
+	/* charger is not connected */
+	if (!atxx_gpio_get(GPIO_VCHG_DET)) {
+		/* make sure battery have enough power */
+		voltage = get_battery_voltage();
+		printf ("Battery voltage: %d.\n", voltage);
+
+		if ((voltage != -1) && (voltage <= 7365)) {
+			printf ("Battery too low, power off!\n");
+
+			at2600_pm_read_reg (AT2600_PM_REG_OOCC1, &reg_val);
+			reg_val &= ~AT2600_PM_OOCC1_RTC_WAK;
+			reg_val |= AT2600_PM_OOCC1_GO_OFF;
+			at2600_pm_write_reg (AT2600_PM_REG_OOCC1, reg_val);
+
+			while (1);
+		}
+	}
+
+	return;
+}
 
 int pmu_init(void)
 {
