@@ -297,15 +297,6 @@ void power_on_detect (void)
 		return;
 	}
 
-#if 0
-	t1 = get_timer (0);
-	do {
-		t2 = get_timer (0);
-		if ((t2 - t1) >= 1000)
-			break;
-	} while (1);
-
-#endif
 	/*unmask onkey  rising */
 	at2600_pm_read_reg (AT2600_PM_REG_M_INT1, &int1_mask_reg);
 	int1_mask_reg &= ~AT2600_PM_INT1_ONKEYR;
@@ -313,17 +304,11 @@ void power_on_detect (void)
 
 	at2600_pm_read_reg (AT2600_PM_REG_INT1, &reg_val);
 
+	/* it's more than 1s from bootrom to here */
 	if ((reg_val & AT2600_PM_INT1_ONKEYR) != 0)
 	{
 		goto power_off;
 	}
-
-	t1 = get_timer (0);
-	do {
-		t2 = get_timer (0);
-		if ((t2 - t1) >= 1000)
-			break;
-	} while (1);
 
 	at2600_vibrator_motor_power_on_off(PS_ON);
 	t1 = get_timer (0);
