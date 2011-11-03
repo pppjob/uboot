@@ -537,8 +537,8 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		WATCHDOG_RESET ();
 
 		if (nand_block_isbad (nand, offset & ~(nand->erasesize - 1))) {
-			printf ("Skip bad block 0x%08llx\n",
-				offset & ~(nand->erasesize - 1));
+			printf ("Skip bad block 0x%08lx\n",
+				(ulong)offset & ~(nand->erasesize - 1));
 			offset += nand->erasesize - block_offset;
 			continue;
 		}
@@ -550,8 +550,8 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 
 		rval = nand_write (nand, offset, &write_size, p_buffer);
 		if (rval != 0) {
-			printf ("NAND write to offset %llx failed %d\n",
-				offset, rval);
+			printf ("NAND write to offset 0x%08lx failed %d\n",
+				(ulong)offset, rval);
 			*length -= left_to_write;
 			return rval;
 		}
@@ -614,8 +614,8 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		WATCHDOG_RESET ();
 
 		if (nand_block_isbad (nand, offset & ~(nand->erasesize - 1))) {
-			printf ("Skipping bad block 0x%08llx\n",
-				offset & ~(nand->erasesize - 1));
+			printf ("Skipping bad block 0x%08lx\n",
+				(ulong)offset & ~(nand->erasesize - 1));
 			offset += nand->erasesize - block_offset;
 			continue;
 		}

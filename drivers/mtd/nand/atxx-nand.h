@@ -32,15 +32,15 @@
 #define PAGE_SIZE_2K			0x800
 #define PAGE_SIZE_4K			0x1000
 #define PAGE_SIZE_8K			0x2000
+
 //#define CONFIG_ATXX_NAND_DEBUG
+#define atxx_nd_err(fmt, args...) \
+        printf( fmt, ##args)
 #ifdef  CONFIG_ATXX_NAND_DEBUG
 #define atxx_nd_debug(fmt, args...) \
 	printf( fmt, ##args)
-#define atxx_nd_err(fmt, args...) \
-	printf( fmt, ##args)
 #else
 #define atxx_nd_debug(fmt,arg...) do { } while (0)
-#define atxx_nd_err(fmt,arg...) do { } while (0)
 #endif
 
 /**********************************/

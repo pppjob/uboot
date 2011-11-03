@@ -391,57 +391,9 @@ static int bt_test(int argc, char *argv[])
 
 }
 
-#define MAX_STATION_MASK	15
 static int mask_test(int argc, char *argv[])
 {
-	char *action;
-	int ret = -1, i, station_num;
-	factory_data_t *data;
-
-	if (argc < 2){
-		return ret;
-	}
-	action = argv[2];
-	if (!strcmp(action, "read")) {
-		data = factory_data_get(FD_MASK);
-		if (data == NULL) {
-			printf("read factory data failed!\n");
-			return 1;
-		}
-		
-		for (i = 0; i < MAX_STATION_MASK; i++) {
-			printf("Station: %d------%d!\n", i, (data->fd_buf[i] == 0)?0:1);
-		}
-
-		printf("\n");
-		ret = 0;
-	} else if (!strcmp(action, "write")){
-		if (argc != 4)
-			return ret;
-	
-		station_num = simple_strtoul(argv[3], NULL, 10);
-	
-		data = factory_data_get(FD_MASK);
-		if (data == NULL) {
-			printf("read factory data failed!\n");
-			return 1;
-		}
-
-		data->fd_index = FD_MASK;
-		data->fd_length = MAX_STATION_MASK;
-		data->fd_buf[station_num] = 0;
-
-		ret = factory_data_store(data);
-		if (ret != 0) {
-			printf("write MASK failed!\n");
-		} else {
-			printf("write MASK success!\n");
-		}
-		
-		printf("\n");
-		ret = 0;
-	}
-	return ret;
+	return string_data_test(argc, argv, FD_MASK, "mask");
 }
 
 static int battery_test(int argc, char *argv[])

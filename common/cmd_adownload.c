@@ -62,6 +62,10 @@ static int image_to_nand(int addr, int size, int offset)
 	ret = nand_read_skip_bad(nand, ndbeg, &ndsz, (u_char *)NANDBAK_ADDR);
 	memcpy((void *)(offset - ndbeg + NANDBAK_ADDR), (void *)addr, size);
 
+	/*Fixme*/
+	/*erase more blocks to ensure update izImage not failed while bad blcoks are at the area where the izimage used */
+	if(ndsz >= (SZ_1M *2))
+		ndsz = CONFIG_KERNEL_MSIZE;
 	ret |= nand_erase_block(ndbeg, ndsz);
 
 	printf("Writing 0x%08x, size 0x%08x\n", offset, size);
