@@ -78,12 +78,12 @@ static void rm68041_init(struct atxxfb *atfb)
 
 	atfb->spi_9bits_cmd(atfb, 0xD1);
 	atfb->spi_9bits_par(atfb, 0x00);
-	atfb->spi_9bits_par(atfb, 0x02);
+	atfb->spi_9bits_par(atfb, 0x14);
 	atfb->spi_9bits_par(atfb, 0x12);
 
 	atfb->spi_9bits_cmd(atfb, 0xD2);
 	atfb->spi_9bits_par(atfb, 0x01);
-	atfb->spi_9bits_par(atfb, 0x22);
+	atfb->spi_9bits_par(atfb, 0x11);
 
 	atfb->spi_9bits_cmd(atfb, 0xC0);
 	atfb->spi_9bits_par(atfb, 0x00);
@@ -92,22 +92,29 @@ static void rm68041_init(struct atxxfb *atfb)
 	atfb->spi_9bits_par(atfb, 0x02);
 	atfb->spi_9bits_par(atfb, 0x11);
 
+	atfb->spi_9bits_cmd(atfb, 0xC1);
+	atfb->spi_9bits_par(atfb, 0x10);
+	atfb->spi_9bits_par(atfb, 0x13);
+	atfb->spi_9bits_par(atfb, 0x88);
+
+
 	atfb->spi_9bits_cmd(atfb, 0xC5);
-	atfb->spi_9bits_par(atfb, 0x03);
+	atfb->spi_9bits_par(atfb, 0x01);
 
 	atfb->spi_9bits_cmd(atfb, 0xC8);
 	atfb->spi_9bits_par(atfb, 0x02);
-	atfb->spi_9bits_par(atfb, 0x75);
+	atfb->spi_9bits_par(atfb, 0x77);
 	atfb->spi_9bits_par(atfb, 0x77);
 	atfb->spi_9bits_par(atfb, 0x05);
 	atfb->spi_9bits_par(atfb, 0x03);
 	atfb->spi_9bits_par(atfb, 0x01);
 	atfb->spi_9bits_par(atfb, 0x00);
-	atfb->spi_9bits_par(atfb, 0x20);
+	atfb->spi_9bits_par(atfb, 0x00);
 	atfb->spi_9bits_par(atfb, 0x57);
 	atfb->spi_9bits_par(atfb, 0x50);
 	atfb->spi_9bits_par(atfb, 0x01);
 	atfb->spi_9bits_par(atfb, 0x03);
+	mdelay(10);
 
 	atfb->spi_9bits_cmd(atfb, 0xF8);
 	atfb->spi_9bits_par(atfb, 0x01);
