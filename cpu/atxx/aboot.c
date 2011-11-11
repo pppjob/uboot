@@ -109,6 +109,38 @@ static void get_serial_no(char *string)
 	return 0;
 }
 
+static void build_memory_vars(char* buffer)
+{
+	unsigned int phys_size = 0;
+	unsigned int arm_size = 122;
+	char* format = NULL;
+	factory_data_t *fd = factory_data_get(FD_MDDR);
+
+	if (fd == NULL) {
+		return;
+	}
+
+	phys_size = ((1 << fd->fd_buf[0]) * 64);
+	if (phys_size > 256) {
+		arm_size += phys_size - 256;
+	}
+
+	if (strstr(buffer, " phys_mem=") == NULL) {
+		strcat(buffer, " phys_mem=%dM");
+		format = strdup(buffer);
+		sprintf(buffer, format, phys_size);
+		free(format);
+	}
+
+	if (strstr(buffer, " mem=") == NULL) {
+		strcat(buffer, " mem=%dM");
+		format = strdup(buffer);
+		sprintf(buffer, format, arm_size);
+		free(format);
+	}
+
+	factory_data_put(fd);
+}
 
 /* Modify bootargs and bootcmd*/
 static int boot_from_sd(char * bootstr, char *fstype)
@@ -133,6 +165,8 @@ static int boot_from_sd(char * bootstr, char *fstype)
 	} else {
 		sprintf(buffer, "%s", args);
 	}
+
+	build_memory_vars(buffer);
 
 	ret = setenv("bootargs", buffer);
 	if (ret) {
@@ -169,6 +203,8 @@ int boot_from_nand(void)
 
 	sprintf(buffer, "%s androidboot.serialno=%s",
 			args, str);
+
+	build_memory_vars(buffer);
 
 	ret = setenv("bootargs", buffer);
 
