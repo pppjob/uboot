@@ -292,7 +292,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		return 0;
 	}
 
-	if (strcmp(cmd, "bad") != 0 && strcmp(cmd, "erase") != 0 &&
+	if (strcmp(cmd, "bad") != 0 && strcmp(cmd, "erase-rd") != 0 &&
 	    strncmp(cmd, "dump", 4) != 0 &&
 	    strncmp(cmd, "read", 4) != 0 && strncmp(cmd, "write", 5) != 0 &&
 	    strcmp(cmd, "scrub") != 0 && strcmp(cmd, "markbad") != 0 &&
@@ -325,7 +325,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	 *   0    1     2       3    4
 	 *   nand erase [clean] [off size]
 	 */
-	if (strcmp(cmd, "erase") == 0 || strcmp(cmd, "scrub") == 0) {
+	if (strcmp(cmd, "erase-rd") == 0 || strcmp(cmd, "scrub") == 0) {
 		nand_erase_options_t opts;
 		/* "clean" at index 2 means request to write cleanmarker */
 		int clean = argc > 2 && !strcmp("clean", argv[2]);
@@ -531,8 +531,6 @@ U_BOOT_CMD(nand, CONFIG_SYS_MAXARGS, 1, do_nand,
 	"nand write - addr off|partition size\n"
 	"    read/write 'size' bytes starting at offset 'off'\n"
 	"    to/from memory address 'addr', skipping bad blocks.\n"
-	"nand erase [clean] [off size] - erase 'size' bytes from\n"
-	"    offset 'off' (entire device if not specified)\n"
 	"nand bad - show bad blocks\n"
 	"nand dump[.oob] off - dump page\n"
 	"nand scrub - really clean NAND erasing bad blocks (UNSAFE)\n"

@@ -498,7 +498,7 @@ static int auto_test(int argc, char *argv[])
 
 	/* nand test */
 	ret = 0;
-	run_command("nand erase", 0);
+	run_command("nand erase-rd", 0);
 
 	for (i = 0; i < nand->writesize; i++) {
 		test_buf[i] = i & 0xff;
@@ -522,7 +522,7 @@ static int auto_test(int argc, char *argv[])
 		}
 	}
 
-	run_command("nand erase 0x100000 0x100000", 0);
+	run_command("nand erase-rd 0x100000 0x100000", 0);
 
 nand_test_result:
 	if (ret)
@@ -623,6 +623,43 @@ static int lcdbl_test(int argc, char *argv[])
 	return ret;
 }
 
+
+static int nand_test(int argc, char *argv[])
+{
+	int ret = -1;
+	char cmd[100];
+	int len = 0;
+	int count = 0;
+	int i = 0;
+
+	/* at least three arguments please */
+	if (argc < 3)
+		return -1;
+
+	/* only support erase */
+	if (strcmp(argv[2], "erase") != 0)
+		return -1;
+
+	memset(cmd, 0, sizeof(cmd));
+
+	len = strlen("nand erase-rd ");
+	strncpy(cmd, "nand erase-rd ", len);
+	count += len;
+
+	for(i=3; i<argc; i++) {
+		len = strlen(argv[i]);
+		strncpy(&cmd[count], argv[i], len);
+		count += len;
+		cmd[count++] = ' ';
+	}
+
+	ret = run_command(cmd, 0);
+	if(ret < 0)
+		return -1;
+
+	return 0;
+}
+
 int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int ret = -1;
@@ -653,6 +690,8 @@ int do_atest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		ret = ethernet_test(argc, argv);
 	} else if (!strcmp(subcmd, "lcdbl")) {
 		ret = lcdbl_test(argc, argv);
+	}else if (!strcmp(subcmd, "nand")) {
+		ret = nand_test(argc, argv);
 	}
 
 	if (ret == 0)
@@ -671,5 +710,7 @@ U_BOOT_CMD(
 	"atest autotest --- do factory autotest\n"
 	"atest gsm download|bridge --- connect gsm uart to uart0\n"
 	"atest lcdbl [on/off] --- set lcdbacklight on/off\n"
+	"atest nand erase [clean] [off size] - erase 'size' bytes from\n"
+	"    offset 'off' (entire device if not specified)\n"
 );
 
