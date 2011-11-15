@@ -155,7 +155,7 @@
 #define	CONFIG_KERNEL_MSIZE		0x00300000
 
 /* clock env */
-#define CONFIG_CLK_ARM                  806000000
+#define CONFIG_CLK_ARM                  1001000000
 #define CONFIG_CLK_AXI                  312000000
 #define CONFIG_CLK_APP                  104000000
 #define CONFIG_CLK_MDDR                 167000000
