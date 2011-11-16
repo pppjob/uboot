@@ -120,13 +120,12 @@
 #define CFG_UART_FLOWCONTROL_ENABLE	0
 #define CFG_UART_FIFO_ON
 #define CONFIG_SERIAL_MULTI
-
-#define CONFIG_BOOTARGS			\
-		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) init=/init ubi.mtd=1 root=ubi0:rootfs rootfstype=ubifs ro"
+#define CONFIG_BOOTARGS						\
+		"console=ttyS0,921600n8 console=ttyMTD androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),2M(ttyMTD),-(system) init=/init ubi.mtd=2 root=ubi0:rootfs rootfstype=ubifs ro"
 #define CONFIG_BOOTCOMMAND	 	"nand read 89807e00 600000 200000; hdcvt 89807e00; bootm 89807fc0"
 
-#define CONFIG_BOOTARGS_SD		\
-		"console=ttyS0,921600n8 androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),-(system) quiet"
+#define CONFIG_BOOTARGS_SD				\
+		"console=ttyS0,921600n8 console=ttyMTD androidboot.console=ttyS0 mtdparts=atxx_nd:32M(boot),2M(ttyMTD),-(system) quiet"
 #define CONFIG_BOOTCOMMAND_SD		"fatload mmc 1 0x89807e00 kboot.img; hdcvt 89807e00; bootm 89807fc0"
 
 /* nand */
