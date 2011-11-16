@@ -55,6 +55,7 @@ enum factory_data_index {
 	FD_GSM_13,
 	FD_GSM_14,
 	FD_GSM_15,
+	FD_CONFIG,
 	FD_MAX
 };
 
