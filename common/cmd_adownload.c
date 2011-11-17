@@ -33,7 +33,8 @@
 #define	DOWNLOAD_ADDR	(MDDR_BASE_ADDR + 16 * SZ_1M)
 #define	NANDBAK_ADDR	(MDDR_BASE_ADDR + 32 * SZ_1M)
 
-static int nand_erase_block(int offset, int size)
+extern nand_erase_block(int offset, int size);
+int nand_erase_block(int offset, int size)
 {
 	nand_info_t *nand = &nand_info[0];
 	nand_erase_options_t opts;
