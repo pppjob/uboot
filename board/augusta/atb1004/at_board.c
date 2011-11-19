@@ -162,6 +162,9 @@ int do_abortboot(void)
 non_nand_boot:
 	/* download all for auto download mode*/
 	if (mode == SD_INSTALL) {
+		/* clean nand env */
+		printf("clean nand env!\n\n");
+		nand_erase_block(CONFIG_ENV_OFFSET, CONFIG_ENV_RANGE);
 		printf("Donwload xloader.\n");
 		run_command("adownload sd xloader", 0);
 		printf("Donwload uboot.\n");
