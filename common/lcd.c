@@ -325,6 +325,10 @@ int drv_lcd_init (void)
 	struct stdio_dev lcddev;
 	int rc;
 
+	//add for init pannel_info
+
+	InitLcdops();
+
 	lcd_base = (void *)(gd->fb_base);
 
 	lcd_line_length = (panel_info.vl_col * NBITS (panel_info.vl_bpix)) / 8;

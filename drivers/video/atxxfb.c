@@ -114,6 +114,25 @@ static void send_bit(struct atxxfb *atfb, uint8_t bit)
 	ndelay(atfb->spi_timing.tshw);
 }
 
+static uint8_t read_bit(struct atxxfb *atfb) {
+	uint32_t reg_ctr24;
+	uint8_t bit;
+
+	atxxfb_ctl_clear_bit(24, CTL24_BIT_SCL);
+	ndelay(atfb->spi_timing.tslw);
+
+	atxxfb_ctl_set_bit(24, CTL24_BIT_SCL);
+	ndelay(atfb->spi_timing.tshw);
+
+	reg_ctr24 = atxxfb_ctl_read(24);
+	bit = (reg_ctr24 >> CTL24_BIT_SDIN) & 1;
+	ndelay(atfb->spi_timing.tshw);
+
+	return bit;
+
+}
+
+
 /* send command/paramater to LCD panel */
 static void write_command_parameter(struct atxxfb *atfb, uint8_t command)
 {
@@ -154,6 +173,20 @@ static void spi_8bits_cmd(struct atxxfb *atfb, uint8_t * buffer,
 	/* set XCS to high */
 	atxxfb_ctl_set_bit(24, CTL24_BIT_XCS);
 	ndelay(atfb->spi_timing.tchw);
+}
+
+static uint16_t spi_8bits_read(struct atxxfb *atfb) {
+	uint16_t bit = 0x0, buffer = 0x0;
+	int i;
+
+	for (i = 7; i >= 0; i--) {
+		bit = read_bit(atfb);
+		buffer |= (bit << i);
+	}
+	atxxfb_ctl_clear_bit(24, CTL24_BIT_SCL);
+	ndelay(atfb->spi_timing.tshw);
+	buffer &= 0xff;
+	return buffer;
 }
 
 /* send command/paramater to LCD panel */
@@ -704,12 +737,13 @@ void lcd_ctrl_init(void *lcdbase)
 	/* power on mlcd */
 	mlcd_power_on_off(MLCD_POWER_ON);
 
-	/* set LCD pannel API */
-	pannel_set_ops(&atfb);
 	atfb.spi_8bits_cmd = spi_8bits_cmd;
 	atfb.spi_9bits_cmd = spi_9bits_cmd;
 	atfb.spi_9bits_par = spi_9bits_par;
+	atfb.spi_8bits_read= spi_8bits_read;
 	atfb.set_csx = set_csx;
+	/* set LCD pannel API */
+	pannel_set_ops(&atfb);
 
 	bpp = bytes_per_pixel[atfb.format];
 

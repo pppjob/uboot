@@ -283,6 +283,7 @@ struct atxxfb {
 	void (*spi_9bits_cmd)(struct atxxfb *dev, uint8_t buffer);
 	void (*spi_9bits_par)(struct atxxfb *dev, uint8_t buffer);
 	void (*set_csx)(struct atxxfb *dev, uint32_t level);
+	uint16_t (*spi_8bits_read)(struct atxxfb *dev);
 	struct pannel_operation *pannel_ops;
 };
 
@@ -290,5 +291,6 @@ extern int pannel_set_ops(struct atxxfb *dev);
 extern int pannel_set_power(int on_off);
 extern void pannel_set_refresh_rate(struct clk *lcd_clk);
 extern void lcd_show_logo(int logo_width, int logo_height, unsigned short *logo_data);
+extern void InitLcdops(void);
 
 #endif /* ATXXFB_H_ */

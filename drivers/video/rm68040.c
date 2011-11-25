@@ -35,25 +35,25 @@
 #include "atxxfb.h"
 
 /* LCD controller timing info*/
-#define LCD_HFP		3
-#define LCD_HBP		3
-#define LCD_HSYNC	2
-#define LCD_VFP		2
-#define LCD_VBP		2
-#define LCD_VSYNC	2
+#define LCD_HFP_RM68040		3
+#define LCD_HBP_RM68040		3
+#define LCD_HSYNC_RM68040	2
+#define LCD_VFP_RM68040		2
+#define LCD_VBP_RM68040		2
+#define LCD_VSYNC_RM68040	2
 
 /* spi timing info*/
-#define TCHW_TIMING	1	/* XCS signal "H" pulse width */
-#define TCSS_TIMING	60	/* XCS signal setup time */
+#define TCHW_TIMING_RM68040	1	/* XCS signal "H" pulse width */
+#define TCSS_TIMING_RM68040	60	/* XCS signal setup time */
 
 /* serial interface mode timing */
-#define	TSCYC_TMING	150	/* Serial clock cycle time */
-#define TSHW_TIMING	60	/* SCL signal "H" pulse width */
-#define TSLW_TIMING	60	/* SCL signal "L" pulse width */
-#define TSDS_TIMING	60	/* Data setup time */
-#define TSDH_TIMING	60	/* Data hold time */
+#define	TSCYC_TMING_RM68040	150	/* Serial clock cycle time */
+#define TSHW_TIMING_RM68040	60	/* SCL signal "H" pulse width */
+#define TSLW_TIMING_RM68040	60	/* SCL signal "L" pulse width */
+#define TSDS_TIMING_RM68040	60	/* Data setup time */
+#define TSDH_TIMING_RM68040	60	/* Data hold time */
 
-vidinfo_t panel_info = {
+vidinfo_t panel_info_rm68040 = {
 	.vl_col		= LCD_XRES_320,
 	.vl_row		= LCD_XRES_480,
 	.vl_bpix	= LCD_COLOR16,
@@ -176,33 +176,34 @@ static struct pannel_operation rm68040_ops = {
 	.panel_off = rm68040_display_off,
 };
 
-int pannel_set_ops(struct atxxfb *atfb)
+int pannel_set_ops_rm68040(struct atxxfb *atfb)
 {
 	atfb->pannel_ops = &rm68040_ops;
 
-	atfb->spi_timing.tchw = TCHW_TIMING;
-	atfb->spi_timing.tcss = TCSS_TIMING;
-	atfb->spi_timing.tscyc = TSCYC_TMING;
-	atfb->spi_timing.tsdh = TSDH_TIMING;
-	atfb->spi_timing.tsds = TSDS_TIMING;
-	atfb->spi_timing.tshw = TSHW_TIMING;
-	atfb->spi_timing.tslw = TSLW_TIMING;
+	atfb->spi_timing.tchw = TCHW_TIMING_RM68040;
+	atfb->spi_timing.tcss = TCSS_TIMING_RM68040;
+	atfb->spi_timing.tscyc = TSCYC_TMING_RM68040;
+	atfb->spi_timing.tsdh = TSDH_TIMING_RM68040;
+	atfb->spi_timing.tsds = TSDS_TIMING_RM68040;
+	atfb->spi_timing.tshw = TSHW_TIMING_RM68040;
+	atfb->spi_timing.tslw = TSLW_TIMING_RM68040;
 
-	atfb->fb->var.upper_margin = LCD_VBP;
-	atfb->fb->var.lower_margin = LCD_VFP;
-	atfb->fb->var.vsync_len = LCD_VSYNC;
-	atfb->fb->var.left_margin = LCD_HBP;
-	atfb->fb->var.right_margin = LCD_HFP;
-	atfb->fb->var.hsync_len = LCD_HSYNC;
+	atfb->fb->var.upper_margin = LCD_VBP_RM68040;
+	atfb->fb->var.lower_margin = LCD_VFP_RM68040;
+	atfb->fb->var.vsync_len = LCD_VSYNC_RM68040;
+	atfb->fb->var.left_margin = LCD_HBP_RM68040;
+	atfb->fb->var.right_margin = LCD_HFP_RM68040;
+	atfb->fb->var.hsync_len = LCD_HSYNC_RM68040;
 
 	atfb->format = RGB16;
-	atfb->xres = panel_info.vl_col;
-	atfb->yres = panel_info.vl_row;
+	atfb->xres = panel_info_rm68040.vl_col;
+	atfb->yres = panel_info_rm68040.vl_row;
+	panel_info = panel_info_rm68040;
 
 	return 0;
 }
 
-int pannel_set_power(int on_off)
+int pannel_set_power_rm68040(int on_off)
 {
 	int err;
 
@@ -215,7 +216,7 @@ int pannel_set_power(int on_off)
 	return err;
 }
 
-void pannel_set_refresh_rate(struct clk *lcd_clk)
+void pannel_set_refresh_rate_rm68040(struct clk *lcd_clk)
 {
 	/* to get 8.67M PCLK for rm68040 screen */
 	clk_set_rate(lcd_clk, 6550000);

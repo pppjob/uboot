@@ -37,25 +37,25 @@
 #include "atxxfb.h"
 
 /* LCD controller timing info*/
-#define LCD_HFP		210
-#define LCD_HBP		40
-#define LCD_HSYNC	6
-#define LCD_VFP		22
-#define LCD_VBP		14
-#define LCD_VSYNC	9
+#define LCD_HFP_INNO7DD		210
+#define LCD_HBP_INNO7DD		40
+#define LCD_HSYNC_INNO7DD	6
+#define LCD_VFP_INNO7DD		22
+#define LCD_VBP_INNO7DD		14
+#define LCD_VSYNC_INNO7DD	9
 
 /* spi timing info*/
-#define TCHW_TIMING	1	/* XCS signal "H" pulse width */
-#define TCSS_TIMING	60	/* XCS signal setup time */
+#define TCHW_TIMING_INNO7DD	1	/* XCS signal "H" pulse width */
+#define TCSS_TIMING_INNO7DD	60	/* XCS signal setup time */
 
 /* serial interface mode timing */
-#define	TSCYC_TMING	150	/* Serial clock cycle time */
-#define TSHW_TIMING	60	/* SCL signal "H" pulse width */
-#define TSLW_TIMING	60	/* SCL signal "L" pulse width */
-#define TSDS_TIMING	60	/* Data setup time */
-#define TSDH_TIMING	60	/* Data hold time */
+#define	TSCYC_TMING_INNO7DD	150	/* Serial clock cycle time */
+#define TSHW_TIMING_INNO7DD	60	/* SCL signal "H" pulse width */
+#define TSLW_TIMING_INNO7DD	60	/* SCL signal "L" pulse width */
+#define TSDS_TIMING_INNO7DD	60	/* Data setup time */
+#define TSDH_TIMING_INNO7DD	60	/* Data hold time */
 
-vidinfo_t panel_info = {
+vidinfo_t panel_info_inno7dd = {
 	.vl_col		= LCD_XRES_800,
 	.vl_row		= LCD_XRES_480,
 	.vl_bpix	= LCD_COLOR16,
@@ -87,36 +87,37 @@ static struct pannel_operation inno7dd_ops = {
 	.panel_off = inno7dd_display_off,
 };
 
-int pannel_set_ops(struct atxxfb *atfb)
+int pannel_set_ops_inno7dd(struct atxxfb *atfb)
 {
 	atfb->pannel_ops = &inno7dd_ops;
 
-	atfb->spi_timing.tchw = TCHW_TIMING;
-	atfb->spi_timing.tcss = TCSS_TIMING;
-	atfb->spi_timing.tscyc = TSCYC_TMING;
-	atfb->spi_timing.tsdh = TSDH_TIMING;
-	atfb->spi_timing.tsds = TSDS_TIMING;
-	atfb->spi_timing.tshw = TSHW_TIMING;
-	atfb->spi_timing.tslw = TSLW_TIMING;
+	atfb->spi_timing.tchw = TCHW_TIMING_INNO7DD;
+	atfb->spi_timing.tcss = TCSS_TIMING_INNO7DD;
+	atfb->spi_timing.tscyc = TSCYC_TMING_INNO7DD;
+	atfb->spi_timing.tsdh = TSDH_TIMING_INNO7DD;
+	atfb->spi_timing.tsds = TSDS_TIMING_INNO7DD;
+	atfb->spi_timing.tshw = TSHW_TIMING_INNO7DD;
+	atfb->spi_timing.tslw = TSLW_TIMING_INNO7DD;
 
-	atfb->fb->var.upper_margin = LCD_VBP;
-	atfb->fb->var.lower_margin = LCD_VFP;
-	atfb->fb->var.vsync_len = LCD_VSYNC;
-	atfb->fb->var.left_margin = LCD_HBP;
-	atfb->fb->var.right_margin = LCD_HFP;
-	atfb->fb->var.hsync_len = LCD_HSYNC;
+	atfb->fb->var.upper_margin = LCD_VBP_INNO7DD;
+	atfb->fb->var.lower_margin = LCD_VFP_INNO7DD;
+	atfb->fb->var.vsync_len = LCD_VSYNC_INNO7DD;
+	atfb->fb->var.left_margin = LCD_HBP_INNO7DD;
+	atfb->fb->var.right_margin = LCD_HFP_INNO7DD;
+	atfb->fb->var.hsync_len = LCD_HSYNC_INNO7DD;
 
 	atfb->format = RGB16;
-	atfb->xres = panel_info.vl_col;
-	atfb->yres = panel_info.vl_row;
+	atfb->xres = panel_info_inno7dd.vl_col;
+	atfb->yres = panel_info_inno7dd.vl_row;
+	panel_info = panel_info_inno7dd;
 
 	return 0;
 }
 
-int pannel_set_power(int on_off)
+int pannel_set_power_inno7dd(int on_off)
 {
 	int err;
-
+#if defined(CONFIG_BOARD_GAMEBOX)||defined(CONFIG_BOARD_M70P)
 	set_backlight(1, 0);
 
 #if defined(CONFIG_BOARD_GAMEBOX)
@@ -143,11 +144,12 @@ int pannel_set_power(int on_off)
 
 	atxx_free_gpio(GPIO_LCD_PWEN_AVDD);
 #endif
+#endif
 
 	return err;
 }
 
-void pannel_set_refresh_rate(struct clk *lcd_clk)
+void pannel_set_refresh_rate_inno7dd(struct clk *lcd_clk)
 {
 	clk_set_rate(lcd_clk, 34000000);
 }
