@@ -38,6 +38,7 @@
 #include <linux/stddef.h>
 #include <malloc.h>
 #include <nand.h>
+#include <asm/arch-atxx/factorydata.h>
 
 #if defined(CONFIG_CMD_SAVEENV) && defined(CONFIG_CMD_NAND)
 #define CMD_SAVEENV
@@ -361,11 +362,81 @@ void env_relocate_spec (void)
 #endif /* CONFIG_ENV_OFFSET_REDUND */
 
 #if !defined(ENV_IS_EMBEDDED)
+
+static int get_clk(char *fd_buf, char *clk, char *clk_vars)
+{
+	char *p = NULL;
+
+	if(strstr(fd_buf, clk)== NULL)
+		return -1;
+
+	p = strstr(fd_buf, clk) + strlen(clk);
+	while(*p >= '0' && *p <= '9')
+		*clk_vars++ = *p++;
+	*clk_vars = '\0';
+
+	return 0;
+}
+
+static int get_memsize(char *fd_buf, char *mem_vars)
+{
+	char *p = NULL;
+
+	if((p = strstr(fd_buf, "phys_mem=")) == NULL) {
+		return -1;
+	}
+
+	*mem_vars++ = ' ';
+	while(*p != '\n')
+		*mem_vars++ = *p++;
+	*mem_vars = '\0';
+	return 0;
+}
+
+static int update_vars()
+{
+	char clk_vars[CONFIG_SYS_CBSIZE];
+	char mem_vars[CONFIG_SYS_CBSIZE];
+	char vars[CONFIG_SYS_CBSIZE];
+	factory_data_t *fd;
+	char *args = NULL;
+
+	if((fd = factory_data_get(FD_CONFIG)) == NULL) {
+		return -1;
+	}
+
+	if(get_clk(fd->fd_buf, "clk-arm=", clk_vars) != -1) {
+		if(*clk_vars != '\0')
+			setenv("clk-arm",clk_vars);
+	}
+
+	if(get_clk(fd->fd_buf, "clk-mddr=", clk_vars) != -1) {
+		if(*clk_vars != '\0')
+			setenv("clk-mddr",clk_vars);
+	}
+
+	if (get_memsize(fd->fd_buf, mem_vars) != -1) {
+		args = getenv("bootargs");
+		if (!args) {
+			printf("get bootargs failed!\n");
+			return -1;
+		}
+
+		if(strcpy(vars, args) != NULL && strcat(vars, mem_vars) != NULL) {
+			setenv("bootargs", vars);
+		}
+	}
+
+	factory_data_put(fd);
+	return 0;
+}
+
 static void use_default()
 {
 	puts ("*** Warning - bad CRC or NAND, using default environment\n\n");
 	set_default_env();
-
+	gd->env_addr = (ulong)&(env_ptr->data);
+	update_vars();
 	puts ("Store default evironment\n\n");
 	run_command("saveenv", 0);
 }

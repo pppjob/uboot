@@ -109,40 +109,6 @@ static void get_serial_no(char *string)
 	return 0;
 }
 
-static int build_memory_vars(char* buffer)
-{
-	unsigned int phys_size = 0;
-	unsigned int arm_size = 0;
-	char cmd[CONFIG_SYS_CBSIZE];
-	factory_data_t *fd;
-	char *vars = NULL;
-	char *pCmd = NULL;
-
-	if (strstr(buffer, " phys_mem=") == NULL || strstr(buffer, " mem=") == NULL) {
-		if((fd = factory_data_get(FD_CONFIG)) ==NULL) {
-			printf("inst.conf not write to factory area\n");
-			return -1;
-		}
-
-		if( (vars = strstr(fd->fd_buf, "phys_mem=")) == NULL) {
-			factory_data_put(fd);
-			printf("can not get phys_mem or arm_mem size from factory data,use default setting\n");
-			return -1;
-		}
-
-		pCmd = cmd;
-		*pCmd++ = ' ';
-		while(*vars != '\n')
-			*pCmd++ = *vars++;
-		*pCmd = '\0';
-		strcat(buffer, cmd);
-		factory_data_put(fd);
-		return 0;
-	}
-
-	return -1;
-}
-
 /* Modify bootargs and bootcmd*/
 static int boot_from_sd(char * bootstr, char *fstype)
 {
@@ -156,17 +122,6 @@ static int boot_from_sd(char * bootstr, char *fstype)
 		return ret;
 	}
 
-	strcpy(buffer, args);
-
-	if(build_memory_vars(buffer) == 0) {
-		setenv("bootargs_sd", buffer);
-		saveenv();
-		args = getenv("bootargs_sd");
-		if (!args) {
-			printf("get bootargs_sd failed!\n");
-			return ret;
-		}
-	}
 	if (!fstype) {
 		fstype = "nofs";
 	}
@@ -209,17 +164,6 @@ int boot_from_nand(void)
 		return ret;
 	}
 
-	strcpy(buffer,args);
-
-	if(build_memory_vars(buffer) == 0) {
-		setenv("bootargs", buffer);
-		saveenv();
-		args = getenv("bootargs");
-		if (!args) {
-			printf("get bootargs failed!\n");
-			return ret;
-		}
-	}
 	get_serial_no(str);
 
 	sprintf(buffer, "%s androidboot.serialno=%s",
