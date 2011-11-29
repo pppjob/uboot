@@ -635,24 +635,26 @@ static int nand_test(int argc, char *argv[])
 	/* at least three arguments please */
 	if (argc < 3)
 		return -1;
-
-	/* only support erase */
-	if (strcmp(argv[2], "erase") != 0)
-		return -1;
-
+       
+	/* only support erase & mtdoops*/
+        
 	memset(cmd, 0, sizeof(cmd));
 
-	len = strlen("nand erase-rd ");
-	strncpy(cmd, "nand erase-rd ", len);
-	count += len;
+	if (strcmp(argv[2], "erase") == 0){ 
+		strcat(cmd, "nand erase-rd ");      
+	}
+        else if (strcmp(argv[2], "mtdoops") == 0){
+		strcat(cmd,"nand mtdoops-rd ");
+      	}
+	else 
+	 	return -1;
 
 	for(i=3; i<argc; i++) {
-		len = strlen(argv[i]);
-		strncpy(&cmd[count], argv[i], len);
-		count += len;
-		cmd[count++] = ' ';
+                strcat(cmd, argv[i]);
+		strcat(cmd, " ");
 	}
-
+	
+        /* printf("run:%s\n",cmd); */
 	ret = run_command(cmd, 0);
 	if(ret < 0)
 		return -1;
@@ -712,5 +714,7 @@ U_BOOT_CMD(
 	"atest lcdbl [on/off] --- set lcdbacklight on/off\n"
 	"atest nand erase [clean] [off size] - erase 'size' bytes from\n"
 	"    offset 'off' (entire device if not specified)\n"
+        "atest nand mtdoops [page_NO(0~127)] [offset]"
+      
 );
 

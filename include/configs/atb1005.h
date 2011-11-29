@@ -136,6 +136,8 @@
 #define CONFIG_NAND_OOBSIZE		128
 #define CONFIG_NAND_ATXX
 #define CONFIG_NAND_FULL_HW
+#define MTDOOPS_OFFSET                  0x2000000
+
 
 /* Environment */
 #define CONFIG_ENV_IS_IN_NAND

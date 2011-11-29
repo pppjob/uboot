@@ -18,6 +18,7 @@
  */
 #include <common.h>
 #include <linux/mtd/mtd.h>
+#include <linux/ctype.h>
 
 #if defined(CONFIG_CMD_NAND)
 
@@ -293,7 +294,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	}
 
 	if (strcmp(cmd, "bad") != 0 && strcmp(cmd, "erase-rd") != 0 &&
-	    strncmp(cmd, "dump", 4) != 0 &&
+	    strncmp(cmd, "dump", 4) != 0 && strcmp(cmd, "mtdoops-rd") != 0 &&
 	    strncmp(cmd, "read", 4) != 0 && strncmp(cmd, "write", 5) != 0 &&
 	    strcmp(cmd, "scrub") != 0 && strcmp(cmd, "markbad") != 0 &&
 	    strcmp(cmd, "biterr") != 0 &&
@@ -383,6 +384,67 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 		return ret == 0 ? 1 : 0;
 
+	}
+
+         #define PAGE_LEN                 (4096 * 4)
+         #define MTDOOPS_KERNMSG_MAGIC    (('g' << 24) + ('o' << 16) + ('l' << 8) + ('k'))
+         #define MTDOOPS_BUFF_LEN         512
+         #define NEXT_LINE_ASCII_HEX      0x0a
+	
+        if( strcmp(cmd, "mtdoops-rd") == 0) {		
+                u_char buff[MTDOOPS_BUFF_LEN];              
+                size_t addr_start;
+                int page_no ;
+                int flash_offset = MTDOOPS_OFFSET ;
+
+                if(argc <3){
+		        int i = 0;
+                        int count[2];
+                        int len_int = 8;
+                        
+                        for(;i<128;++i){
+                                addr_start = flash_offset + PAGE_LEN * i;
+				nand_read_skip_bad(nand, addr_start, &len_int, (u_char *) count);
+				 if(count[1] == MTDOOPS_KERNMSG_MAGIC)
+				printf("page:%d,count:%d\n", i, count[0]);
+			}
+                        
+			return 0;
+                    
+		}
+                
+                if(argc == 4)
+			flash_offset = simple_strtoul(argv[3], NULL, 0);
+
+		page_no= simple_strtoul(argv[2], NULL, 0);
+            
+
+                if(page_no >= 0 && page_no <128){
+			addr_start = flash_offset + PAGE_LEN*page_no;
+		}else{
+			printf("page NO error!\n");
+                        return -1;
+		}
+ 
+		for(;addr_start < flash_offset + PAGE_LEN * (page_no + 1);addr_start += MTDOOPS_BUFF_LEN){
+                        int i = 0;
+                        size_t len = MTDOOPS_BUFF_LEN;
+                        int is_nextline = 0;
+			nand_read_skip_bad(nand, addr_start, &len, (u_char *)buff);
+		       
+                        for(;i < len; ++i){
+                                if(( isprint(buff[i]) && buff[i] < 0x80 ) || buff[i] == NEXT_LINE_ASCII_HEX)
+				   putc(buff[i]);
+				else{   
+                                        ++is_nextline;
+					printf("0x%02x ",buff[i]); 
+                                        if(is_nextline % 21 == 0)
+						putc('\n');
+				}
+			}
+                }
+                return 0;  
+		
 	}
 
 	if (strncmp(cmd, "read", 4) == 0 || strncmp(cmd, "write", 5) == 0) {
