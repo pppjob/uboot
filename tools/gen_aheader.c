@@ -17,7 +17,8 @@ typedef struct {
 	unsigned int		firm_size;
 	unsigned int		nand_offset;
 	unsigned int		image_type;	/* see below */
-	unsigned char		reserved[56];
+	unsigned char		board_name[16];
+	unsigned char		reserved[40];
 	unsigned char 		certificate[CERT_SIZE];
 	unsigned char 		signature[SIGE_SIZE];
 } atxx_image_header_t;
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
 	memset(&hd, 0, sizeof(hd));
 	hd.image_type = IH_TYPE_STANDALONE;
 
-	while((opt = getopt(argc, argv, "i:o:l:r:n:t:s:e:h")) != -1 ) {
+	while((opt = getopt(argc, argv, "i:o:b:l:r:n:t:s:e:h")) != -1 ) {
 		switch(opt) {
 		case 'i':
 			infile = optarg;
@@ -122,6 +123,10 @@ int main(int argc, char *argv[])
 		case 'e':
 			encryption = 1;
 			printf("encryption is enabled\n");
+			break;
+		case 'b':
+			strcpy(hd.board_name, optarg);
+			printf("board %s\n", hd.board_name);
 			break;
 		case 'h':
 		default:

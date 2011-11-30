@@ -33,6 +33,14 @@
 #define	DOWNLOAD_ADDR	(MDDR_BASE_ADDR + 16 * SZ_1M)
 #define	NANDBAK_ADDR	(MDDR_BASE_ADDR + 32 * SZ_1M)
 
+int check_image(atxx_image_header_t *head)
+{
+	/* compatible with old image */
+	if(head->board_name[0] == 0 )
+		return 0;
+	return strcmp(head->board_name, BOARD_NAME);
+}
+
 extern nand_erase_block(int offset, int size);
 int nand_erase_block(int offset, int size)
 {
@@ -56,6 +64,13 @@ static int image_to_nand(int addr, int size, int offset)
 	int ndbeg, ndsz;
 	int ret;
 	nand_info_t *nand = &nand_info[0];
+	atxx_image_header_t *head = (atxx_image_header_t *)DOWNLOAD_ADDR;
+
+	/* first do image check */
+	if(check_image(head) != 0) {
+		printf("the update image for %s not match with the board %s\n",head->board_name, BOARD_NAME);
+		return -1;
+	}
 
 	ndbeg = offset & ~(SZ_1M - 1);
 	ndsz = ((offset + size + SZ_1M - 1) & ~(SZ_1M - 1)) - ndbeg;
@@ -106,6 +121,9 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 		size = (head->firm_size + 512 + 4096) & ~4095;
 		ret = image_to_nand(addr, size, head->nand_offset);
+		if(ret != 0) {
+			return -1;
+		}
 
 	} else if (strcmp(argv[1], "sd") == 0) {
 		if (argc == 4) {
@@ -120,6 +138,9 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 			size = (head->firm_size + 512 + 4096) & ~4095;
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
+			if(ret != 0) {
+				return -1;
+			}
 
 		} else if (strcmp(argv[2], "uboot") == 0) {
 			sprintf(cmd, "fatload mmc 1 0x%08x uboot.img", DOWNLOAD_ADDR);
@@ -129,6 +150,9 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 			size = (head->firm_size + 512 + 4096) & ~4095;
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
+			if(ret != 0) {
+				return -1;
+			}
 
 		} else if (strcmp(argv[2], "system") == 0) {
 			sprintf(cmd, "aboot sd install %s", fstype);
@@ -146,14 +170,21 @@ int do_adownload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			}
 			size = (head->firm_size + 512 + 4096) & ~4095;
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
+			if(ret != 0) {
+				return -1;
+			}
 
 			/* uboot */
 			sprintf(cmd, "fatload mmc 1 0x%08x uboot.img", DOWNLOAD_ADDR);
 			if (run_command(cmd, 0)) {
 				return -1;
 			}
+
 			size = (head->firm_size + 512 + 4096) & ~4095;
 			ret = image_to_nand(DOWNLOAD_ADDR, size, head->nand_offset);
+			if(ret != 0) {
+				return -1;
+			}
 
 			/* run livesd install */
 			sprintf(cmd, "aboot sd install %s", fstype);
