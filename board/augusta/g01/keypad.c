@@ -28,6 +28,7 @@
 #include <asm/arch-atxx/regs_base.h>
 #include <asm/io.h>
 #include <asm/arch-atxx/io.h>
+#include <asm/arch-atxx/gpio.h>
 
 /* keypad registers */
 #define	KP_SET1_WR		(ATXX_KEYPAD_BASE + 0x80)
@@ -107,3 +108,15 @@ enum boot_mode keypad_detect(void)
 	return NAND_BOOT;
 }
 
+enum boot_mode testpoint_detect(void)
+{
+	if (atxx_request_gpio(GPIO_CAM_FLASH_EN) < 0) {
+		printf("Wrong gpio request!\n");
+		return NAND_BOOT;
+	}
+	atxx_set_gpio_direction(GPIO_CAM_FLASH_EN, 1);
+	if(atxx_gpio_get(GPIO_CAM_FLASH_EN))
+		return SD_PHONETEST;
+	else
+		return NAND_BOOT;
+}

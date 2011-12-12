@@ -24,4 +24,5 @@
 #define __KEYPAD_H
 int keypad_init(void);
 enum boot_mode keypad_detect(void);
+enum boot_mode testpoint_detect(void);
 #endif

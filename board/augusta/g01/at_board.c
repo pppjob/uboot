@@ -146,8 +146,7 @@ int do_abortboot(void)
 	}
 
 	/* Only support mmc detect if key already pressed to speed up the bootup for G01*/
-	mode = keypad_detect();
-	if (mode == SD_PHONETEST) {
+	if (SD_PHONETEST == keypad_detect() || SD_PHONETEST == testpoint_detect()) {
 		mode = mmc_detect();
 		if (mode != NAND_BOOT) {
 			goto non_nand_boot;
