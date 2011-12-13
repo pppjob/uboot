@@ -43,6 +43,8 @@ add Lcd_config
 #define	DEFAULTLCDNAME			"inno7dd"
 #elif   defined(CONFIG_BOARD_M70P)
 #define	DEFAULTLCDNAME			"inno7dd"
+#elif	defined(CONFIG_BOARD_A500)
+#define DEFAULTLCDNAME			"ili9486"
 #endif
 
 
@@ -58,14 +60,15 @@ enum LCDTYPE_ID
 	LCD_r61581,
 	LCD_sharpis035,
 	LCD_tm320,
-	LCD_max,	
+	LCD_ili9486,
+	LCD_max,
 };
 
 struct lcdattribe
 {
 	uint8_t		id;			//define id
 	uint32_t	readid;		//lcd factory id
-	const  char	*name;	
+	const  char	*name;
 	int (*pannel_set_ops)(struct atxxfb *atfb);
 	int (*pannel_set_power)(int on_off);
 	void (*pannel_set_refresh_rate)(struct clk *lcd_clk);
@@ -97,6 +100,10 @@ extern int pannel_set_ops_inno8d2(struct atxxfb *atfb);
 extern int pannel_set_power_inno8d2(int on_off);
 extern void pannel_set_refresh_rate_inno8d2(struct clk *lcd_clk);
 
+extern int pannel_set_ops_ili9486(struct atxxfb *atfb);
+extern int pannel_set_power_ili9486(int on_off);
+extern void pannel_set_refresh_rate_ili9486(struct clk *lcd_clk);
+
 extern vidinfo_t panel_info_rm68041;
 extern vidinfo_t panel_info_lms350df04;
 extern vidinfo_t panel_info_rm68040;
@@ -106,6 +113,7 @@ extern vidinfo_t panel_info_inno8d2;
 extern vidinfo_t panel_info_r61581;
 extern vidinfo_t panel_info_sharp_ls035;
 extern vidinfo_t panel_info_tm320;
+extern vidinfo_t panel_info_ili9486;
 
 
 extern int pannel_set_ops_r61581(struct atxxfb *atfb);

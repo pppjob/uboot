@@ -42,6 +42,7 @@ struct lcdattribe Lcdopstbl[]=
 {LCD_r61581,	0,"r61581",		   pannel_set_ops_r61581,		pannel_set_power_r61581,		pannel_set_refresh_rate_r61581},
 {LCD_sharpis035,0,"sharpis035",	   pannel_set_ops_sharp_ls035,	pannel_set_power_sharp_ls035,	pannel_set_refresh_rate_sharp_ls035},
 {LCD_tm320,		0,"tm320",	   	   pannel_set_ops_tm320,		pannel_set_power_tm320,		    pannel_set_refresh_rate_tm320},
+{LCD_ili9486,	0,"ili9486",       pannel_set_ops_ili9486,		pannel_set_power_ili9486,		 pannel_set_refresh_rate_ili9486},
 {LCD_max,		0,NULL,NULL,NULL,NULL},
 };
 
@@ -57,7 +58,7 @@ void FindLcdType(char *lcdname)
 	pcal_data = factory_data_get(FD_CONFIG);
 	if(pcal_data==NULL)
 		goto defaultset;
-	
+
 	dataaddress=pcal_data->fd_buf;
 	while(1)
 	{
@@ -161,6 +162,8 @@ static void SetPannelinfo(char *name)
 		case LCD_tm320:
 			panel_info=panel_info_tm320;
 			break;
+		case LCD_ili9486:
+			panel_info=panel_info_ili9486;
 		default:
 			break;
 	}

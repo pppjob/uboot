@@ -50,6 +50,8 @@
 #include "gbox_gpio.h"
 #elif   defined(CONFIG_BOARD_M70P)
 #include "m70p_gpio.h"
+#elif	defined(CONFIG_BOARD_A500)
+#include "a500_gpio.h"
 #else
 #error   "<board>_gpio.h is missing!"
 #endif
