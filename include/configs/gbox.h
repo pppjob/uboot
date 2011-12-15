@@ -140,7 +140,7 @@
 /* Environment */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x00400000	/* 4M ~ 2M */
-#define CONFIG_ENV_SIZE			4096		/* 4KB */
+#define CONFIG_ENV_SIZE			8192		/* 8KB */
 #define CONFIG_ENV_RANGE                0x00200000
 
 #define	CONFIG_UBOOT_LADDR		0x88007e00

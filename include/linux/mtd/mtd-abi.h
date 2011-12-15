@@ -111,7 +111,7 @@ struct nand_oobinfo {
 #if 0
 	uint32_t eccpos[48];
 #endif
-	uint32_t eccpos[256];
+	uint32_t eccpos[512];
 
 };
 
@@ -130,7 +130,7 @@ struct nand_ecclayout {
 #if 0 
 	uint32_t eccpos[64];
 #endif
-	uint32_t eccpos[256];
+	uint32_t eccpos[512];
 	uint32_t oobavail;
 	struct nand_oobfree oobfree[MTD_MAX_OOBFREE_ENTRIES];
 };

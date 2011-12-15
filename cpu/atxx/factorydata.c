@@ -43,8 +43,8 @@
 /* we allow the maximal bad size as 8MB */
 #define	FD_MTD_BADB_SIZE	(8 << 20)
 
-/* we allow the minimal page size as 4096 */
-#define	FD_MTD_MINP_SIZE	(4096)
+/* we allow the minimal page size as 8192 */
+#define	FD_MTD_MINP_SIZE	(8192)
 
 typedef struct factory_data_page {
 	char		magic[MAGIC_LENGTH];
