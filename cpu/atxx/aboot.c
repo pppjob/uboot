@@ -28,6 +28,7 @@
 #include <asm/arch-atxx/pm.h>
 #include <asm/arch-atxx/aboot.h>
 #include <asm/arch-atxx/factorydata.h>
+#include <asm/arch-atxx/adc.h>
 
 enum boot_mode hwcfg_detect(void)
 {
@@ -157,6 +158,7 @@ int boot_from_nand(void)
 	char *cmd, *args;
 	char buffer[CONFIG_SYS_CBSIZE];
 	char str[32];
+	int adc_value;
 
 	args = getenv("bootargs");
 	if (!args) {
@@ -165,9 +167,9 @@ int boot_from_nand(void)
 	}
 
 	get_serial_no(str);
+	adc_value = adc_get_aux(TSC_ADC_AUX1);
 
-	sprintf(buffer, "%s androidboot.serialno=%s",
-			args, str);
+	sprintf(buffer, "%s androidboot.serialno=%s adcvalue=%d", args, str, adc_value);
 
 	ret = setenv("bootargs", buffer);
 

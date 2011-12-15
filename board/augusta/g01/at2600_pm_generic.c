@@ -343,21 +343,13 @@ static int get_battery_voltage(void)
 {
 	int adc_value, voltage = 0, calibration_k, calibration_b;
 	factory_data_t *data;
-	char vars[CONFIG_SYS_CBSIZE] = {'\0'};
-	char adc_vars[CONFIG_SYS_CBSIZE] = {'\0'};
-	char *bootargs = getenv("bootargs");
 
 #if defined(CONFIG_PMU_ADC)
 	adc_value = adc_get_pmu();
 #else
 	adc_value = adc_get_aux(TSC_ADC_AUX1);
 #endif
-	if (bootargs != NULL) {
-		sprintf(adc_vars, " adcvalue=%d", adc_value);
-		strcpy(vars, bootargs);
-		strcat(vars, adc_vars);
-		setenv("bootargs", vars);
-	}
+
 	data = factory_data_get(FD_BATTERY);
 	if (data == NULL) {
 		voltage = -1;
