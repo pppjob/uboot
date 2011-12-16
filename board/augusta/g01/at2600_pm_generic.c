@@ -35,8 +35,9 @@
 #include "power_table.c"
 #include "clock_table.c"
 
-#define AT2600_PM_ID		0x1
-#define AT2600_PM_ADDR		0x70
+#define AT2600_PM_ID				0x1
+#define AT2600_PM_ADDR				0x70
+#define BATTERY_TABLE_COUNT			10
 
 #ifdef DEBUG
 #define DPRINTF printf
@@ -373,8 +374,31 @@ extern const int logo_height;
 
 void battery_check(void)
 {
-	int voltage;
+	int ret = -1;
+	char battery_table[256];
+	char *p = NULL;
 	u8 reg_val;
+	int voltage;
+	int voltage_low_limit = 3640;
+	int offset = 100;
+	int count = 0;
+
+	memset(battery_table, 0, sizeof(battery_table));
+	ret = get_product_parameter("nocharger_table", battery_table, &count);
+	if(ret < 0 || count != BATTERY_TABLE_COUNT) {
+		voltage_low_limit = 3640;
+		printf("no nocharger table!\n");
+	} else {
+		p = battery_table;
+		while(*p == ' ')
+			p++;
+	
+		voltage_low_limit = simple_strtoull(p, &p, 0);
+	}
+
+	/* make sure battery have enough power */
+	voltage = get_battery_voltage();
+	printf ("Battery voltage: %d, voltage_low_limit:%d \n", voltage, voltage_low_limit);
 
 	/* usb charger is connected */
 	at2600_pm_read_reg (AT2600_PM_REG_OOCS, &reg_val);
@@ -385,12 +409,8 @@ void battery_check(void)
 		reg_val = 0x78;
 		at2600_pm_write_reg (AT2600_PM_REG_CBCC1, reg_val);
 
-		/* make sure battery have enough power */
-		voltage = get_battery_voltage();
-		printf ("Battery voltage: %d.\n", voltage);
-
-		/* 3500 + 500mA*0.2(inner resistance) */
-		if((voltage != -1) && (voltage < 3600)) {
+		/* offset: 500mA*0.2(inner resistance) */
+		if((voltage != -1) && (voltage < voltage_low_limit - offset)) {
 			lcd_show_logo(logo_width, logo_height, logo_data_chager);
 			mdelay(100);
 			
@@ -404,7 +424,7 @@ void battery_check(void)
 			at2600_pm_ldo_power_supply(S1V2C1_DOUT_1V1, PS_ON, AT2600_PM_REG_S1V2C1);
 			mdelay(10);
 
-			while(voltage < 3680) {
+			while(voltage < voltage_low_limit) {
 				mdelay(2000);
 				voltage = get_battery_voltage();
 				printf ("Battery voltage: %d.\n", voltage);
@@ -441,11 +461,7 @@ void battery_check(void)
 		
 		return;
 	} else {
-		/* make sure battery have enough power */
-		voltage = get_battery_voltage();
-		printf("Battery voltage: %d.\n", voltage);
-
-		if ((voltage != -1) && (voltage < 3660)) {
+		if ((voltage != -1) && (voltage <= voltage_low_limit)) {
 			printf ("Battery too low, power off!\n");
 
 			at2600_pm_read_reg (AT2600_PM_REG_OOCC1, &reg_val);

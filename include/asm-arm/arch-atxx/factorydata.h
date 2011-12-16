@@ -89,4 +89,7 @@ int		factory_data_clearall(void);
 /* this fucttion is to prevent from out-of-range of data buf */
 int		factory_data_get_max_buf_len(void);
 
+/* get product config parameter by name */
+int get_product_parameter(char *name, char *para, int *count);
+
 #endif

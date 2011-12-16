@@ -35,8 +35,9 @@
 #include "at2600_pm_generic.h"
 #include "power_table.c"
 
-#define AT2600_PM_ID		0x1
-#define AT2600_PM_ADDR		0x70
+#define AT2600_PM_ID                0x1
+#define AT2600_PM_ADDR              0x70
+#define BATTERY_TABLE_COUNT         10
 
 #define ATXX_LCD_VBASE		0X3FEF0000
 #define rLCDCTL24		(24 * 4)
@@ -372,18 +373,37 @@ static int get_battery_voltage(void)
 
 void battery_check(void)
 {
-	int voltage;
+	int ret = -1;
+	char battery_table[256];
+	char *p = NULL;
 	u8 reg_val;
+	int voltage;
+	int voltage_low_limit = 3645;
+	int count = 0;
 
 	atxx_request_gpio(GPIO_VCHG_DET);
 	atxx_set_gpio_direction(GPIO_VCHG_DET, 1);
 
-	voltage = get_battery_voltage();
-	printf ("Battery voltage: %d.\n", voltage);
 	/* charger is not connected */
 	if (!atxx_gpio_get(GPIO_VCHG_DET)) {
 		/* make sure battery have enough power */
-		if ((voltage != -1) && (voltage <= 3620)) {
+		memset(battery_table, 0, sizeof(battery_table));
+		ret = get_product_parameter("nocharger_table", battery_table, &count);
+		if(ret < 0 || count != BATTERY_TABLE_COUNT) {
+			voltage_low_limit = 3645;
+			printf("no nocharger table!\n");
+		} else {
+			p = battery_table;
+			while(*p == ' ')
+				p++;
+
+			voltage_low_limit = simple_strtoull(p, &p, 0);
+		}
+		
+		voltage = get_battery_voltage();
+		printf ("Battery voltage: %d, voltage_low_limit:%d \n", voltage, voltage_low_limit);
+
+		if ((voltage != -1) && (voltage <= voltage_low_limit)) {
 			printf ("Battery too low, power off!\n");
 
 			at2600_pm_read_reg (AT2600_PM_REG_OOCC1, &reg_val);

@@ -335,3 +335,47 @@ int factory_data_get_max_buf_len(void)
 	return FD_PAGE_SIZE(nand) - sizeof(factory_data_page_t);
 }
 
+int get_product_parameter(char *name, char *para, int *count)
+{
+	factory_data_t *fd;
+	char *p = NULL;
+	char *para_bk = NULL;
+	int temp = 0;
+
+	if((fd = factory_data_get(FD_CONFIG)) == NULL)
+		return -1;
+	
+	if(strstr(fd->fd_buf, name) == NULL)
+		goto fail;
+
+	para_bk = para;
+	p = strstr(fd->fd_buf, name) + strlen(name);
+	while(*p != '\n' && *p != '\0')
+		*para++ = *p++;
+	*para = '\0';
+
+	/* make sure separate by space! */
+	if(count) {
+		p = para_bk;
+		while(*p != '\0') {
+			while(*p == ' ')
+				p++;
+
+			while(*p != ' ' && *p != '\0')
+				p++;
+
+			temp++;
+		}
+		*count = temp;
+	}
+
+	factory_data_put(fd);
+	return 0;
+
+fail:
+	
+	factory_data_put(fd);
+	return -1;
+}
+
+
