@@ -271,6 +271,11 @@ void power_on_detect (void)
 		pm_write_reg(SWCFGR, swcfg);
 		return;
 	}
+	
+	/* disable pmu watchdog */
+	at2600_pm_read_reg (AT2600_PM_REG_OOCC1, &reg_val);
+	reg_val |= AT2600_PM_OOCC1_WD_STOP;
+	at2600_pm_write_reg (AT2600_PM_REG_OOCC1, reg_val);
 
 	/* set uvlo threshold to 2.7v */
 	at2600_pm_read_reg (AT2600_PM_REG_PWREN_UVLO, &reg_val);

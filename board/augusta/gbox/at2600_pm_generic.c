@@ -285,6 +285,11 @@ void power_on_detect (void)
 		return;
 	}
 
+	/* disable pmu watchdog */
+	at2600_pm_read_reg (AT2600_PM_REG_OOCC1, &reg_val);
+	reg_val |= AT2600_PM_OOCC1_WD_STOP;
+	at2600_pm_write_reg (AT2600_PM_REG_OOCC1, reg_val);
+
 	/* power on if usb charger is connected */
 	at2600_pm_read_reg (AT2600_PM_REG_OOCS, &reg_val);
 	if (reg_val & 0x20) {
