@@ -45,6 +45,8 @@ add Lcd_config
 #define	DEFAULTLCDNAME			"inno7dd"
 #elif	defined(CONFIG_BOARD_A500)
 #define DEFAULTLCDNAME			"ili9486"
+#elif	defined(CONFIG_BOARD_S9L)
+#define DEFAULTLCDNAME			"ssd2805c"
 #endif
 
 
@@ -61,6 +63,7 @@ enum LCDTYPE_ID
 	LCD_sharpis035,
 	LCD_tm320,
 	LCD_ili9486,
+	LCD_ssd2805c,
 	LCD_max,
 };
 
@@ -104,6 +107,10 @@ extern int pannel_set_ops_ili9486(struct atxxfb *atfb);
 extern int pannel_set_power_ili9486(int on_off);
 extern void pannel_set_refresh_rate_ili9486(struct clk *lcd_clk);
 
+extern int pannel_set_ops_ssd2805c(struct atxxfb *atfb);
+extern int pannel_set_power_ssd2805c(int on_off);
+extern void pannel_set_refresh_rate_ssd2805c(struct clk *lcd_clk);
+
 extern vidinfo_t panel_info_rm68041;
 extern vidinfo_t panel_info_lms350df04;
 extern vidinfo_t panel_info_rm68040;
@@ -114,6 +121,7 @@ extern vidinfo_t panel_info_r61581;
 extern vidinfo_t panel_info_sharp_ls035;
 extern vidinfo_t panel_info_tm320;
 extern vidinfo_t panel_info_ili9486;
+extern vidinfo_t panel_info_ssd2805c;
 
 
 extern int pannel_set_ops_r61581(struct atxxfb *atfb);

@@ -31,6 +31,7 @@
 #include <asm/arch-atxx/regs_base.h>
 #include <asm-arm/arch-atxx/pmu.h>
 #include <asm-arm/arch-atxx/topctl.h>
+#include <asm-arm/arch-atxx/gpio.h>
 
 #include "atxxfb.h"
 
@@ -253,7 +254,13 @@ static void mlcd_general_setting(void)
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_HSYNC_POL);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_VSYNC_POL);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_RHSCAN);
+	#ifdef CONFIG_BOARD_S9L
+	atxxfb_ctl_set_bit(0, CTL0_BIT_MLCD_RHSCAN);//rotate 180 h
+	#endif
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_RVSCAN);
+	#ifdef CONFIG_BOARD_S9L
+	atxxfb_ctl_set_bit(0, CTL0_BIT_MLCD_RVSCAN);//rotate 180 v
+	#endif
 	atxxfb_ctl_set_bit(0, CTL0_BIT_MLCD_MODE);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_ACTIVE_LCD);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_INTSEL);
@@ -717,11 +724,32 @@ void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
 
 void lcd_ctrl_init(void *lcdbase)
 {
-	int bpp;
+	int bpp,ret;
 	uint32_t psize;
 
-	pannel_set_power(1);
+	#ifdef CONFIG_BOARD_S9L
+	ret = atxx_request_gpio(GPIO_LCD_PWR_ON);
+	if (ret) {
+		printf("Failed to request gpio GPIO_LCD_PWR_ON  %d!\n", ret);
+		return;
+	}
+	ret = atxx_request_gpio(GPIO_LCD_PWD);
+	if (ret) {
+			printf("Failed to request gpio GPIO_LCD_PWD  %d!\n", ret);
+			return;
+	}
 
+	atxx_set_gpio_direction(GPIO_LCD_PWR_ON,0);
+	atxx_gpio_set(GPIO_LCD_PWR_ON, 1);
+
+	atxx_set_gpio_direction(GPIO_LCD_PWD,0);
+	atxx_gpio_set(GPIO_LCD_PWD, 1);
+	mdelay(10);
+
+	printf(" GPIO_LCD_PWR_ON = %d pull up --------\n",GPIO_LCD_PWR_ON);
+	#else
+	pannel_set_power(1);
+	#endif
 	fbinfo.par = &atfb;
 	atfb.fb = &fbinfo;
 

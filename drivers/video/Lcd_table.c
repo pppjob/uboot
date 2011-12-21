@@ -43,6 +43,7 @@ struct lcdattribe Lcdopstbl[]=
 {LCD_sharpis035,0,"sharpis035",	   pannel_set_ops_sharp_ls035,	pannel_set_power_sharp_ls035,	pannel_set_refresh_rate_sharp_ls035},
 {LCD_tm320,		0,"tm320",	   	   pannel_set_ops_tm320,		pannel_set_power_tm320,		    pannel_set_refresh_rate_tm320},
 {LCD_ili9486,	0,"ili9486",       pannel_set_ops_ili9486,		pannel_set_power_ili9486,		 pannel_set_refresh_rate_ili9486},
+{LCD_ssd2805c,	0, "ssd2805c",	   pannel_set_ops_ssd2805c,		pannel_set_power_ssd2805c,		pannel_set_refresh_rate_ssd2805c},
 {LCD_max,		0,NULL,NULL,NULL,NULL},
 };
 
@@ -164,6 +165,9 @@ static void SetPannelinfo(char *name)
 			break;
 		case LCD_ili9486:
 			panel_info=panel_info_ili9486;
+		case LCD_ssd2805c:
+			panel_info=panel_info_ssd2805c;
+			break;
 		default:
 			break;
 	}
