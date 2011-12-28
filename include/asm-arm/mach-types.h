@@ -2421,7 +2421,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_M70P                 8107
 #define MACH_TYPE_A500                 8108
 #define MACH_TYPE_S9L                  8109
-
+#define MACH_TYPE_G23D                 8110
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type

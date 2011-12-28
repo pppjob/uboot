@@ -3758,7 +3758,11 @@ a500_config : unconfig
 	@$(MKCONFIG) $(@:_config=) arm atxx a500 augusta at7700b0
 	
 s9l_config : unconfig
-	@$(MKCONFIG) $(@:_config=) arm atxx s9l augusta at7700b0	
+	@$(MKCONFIG) $(@:_config=) arm atxx s9l augusta at7700b0
+
+g23d_config : unconfig
+	@$(MKCONFIG) $(@:_config=) arm atxx g23d augusta at7700b0
+	
 #########################################################################
 #########################################################################
 #########################################################################

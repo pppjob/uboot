@@ -254,13 +254,13 @@ static void mlcd_general_setting(void)
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_HSYNC_POL);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_VSYNC_POL);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_RHSCAN);
-	#ifdef CONFIG_BOARD_S9L
+#if defined(CONFIG_BOARD_S9L)||defined(CONFIG_BOARD_G23D)
 	atxxfb_ctl_set_bit(0, CTL0_BIT_MLCD_RHSCAN);//rotate 180 h
-	#endif
+#endif
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_RVSCAN);
-	#ifdef CONFIG_BOARD_S9L
+#if defined(CONFIG_BOARD_S9L)||defined(CONFIG_BOARD_G23D)
 	atxxfb_ctl_set_bit(0, CTL0_BIT_MLCD_RVSCAN);//rotate 180 v
-	#endif
+#endif
 	atxxfb_ctl_set_bit(0, CTL0_BIT_MLCD_MODE);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_ACTIVE_LCD);
 	atxxfb_ctl_clear_bit(0, CTL0_BIT_MLCD_INTSEL);
@@ -762,8 +762,15 @@ void lcd_ctrl_init(void *lcdbase)
 
 	pannel_set_refresh_rate(atfb.lcd_clk);
 
+#ifdef CONFIG_BOARD_G23D
+	mdelay(200);
+#endif
+
 	/* power on mlcd */
 	mlcd_power_on_off(MLCD_POWER_ON);
+#ifdef CONFIG_BOARD_G23D
+	mdelay(300);
+#endif
 
 	atfb.spi_8bits_cmd = spi_8bits_cmd;
 	atfb.spi_9bits_cmd = spi_9bits_cmd;

@@ -54,6 +54,8 @@
 #include "a500_gpio.h"
 #elif	defined(CONFIG_BOARD_S9L)
 #include "s9l_gpio.h"
+#elif	defined(CONFIG_BOARD_G23D)
+#include "g23d_gpio.h"
 #else
 #error   "<board>_gpio.h is missing!"
 #endif
