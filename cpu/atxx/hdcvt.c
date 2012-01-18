@@ -47,7 +47,7 @@ void ahd_to_uhd(atxx_image_header_t *ahd, void *body, image_header_t *uhd)
 	image_set_arch(hdr, IH_ARCH_ARM);
 	image_set_type(hdr, ahd->image_type);
 	image_set_comp(hdr, IH_COMP_NONE);
-	image_set_name(hdr, "Linux-2.6.32.9");
+	image_set_name(hdr, ahd->image_name);
 
 	checksum = crc32(0, (void *)hdr, sizeof(image_header_t));
 	image_set_hcrc(hdr, checksum);

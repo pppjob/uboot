@@ -18,7 +18,8 @@ typedef struct {
 	unsigned int		nand_offset;
 	unsigned int		image_type;	/* see below */
 	unsigned char		board_name[16];
-	unsigned char		reserved[40];
+	unsigned char		image_name[32];
+	unsigned char		reserved[8];
 	unsigned char 		certificate[CERT_SIZE];
 	unsigned char 		signature[SIGE_SIZE];
 } atxx_image_header_t;
@@ -39,13 +40,15 @@ static void usage(void)
 	printf("\n");
 	printf( "Usage: makeboot -i <infile> -o <outfile>\n"
 		"	-l <load_address> -r <run_address> -n <nand_offset>\n"
-		"	[-t image_type] [-s] [-e]\n\n");
+		"	[-t image_type] -b <board_name> [-m image_name] [-s] [-e]\n\n");
 	printf("	-i: assign input file name\n");
 	printf("	-o: assign output file name\n");
 	printf("	-l: assign address to load\n");
 	printf("	-r: assign address to run\n");
 	printf("	-n: assign nand offset to store\n");
 	printf("	-t: assign the image type: 1 -- standalone, 2 -- kernel, 3 -- ramdisk\n");
+	printf("	-b: assign board name\n");
+	printf("	-m: assign image name\n");
 	printf("	-s: enable security\n");
 	printf("	-e: enable encryption\n");
 	printf("\n");
@@ -85,7 +88,7 @@ int main(int argc, char *argv[])
 	memset(&hd, 0, sizeof(hd));
 	hd.image_type = IH_TYPE_STANDALONE;
 
-	while((opt = getopt(argc, argv, "i:o:b:l:r:n:t:s:e:h")) != -1 ) {
+	while((opt = getopt(argc, argv, "i:o:b:l:r:n:t:s:e:h:m:")) != -1 ) {
 		switch(opt) {
 		case 'i':
 			infile = optarg;
@@ -126,7 +129,12 @@ int main(int argc, char *argv[])
 			break;
 		case 'b':
 			strcpy(hd.board_name, optarg);
-			printf("board %s\n", hd.board_name);
+			printf("board_name = %s\n", hd.board_name);
+			args++;
+			break;
+		case 'm':
+			strcpy(hd.image_name, optarg);
+			printf("image_name = %s\n", hd.image_name);
 			break;
 		case 'h':
 		default:
@@ -134,7 +142,6 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 	}
-
 	if (args < 5) {
 		usage();
 		return -1;

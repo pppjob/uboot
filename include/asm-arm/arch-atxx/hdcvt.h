@@ -35,7 +35,8 @@ typedef struct atxx_image_header {
 	unsigned int		nand_offset;
 	unsigned int		image_type;
 	unsigned char		board_name[16];
-	unsigned char		reserved[40];
+	unsigned char		image_name[32];
+	unsigned char		reserved[8];
 	unsigned char 		certificate[CERT_SIZE];
 	unsigned char 		signature[SIGE_SIZE];
 } atxx_image_header_t;
