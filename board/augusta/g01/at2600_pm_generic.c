@@ -373,10 +373,6 @@ static int get_battery_voltage(void)
 	return voltage;
 }
 
-extern const unsigned short logo_data_chager[];
-extern const int logo_width;
-extern const int logo_height;
-
 void battery_check(void)
 {
 	int ret = -1;
@@ -416,7 +412,6 @@ void battery_check(void)
 
 		/* offset: 500mA*0.2(inner resistance) */
 		if((voltage != -1) && (voltage < voltage_low_limit - offset)) {
-			lcd_show_logo(logo_width, logo_height, logo_data_chager);
 			mdelay(100);
 			
 			set_board_default_clock(pll_setting, div_setting_low, PLL_DEFSET_COUNT, DIV_DEFSET_COUNT);
